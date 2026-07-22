@@ -23,15 +23,15 @@
       <tbody>
         @for (precio of precios; track precio.id) {
           <tr>
-            <td>{{ precio.id }}</td>
-            <td>{{ precio.concepto }}</td>
-            <td class="monto">${{ precio.monto | number }}</td>
-            <td>
+            <td data-label="ID">{{ precio.id }}</td>
+            <td data-label="Concepto">{{ precio.concepto }}</td>
+            <td class="monto" data-label="Monto">${{ precio.monto | number }}</td>
+            <td data-label="Tipo">
               <span class="badge" [class]="'badge-' + precio.tipo">
                 {{ precio.tipo | titlecase }}
               </span>
             </td>
-            <td class="actions">
+            <td class="actions" data-label="Acciones">
               <button class="btn-icon btn-edit" (click)="openEditModal(precio)" title="Editar">
                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                   <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>

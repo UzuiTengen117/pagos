@@ -56,21 +56,21 @@
       <tbody>
         @for (alumno of alumnos; track alumno.id) {
           <tr>
-            <td>{{ alumno.id }}</td>
-            <td>{{ alumno.nombre }}</td>
-            <td>{{ alumno.primerApellido }}</td>
-            <td>{{ alumno.segundoApellido }}</td>
-            <td><span class="username-badge">{{ alumno.username }}</span></td>
-            <td>{{ alumno.email }}</td>
-            <td>{{ alumno.telefono }}</td>
-            <td>
+            <td data-label="ID">{{ alumno.id }}</td>
+            <td data-label="Nombre">{{ alumno.nombre }}</td>
+            <td data-label="Primer Apellido">{{ alumno.primerApellido }}</td>
+            <td data-label="Segundo Apellido">{{ alumno.segundoApellido }}</td>
+            <td data-label="Usuario"><span class="username-badge">{{ alumno.username }}</span></td>
+            <td data-label="Email">{{ alumno.email }}</td>
+            <td data-label="Teléfono">{{ alumno.telefono }}</td>
+            <td data-label="Beca">
               @if (alumno.beca > 0) {
                 <span class="badge badge-beca">{{ alumno.beca }}%</span>
               } @else {
                 <span class="badge badge-none">Sin beca</span>
               }
             </td>
-            <td class="actions">
+            <td class="actions" data-label="Acciones">
               <button class="btn-icon btn-edit" (click)="openEditModal(alumno)" title="Editar">
                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                   <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>

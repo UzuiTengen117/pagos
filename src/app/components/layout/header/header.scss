@@ -34,4 +34,16 @@
     color: #1e1b4b;
     margin: 0;
   }
+
+  @media (max-width: 480px) {
+    padding: 0 1rem;
+    height: 56px;
+
+    .page-title {
+      font-size: 1rem;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+  }
 }

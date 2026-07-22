@@ -1,7 +1,10 @@
 @if (showLayout()) {
   <div class="app-layout">
+    @if (sidebarOpen()) {
+      <div class="sidebar-overlay" (click)="closeSidebar()"></div>
+    }
     <app-sidebar [sidebarOpen]="sidebarOpen()" (closeSidebar)="closeSidebar()" />
-    <div class="main-wrapper" [class.sidebar-open]="sidebarOpen()">
+    <div class="main-wrapper">
       <app-header [pageTitle]="pageTitle()" (toggleSidebar)="toggleSidebar()" />
       <main class="content">
         <router-outlet />

@@ -35,12 +35,12 @@
       <tbody>
         @for (pago of misPagos; track pago.id) {
           <tr>
-            <td>{{ pago.concepto }}</td>
-            <td class="monto">${{ pago.monto | number }}</td>
-            <td>{{ pago.fechaPago | date:'dd/MM/yyyy' }}</td>
-            <td>{{ pago.semana }}</td>
-            <td>{{ pago.mes }}</td>
-            <td>
+            <td data-label="Concepto">{{ pago.concepto }}</td>
+            <td class="monto" data-label="Monto">${{ pago.monto | number }}</td>
+            <td data-label="Fecha">{{ pago.fechaPago | date:'dd/MM/yyyy' }}</td>
+            <td data-label="Semana">{{ pago.semana }}</td>
+            <td data-label="Mes">{{ pago.mes }}</td>
+            <td data-label="Estado">
               <span class="status-badge" [class]="'status-' + pago.estado">
                 {{ pago.estado | titlecase }}
               </span>

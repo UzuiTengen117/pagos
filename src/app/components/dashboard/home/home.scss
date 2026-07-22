@@ -1,5 +1,9 @@
 .dashboard {
   padding: 1.5rem;
+
+  @media (max-width: 480px) {
+    padding: 1rem;
+  }
 }
 
 .welcome-banner {
@@ -14,12 +18,21 @@
       font-size: 1.5rem;
       font-weight: 700;
       margin: 0 0 0.5rem;
+
+      @media (max-width: 480px) {
+        font-size: 1.2rem;
+      }
     }
 
     p {
       margin: 0;
       opacity: 0.9;
     }
+  }
+
+  @media (max-width: 480px) {
+    padding: 1.25rem;
+    border-radius: 12px;
   }
 }
 
@@ -136,6 +149,11 @@
   grid-template-columns: 100px 1fr 80px;
   align-items: center;
   gap: 0.75rem;
+
+  @media (max-width: 480px) {
+    grid-template-columns: 80px 1fr 70px;
+    gap: 0.5rem;
+  }
 
   .bar-label {
     font-size: 0.8rem;
