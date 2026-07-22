@@ -1,0 +1,37 @@
+.main-header {
+  height: 64px;
+  background: white;
+  border-bottom: 1px solid #e5e7eb;
+  display: flex;
+  align-items: center;
+  padding: 0 1.5rem;
+  gap: 1rem;
+  position: sticky;
+  top: 0;
+  z-index: 50;
+
+  .menu-toggle {
+    display: none;
+    background: none;
+    border: none;
+    color: #374151;
+    cursor: pointer;
+    padding: 0.5rem;
+    border-radius: 8px;
+
+    &:hover {
+      background: #f3f4f6;
+    }
+
+    @media (max-width: 768px) {
+      display: flex;
+    }
+  }
+
+  .page-title {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: #1e1b4b;
+    margin: 0;
+  }
+}

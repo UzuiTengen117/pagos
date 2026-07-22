@@ -1,0 +1,134 @@
+<div class="page-container">
+  <div class="page-header">
+    <h2>Becas</h2>
+    <button class="btn btn-primary" (click)="openCreateModal()">
+      <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+      </svg>
+      Agregar Nuevo Tipo de Beca
+    </button>
+  </div>
+
+  <div class="table-card">
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Nombre</th>
+          <th>Porcentaje</th>
+          <th>Descripción</th>
+          <th>Estado</th>
+          <th>Acciones</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (beca of becas; track beca.id) {
+          <tr>
+            <td>{{ beca.id }}</td>
+            <td>{{ beca.nombre }}</td>
+            <td>
+              <span class="porcentaje-badge">{{ beca.porcentaje }}%</span>
+            </td>
+            <td>{{ beca.descripcion }}</td>
+            <td>
+              <span class="status-badge" [class.active]="beca.activa" [class.inactive]="!beca.activa">
+                {{ beca.activa ? 'Activa' : 'Inactiva' }}
+              </span>
+            </td>
+            <td class="actions">
+              <button class="btn-icon btn-edit" (click)="openEditModal(beca)" title="Editar">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                </svg>
+              </button>
+              <button class="btn-icon btn-delete" (click)="openDeleteModal(beca)" title="Eliminar">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <polyline points="3,6 5,6 21,6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+                </svg>
+              </button>
+            </td>
+          </tr>
+        } @empty {
+          <tr>
+            <td colspan="6" class="empty-state">No hay becas registradas</td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+</div>
+
+@if (showModal) {
+  <div class="modal-overlay" (click)="closeModal()">
+    <div class="modal modal-sm" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h3>{{ isEditing ? 'Editar Beca' : 'Agregar Nuevo Tipo de Beca' }}</h3>
+        <button class="btn-close" (click)="closeModal()">
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+          </svg>
+        </button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label>Nombre de la Beca</label>
+          <input type="text" [(ngModel)]="formData.nombre" placeholder="Ej: Beca Académica" />
+        </div>
+        <div class="form-row two-col">
+          <div class="form-group">
+            <label>Porcentaje (%)</label>
+            <select [(ngModel)]="formData.porcentaje">
+              <option [value]="25">25%</option>
+              <option [value]="50">50%</option>
+              <option [value]="75">75%</option>
+              <option [value]="100">100%</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Estado</label>
+            <select [(ngModel)]="formData.activa">
+              <option [value]="true">Activa</option>
+              <option [value]="false">Inactiva</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Descripción</label>
+          <textarea [(ngModel)]="formData.descripcion" placeholder="Descripción de la beca" rows="3"></textarea>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" (click)="closeModal()">Cancelar</button>
+        <button class="btn btn-primary" (click)="saveBeca()">{{ isEditing ? 'Guardar Cambios' : 'Agregar Beca' }}</button>
+      </div>
+    </div>
+  </div>
+}
+
+@if (showDeleteModal) {
+  <div class="modal-overlay" (click)="closeDeleteModal()">
+    <div class="modal modal-sm" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h3>Confirmar Eliminación</h3>
+        <button class="btn-close" (click)="closeDeleteModal()">
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+          </svg>
+        </button>
+      </div>
+      <div class="modal-body">
+        <div class="delete-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>
+          </svg>
+        </div>
+        <p>¿Estás seguro de que deseas eliminar la beca <strong>{{ becaToDelete?.nombre }}</strong>?</p>
+        <p class="warning-text">Esta acción no se puede deshacer.</p>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" (click)="closeDeleteModal()">Cancelar</button>
+        <button class="btn btn-danger" (click)="deleteBeca()">Eliminar</button>
+      </div>
+    </div>
+  </div>
+}

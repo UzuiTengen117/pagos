@@ -1,0 +1,146 @@
+.dashboard {
+  padding: 1.5rem;
+}
+
+.welcome-banner {
+  background: linear-gradient(135deg, #4f46e5, #7c3aed);
+  border-radius: 16px;
+  padding: 2rem;
+  color: white;
+  margin-bottom: 1.5rem;
+
+  .welcome-text {
+    h2 {
+      font-size: 1.5rem;
+      font-weight: 700;
+      margin: 0 0 0.5rem;
+    }
+    p {
+      margin: 0;
+      opacity: 0.9;
+    }
+  }
+}
+
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+
+  @media (max-width: 1024px) {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  @media (max-width: 480px) {
+    grid-template-columns: 1fr;
+  }
+}
+
+.stat-card {
+  background: white;
+  border-radius: 14px;
+  padding: 1.25rem;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+  border-left: 4px solid transparent;
+
+  &.stat-blue { border-left-color: #3b82f6; }
+  &.stat-green { border-left-color: #22c55e; }
+  &.stat-yellow { border-left-color: #eab308; }
+  &.stat-red { border-left-color: #ef4444; }
+
+  .stat-icon {
+    width: 56px;
+    height: 56px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+
+  &.stat-blue .stat-icon { background: #eff6ff; color: #3b82f6; }
+  &.stat-green .stat-icon { background: #f0fdf4; color: #22c55e; }
+  &.stat-yellow .stat-icon { background: #fefce8; color: #eab308; }
+  &.stat-red .stat-icon { background: #fef2f2; color: #ef4444; }
+
+  .stat-content {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .stat-label {
+    font-size: 0.8rem;
+    color: #6b7280;
+    font-weight: 500;
+  }
+
+  .stat-value {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #1e1b4b;
+  }
+}
+
+.chart-card {
+  background: white;
+  border-radius: 14px;
+  padding: 1.5rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+
+  h3 {
+    font-size: 1rem;
+    font-weight: 700;
+    color: #1e1b4b;
+    margin: 0 0 1.25rem;
+  }
+}
+
+.empty-chart {
+  text-align: center;
+  color: #94a3b8;
+  font-style: italic;
+  padding: 2rem;
+}
+
+.bar-chart {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.bar-item {
+  display: grid;
+  grid-template-columns: 100px 1fr 100px;
+  align-items: center;
+  gap: 0.75rem;
+
+  .bar-label {
+    font-size: 0.8rem;
+    color: #6b7280;
+    font-weight: 500;
+  }
+
+  .bar-track {
+    height: 24px;
+    background: #f3f4f6;
+    border-radius: 6px;
+    overflow: hidden;
+  }
+
+  .bar-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #6366f1, #818cf8);
+    border-radius: 6px;
+    transition: width 0.5s ease;
+  }
+
+  .bar-value {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: #374151;
+    text-align: right;
+  }
+}

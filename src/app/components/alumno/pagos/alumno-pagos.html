@@ -1,0 +1,57 @@
+<div class="page-container">
+  <div class="page-header">
+    <h2>Mis Pagos</h2>
+  </div>
+
+  <div class="filters-bar">
+    <div class="filter-group">
+      <label>Fecha inicio</label>
+      <input type="date" [(ngModel)]="filtroFechaInicio" (change)="limpiarFiltros()" />
+    </div>
+    <div class="filter-group">
+      <label>Fecha fin</label>
+      <input type="date" [(ngModel)]="filtroFechaFin" (change)="limpiarFiltros()" />
+    </div>
+    <button class="btn btn-secondary" (click)="limpiarFiltros()">
+      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <polyline points="1,4 1,10 7,10"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/>
+      </svg>
+      Limpiar
+    </button>
+  </div>
+
+  <div class="table-card">
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>Concepto</th>
+          <th>Monto</th>
+          <th>Fecha</th>
+          <th>Semana</th>
+          <th>Mes</th>
+          <th>Estado</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (pago of misPagos; track pago.id) {
+          <tr>
+            <td>{{ pago.concepto }}</td>
+            <td class="monto">${{ pago.monto | number }}</td>
+            <td>{{ pago.fechaPago | date:'dd/MM/yyyy' }}</td>
+            <td>{{ pago.semana }}</td>
+            <td>{{ pago.mes }}</td>
+            <td>
+              <span class="status-badge" [class]="'status-' + pago.estado">
+                {{ pago.estado | titlecase }}
+              </span>
+            </td>
+          </tr>
+        } @empty {
+          <tr>
+            <td colspan="6" class="empty-state">No tienes pagos registrados</td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+</div>

@@ -1,0 +1,231 @@
+<div class="page-container">
+  <div class="page-header">
+    <h2>Comprobantes de Pago</h2>
+    <button class="btn btn-primary" (click)="openCreateModal()">
+      <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+      </svg>
+      Generar Comprobante
+    </button>
+  </div>
+
+  <div class="filters-bar">
+    <div class="filter-group">
+      <label>Buscar por nombre</label>
+      <div class="input-wrapper">
+        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+        </svg>
+        <input type="text" [(ngModel)]="filtroNombre" placeholder="Nombre del alumno..." (input)="aplicarFiltros()" />
+      </div>
+    </div>
+    <div class="filter-group">
+      <label>Fecha inicio</label>
+      <input type="date" [(ngModel)]="filtroFechaInicio" (change)="aplicarFiltros()" />
+    </div>
+    <div class="filter-group">
+      <label>Fecha fin</label>
+      <input type="date" [(ngModel)]="filtroFechaFin" (change)="aplicarFiltros()" />
+    </div>
+    <button class="btn btn-secondary" (click)="limpiarFiltros()">
+      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <polyline points="1,4 1,10 7,10"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/>
+      </svg>
+      Limpiar
+    </button>
+  </div>
+
+  <div class="table-card">
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>Folio</th>
+          <th>Alumno</th>
+          <th>Concepto</th>
+          <th>Monto</th>
+          <th>Fecha</th>
+          <th>Método Pago</th>
+          <th>Estado</th>
+          <th>Acciones</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (c of comprobantes; track c.id) {
+          <tr>
+            <td><span class="folio">{{ c.folio }}</span></td>
+            <td>{{ c.alumnoNombre }}</td>
+            <td>{{ c.concepto }}</td>
+            <td class="monto">${{ c.monto | number }}</td>
+            <td>{{ c.fechaEmision | date:'dd/MM/yyyy' }}</td>
+            <td><span class="badge badge-metodo">{{ c.metodoPago | titlecase }}</span></td>
+            <td><span class="status-badge" [class]="'status-' + c.estado">{{ c.estado | titlecase }}</span></td>
+            <td class="actions">
+              <button class="btn-icon btn-view" (click)="openPreview(c)" title="Ver Comprobante">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>
+                </svg>
+              </button>
+              <button class="btn-icon btn-print" (click)="openPreview(c)" title="Imprimir">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <polyline points="6,9 6,2 18,2 18,9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/>
+                </svg>
+              </button>
+              @if (c.estado === 'activo') {
+                <button class="btn-icon btn-cancel" (click)="cancelarComprobante(c)" title="Cancelar">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/>
+                  </svg>
+                </button>
+              }
+              <button class="btn-icon btn-delete" (click)="openDeleteModal(c)" title="Eliminar">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <polyline points="3,6 5,6 21,6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+                </svg>
+              </button>
+            </td>
+          </tr>
+        } @empty {
+          <tr><td colspan="8" class="empty-state">No hay comprobantes generados</td></tr>
+        }
+      </tbody>
+    </table>
+  </div>
+</div>
+
+@if (showModal) {
+  <div class="modal-overlay" (click)="closeModal()">
+    <div class="modal" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h3>Generar Comprobante de Pago</h3>
+        <button class="btn-close" (click)="closeModal()">
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+          </svg>
+        </button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label>Alumno</label>
+          <select [(ngModel)]="formData.alumnoId">
+            <option [value]="0" disabled>Selecciona un alumno</option>
+            @for (alumno of alumnos; track alumno.id) {
+              <option [value]="alumno.id">{{ alumno.nombre }} {{ alumno.primerApellido }} {{ alumno.segundoApellido }}</option>
+            }
+          </select>
+        </div>
+        <div class="form-row two-col">
+          <div class="form-group">
+            <label>Concepto</label>
+            <input type="text" [(ngModel)]="formData.concepto" placeholder="Ej: Mensualidad Enero" />
+          </div>
+          <div class="form-group">
+            <label>Monto ($)</label>
+            <input type="number" [(ngModel)]="formData.monto" placeholder="0.00" min="0" />
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Método de Pago</label>
+          <select [(ngModel)]="formData.metodoPago">
+            <option value="efectivo">Efectivo</option>
+            <option value="transferencia">Transferencia</option>
+            <option value="tarjeta">Tarjeta</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Observaciones</label>
+          <textarea [(ngModel)]="formData.observaciones" placeholder="Notas adicionales (opcional)" rows="3"></textarea>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" (click)="closeModal()">Cancelar</button>
+        <button class="btn btn-primary" (click)="saveComprobante()">Generar Comprobante</button>
+      </div>
+    </div>
+  </div>
+}
+
+@if (showPreviewModal && comprobantePreview) {
+  <div class="modal-overlay" (click)="closePreview()">
+    <div class="modal modal-lg" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h3>Vista Previa del Comprobante</h3>
+        <div class="header-actions">
+          <button class="btn btn-print-sm" (click)="printComprobante()">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="6,9 6,2 18,2 18,9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/>
+            </svg>
+            Imprimir
+          </button>
+          <button class="btn-close" (click)="closePreview()">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+            </svg>
+          </button>
+        </div>
+      </div>
+      <div class="modal-body preview-body">
+        <div id="comprobante-print" class="comprobante-print">
+          <div class="comp-header">
+            <h1>Sistema de Pagos</h1>
+            <p>Comprobante de Pago</p>
+          </div>
+          <div class="comp-folio">
+            <span><strong>Folio:</strong> {{ comprobantePreview.folio }}</span>
+            <span><strong>Estado:</strong> {{ comprobantePreview.estado | titlecase }}</span>
+          </div>
+          <div class="comp-body">
+            <div class="info-grid">
+              <div class="info-item"><label>Alumno</label><span>{{ comprobantePreview.alumnoNombre }}</span></div>
+              <div class="info-item"><label>Email</label><span>{{ comprobantePreview.alumnoEmail }}</span></div>
+              <div class="info-item"><label>Concepto</label><span>{{ comprobantePreview.concepto }}</span></div>
+              <div class="info-item"><label>Método de Pago</label><span>{{ comprobantePreview.metodoPago | titlecase }}</span></div>
+              <div class="info-item"><label>Fecha de Emisión</label><span>{{ comprobantePreview.fechaEmision | date:'dd/MM/yyyy' }}</span></div>
+            </div>
+            <div class="monto-box">
+              <div class="label">Monto Total</div>
+              <div class="amount">${{ comprobantePreview.monto | number }}</div>
+            </div>
+            @if (comprobantePreview.observaciones) {
+              <div class="observaciones">
+                <label>Observaciones</label>
+                <p>{{ comprobantePreview.observaciones }}</p>
+              </div>
+            }
+          </div>
+          <div class="comp-footer">
+            <p>Este comprobante es un documento válido de pago.</p>
+            <p>Generado el {{ comprobantePreview.fechaEmision | date:'fullDate' }}</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+}
+
+@if (showDeleteModal) {
+  <div class="modal-overlay" (click)="closeDeleteModal()">
+    <div class="modal modal-sm" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h3>Confirmar Eliminación</h3>
+        <button class="btn-close" (click)="closeDeleteModal()">
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+          </svg>
+        </button>
+      </div>
+      <div class="modal-body">
+        <div class="delete-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>
+          </svg>
+        </div>
+        <p>¿Estás seguro de que deseas eliminar el comprobante <strong>{{ comprobanteToDelete?.folio }}</strong>?</p>
+        <p class="warning-text">Esta acción no se puede deshacer.</p>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" (click)="closeDeleteModal()">Cancelar</button>
+        <button class="btn btn-danger" (click)="deleteComprobante()">Eliminar</button>
+      </div>
+    </div>
+  </div>
+}

@@ -1,0 +1,116 @@
+<div class="dashboard">
+  <div class="welcome-banner">
+    <div class="welcome-text">
+      <h2>Bienvenido, {{ currentUser()?.nombre }} {{ currentUser()?.primerApellido }}</h2>
+      <p>Aquí tienes un resumen del sistema de pagos</p>
+    </div>
+  </div>
+
+  <div class="stats-grid">
+    <div class="stat-card stat-blue">
+      <div class="stat-icon">
+        <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+        </svg>
+      </div>
+      <div class="stat-content">
+        <span class="stat-label">Total Pagado</span>
+        <span class="stat-value">${{ resumen.totalPagado | number }}</span>
+      </div>
+    </div>
+
+    <div class="stat-card stat-green">
+      <div class="stat-icon">
+        <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14,2 14,8 20,8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/>
+        </svg>
+      </div>
+      <div class="stat-content">
+        <span class="stat-label">Registros de Pagos</span>
+        <span class="stat-value">{{ resumen.totalRegistros }}</span>
+      </div>
+    </div>
+
+    <div class="stat-card stat-yellow">
+      <div class="stat-icon">
+        <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="10"/><polyline points="12,6 12,12 16,14"/>
+        </svg>
+      </div>
+      <div class="stat-content">
+        <span class="stat-label">Pagos Pendientes</span>
+        <span class="stat-value">{{ resumen.pendientes }}</span>
+      </div>
+    </div>
+
+    <div class="stat-card stat-red">
+      <div class="stat-icon">
+        <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>
+        </svg>
+      </div>
+      <div class="stat-content">
+        <span class="stat-label">Pagos Vencidos</span>
+        <span class="stat-value">{{ resumen.vencidos }}</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="second-row">
+    <div class="stat-card stat-purple">
+      <div class="stat-icon">
+        <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+        </svg>
+      </div>
+      <div class="stat-content">
+        <span class="stat-label">Alumnos Becados 50%</span>
+        <span class="stat-value">{{ becados50 }}</span>
+      </div>
+    </div>
+
+    <div class="stat-card stat-teal">
+      <div class="stat-icon">
+        <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="8" r="7"/><polyline points="8.21,13.89 7,23 12,20 17,23 15.79,13.88"/>
+        </svg>
+      </div>
+      <div class="stat-content">
+        <span class="stat-label">Alumnos Becados 100%</span>
+        <span class="stat-value">{{ becados100 }}</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="charts-row">
+    <div class="chart-card">
+      <h3>Ganancias por Semana</h3>
+      <div class="bar-chart">
+        @for (entry of getGananciasSemanaEntries(); track entry[0]) {
+          <div class="bar-item">
+            <div class="bar-label">Semana {{ entry[0] }}</div>
+            <div class="bar-track">
+              <div class="bar-fill" [style.width.%]="getBarWidth(entry[1])"></div>
+            </div>
+            <div class="bar-value">${{ entry[1] | number }}</div>
+          </div>
+        }
+      </div>
+    </div>
+
+    <div class="chart-card">
+      <h3>Ganancias por Mes</h3>
+      <div class="bar-chart">
+        @for (entry of getGananciasMesEntries(); track entry[0]) {
+          <div class="bar-item">
+            <div class="bar-label">{{ entry[0] }}</div>
+            <div class="bar-track">
+              <div class="bar-fill bar-fill-green" [style.width.%]="getBarWidthMes(entry[1])"></div>
+            </div>
+            <div class="bar-value">${{ entry[1] | number }}</div>
+          </div>
+        }
+      </div>
+    </div>
+  </div>
+</div>

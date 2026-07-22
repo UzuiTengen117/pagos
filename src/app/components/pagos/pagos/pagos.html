@@ -1,0 +1,180 @@
+<div class="page-container">
+  <div class="page-header">
+    <h2>Pagos</h2>
+    <button class="btn btn-primary" (click)="openCreateModal()">
+      <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+      </svg>
+      Agregar Pago
+    </button>
+  </div>
+
+  <div class="filters-bar">
+    <div class="filter-group">
+      <label>Buscar por nombre</label>
+      <div class="input-wrapper">
+        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+        </svg>
+        <input type="text" [(ngModel)]="filtroNombre" placeholder="Nombre del alumno..." (input)="aplicarFiltros()" />
+      </div>
+    </div>
+
+    <div class="filter-group">
+      <label>Fecha inicio</label>
+      <input type="date" [(ngModel)]="filtroFechaInicio" (change)="aplicarFiltros()" />
+    </div>
+
+    <div class="filter-group">
+      <label>Fecha fin</label>
+      <input type="date" [(ngModel)]="filtroFechaFin" (change)="aplicarFiltros()" />
+    </div>
+
+    <button class="btn btn-secondary" (click)="limpiarFiltros()">
+      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <polyline points="1,4 1,10 7,10"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/>
+      </svg>
+      Limpiar
+    </button>
+  </div>
+
+  <div class="table-card">
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Alumno</th>
+          <th>Concepto</th>
+          <th>Monto</th>
+          <th>Fecha</th>
+          <th>Semana</th>
+          <th>Mes</th>
+          <th>Estado</th>
+          <th>Acciones</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (pago of pagos; track pago.id) {
+          <tr>
+            <td>{{ pago.id }}</td>
+            <td>{{ pago.alumnoNombre }}</td>
+            <td>{{ pago.concepto }}</td>
+            <td class="monto">${{ pago.monto | number }}</td>
+            <td>{{ pago.fechaPago | date:'dd/MM/yyyy' }}</td>
+            <td>{{ pago.semana }}</td>
+            <td>{{ pago.mes }}</td>
+            <td>
+              <span class="status-badge" [class]="'status-' + pago.estado">
+                {{ pago.estado | titlecase }}
+              </span>
+            </td>
+            <td class="actions">
+              <button class="btn-icon btn-edit" (click)="openEditModal(pago)" title="Editar">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                </svg>
+              </button>
+              <button class="btn-icon btn-delete" (click)="openDeleteModal(pago)" title="Eliminar">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <polyline points="3,6 5,6 21,6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+                </svg>
+              </button>
+            </td>
+          </tr>
+        } @empty {
+          <tr>
+            <td colspan="9" class="empty-state">No se encontraron pagos</td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+</div>
+
+@if (showModal) {
+  <div class="modal-overlay" (click)="closeModal()">
+    <div class="modal" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h3>{{ isEditing ? 'Editar Pago' : 'Agregar Nuevo Pago' }}</h3>
+        <button class="btn-close" (click)="closeModal()">
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+          </svg>
+        </button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label>Alumno</label>
+          <select [(ngModel)]="formData.alumnoId">
+            <option [ngValue]="null" disabled>Selecciona un alumno</option>
+            @for (alumno of alumnos; track alumno.id) {
+              <option [ngValue]="alumno.id">{{ alumno.nombre }} {{ alumno.primerApellido }}</option>
+            }
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Concepto</label>
+          <input type="text" [(ngModel)]="formData.concepto" placeholder="Ej: Mensualidad Enero" />
+        </div>
+        <div class="form-row three-col">
+          <div class="form-group">
+            <label>Monto ($)</label>
+            <input type="number" [(ngModel)]="formData.monto" placeholder="0.00" min="0" />
+          </div>
+          <div class="form-group">
+            <label>Semana</label>
+            <input type="number" [(ngModel)]="formData.semana" min="1" max="52" />
+          </div>
+          <div class="form-group">
+            <label>Mes</label>
+            <select [(ngModel)]="formData.mes">
+              @for (mes of meses; track mes) {
+                <option [value]="mes">{{ mes }}</option>
+              }
+            </select>
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Estado</label>
+          <select [(ngModel)]="formData.estado">
+            <option value="pagado">Pagado</option>
+            <option value="pendiente">Pendiente</option>
+            <option value="vencido">Vencido</option>
+          </select>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" (click)="closeModal()">Cancelar</button>
+        <button class="btn btn-primary" (click)="savePago()">{{ isEditing ? 'Guardar Cambios' : 'Agregar Pago' }}</button>
+      </div>
+    </div>
+  </div>
+}
+
+@if (showDeleteModal) {
+  <div class="modal-overlay" (click)="closeDeleteModal()">
+    <div class="modal modal-sm" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h3>Confirmar Eliminación</h3>
+        <button class="btn-close" (click)="closeDeleteModal()">
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+          </svg>
+        </button>
+      </div>
+      <div class="modal-body">
+        <div class="delete-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>
+          </svg>
+        </div>
+        <p>¿Estás seguro de que deseas eliminar el pago de <strong>{{ pagoToDelete?.alumnoNombre }}</strong> por <strong>${{ pagoToDelete?.monto | number }}</strong>?</p>
+        <p class="warning-text">Esta acción no se puede deshacer.</p>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" (click)="closeDeleteModal()">Cancelar</button>
+        <button class="btn btn-danger" (click)="deletePago()">Eliminar</button>
+      </div>
+    </div>
+  </div>
+}
