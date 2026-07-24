@@ -64,6 +64,7 @@ export class Alumnos {
       username: '',
       email: '',
       telefono: '',
+      grado: '',
       fechaInscripcion: new Date(),
       beca: 0,
       activo: true,
