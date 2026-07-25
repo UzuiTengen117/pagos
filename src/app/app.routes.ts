@@ -12,21 +12,22 @@ import { Comprobantes } from './components/comprobantes/comprobantes/comprobante
 import { AlumnoHome } from './components/alumno/home/alumno-home';
 import { AlumnoPagos } from './components/alumno/pagos/alumno-pagos';
 import { AlumnoComprobantes } from './components/alumno/comprobantes/alumno-comprobantes';
+import { authGuard } from './guards/auth.guard';
 
 export const routes: Routes = [
   { path: '', redirectTo: '/login', pathMatch: 'full' },
   { path: 'login', component: Login },
   { path: 'register', component: Register },
   { path: 'forgot-password', component: ForgotPassword },
-  { path: 'home', component: Home },
-  { path: 'pagos', component: Pagos },
-  { path: 'comprobantes', component: Comprobantes },
-  { path: 'alumnos', component: Alumnos },
-  { path: 'profesores', component: Profesores },
-  { path: 'precios', component: Precios },
-  { path: 'becas', component: Becas },
-  { path: 'alumno/home', component: AlumnoHome },
-  { path: 'alumno/pagos', component: AlumnoPagos },
-  { path: 'alumno/comprobantes', component: AlumnoComprobantes },
+  { path: 'home', component: Home, canActivate: [authGuard] },
+  { path: 'pagos', component: Pagos, canActivate: [authGuard] },
+  { path: 'comprobantes', component: Comprobantes, canActivate: [authGuard] },
+  { path: 'alumnos', component: Alumnos, canActivate: [authGuard] },
+  { path: 'profesores', component: Profesores, canActivate: [authGuard] },
+  { path: 'precios', component: Precios, canActivate: [authGuard] },
+  { path: 'becas', component: Becas, canActivate: [authGuard] },
+  { path: 'alumno/home', component: AlumnoHome, canActivate: [authGuard] },
+  { path: 'alumno/pagos', component: AlumnoPagos, canActivate: [authGuard] },
+  { path: 'alumno/comprobantes', component: AlumnoComprobantes, canActivate: [authGuard] },
   { path: '**', redirectTo: '/login' },
 ];
