@@ -3,6 +3,8 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { AuthService } from '../../../services/auth';
+import { timeout, catchError } from 'rxjs/operators';
+import { of } from 'rxjs';
 
 @Component({
   selector: 'app-login',
@@ -18,6 +20,7 @@ export class Login {
   username = '';
   password = '';
   errorMsg = '';
+  loading = false;
 
   onSubmit(): void {
     this.errorMsg = '';
@@ -25,11 +28,31 @@ export class Login {
       this.errorMsg = 'Por favor, ingresa todos los campos.';
       return;
     }
-    const success = this.authService.login({ username: this.username, password: this.password });
-    if (success) {
-      this.router.navigate(['/home']);
-    } else {
-      this.errorMsg = 'Usuario o contraseña incorrectos.';
-    }
+
+    this.loading = true;
+
+    this.authService.login({ username: this.username, password: this.password }).pipe(
+      timeout(5000),
+      catchError(() => {
+        this.loading = false;
+        this.errorMsg = 'Usuario o contraseña incorrectos';
+        return of(null);
+      })
+    ).subscribe({
+      next: (response) => {
+        this.loading = false;
+        if (!response) return;
+        const user = this.authService.currentUser();
+        if (user?.rol === 'estudiante') {
+          this.router.navigate(['/alumno/home']);
+        } else {
+          this.router.navigate(['/home']);
+        }
+      },
+      error: () => {
+        this.loading = false;
+        this.errorMsg = 'Usuario o contraseña incorrectos';
+      }
+    });
   }
 }

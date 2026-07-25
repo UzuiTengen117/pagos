@@ -1,4 +1,4 @@
-export type RolUsuario = 'alumno' | 'profesor' | 'administrador';
+export type RolUsuario = 'estudiante' | 'profesor' | 'administrador';
 
 export interface Usuario {
   id: number;
@@ -6,7 +6,8 @@ export interface Usuario {
   primerApellido: string;
   segundoApellido: string;
   username: string;
-  password: string;
+  password?: string;
+  email: string;
   rol: RolUsuario;
   fechaCreacion: Date;
 }
@@ -18,9 +19,11 @@ export interface LoginRequest {
 
 export interface RegisterRequest {
   nombre: string;
-  primerApellido: string;
-  segundoApellido: string;
+  primerApellido?: string;
+  segundoApellido?: string;
   username: string;
+  email: string;
   password: string;
-  confirmPassword: string;
+  confirmPassword?: string;
+  rol?: string;
 }

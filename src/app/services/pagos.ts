@@ -1,23 +1,29 @@
-import { Injectable, signal } from '@angular/core';
+import { Injectable, signal, inject } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+import { Observable, map } from 'rxjs';
 import { Pago } from '../models/pago.model';
+import { AlumnosService } from './alumnos';
+import { PreciosService } from './precios';
+import { environment } from '../../environments/environment';
+import { mapPagoFromBackend, mapPagoToBackend } from '../utils/mappers';
 
 @Injectable({ providedIn: 'root' })
 export class PagosService {
-  private pagos = signal<Pago[]>([
-    { id: 1, alumnoId: 1, alumnoNombre: 'María Hernández', monto: 1500, concepto: 'Mensualidad Enero', fechaPago: new Date('2026-01-15'), estado: 'pagado', semana: 3, mes: 'Enero' },
-    { id: 2, alumnoId: 2, alumnoNombre: 'Juan Pérez', monto: 750, concepto: 'Semanal Semana 2', fechaPago: new Date('2026-01-10'), estado: 'pagado', semana: 2, mes: 'Enero' },
-    { id: 3, alumnoId: 3, alumnoNombre: 'Ana Torres', monto: 1500, concepto: 'Mensualidad Enero', fechaPago: new Date('2026-01-20'), estado: 'pendiente', semana: 4, mes: 'Enero' },
-    { id: 4, alumnoId: 1, alumnoNombre: 'María Hernández', monto: 1500, concepto: 'Mensualidad Febrero', fechaPago: new Date('2026-02-05'), estado: 'pagado', semana: 1, mes: 'Febrero' },
-    { id: 5, alumnoId: 4, alumnoNombre: 'Pedro López', monto: 750, concepto: 'Semanal Semana 3', fechaPago: new Date('2026-02-15'), estado: 'vencido', semana: 3, mes: 'Febrero' },
-    { id: 6, alumnoId: 2, alumnoNombre: 'Juan Pérez', monto: 1500, concepto: 'Mensualidad Febrero', fechaPago: new Date('2026-02-20'), estado: 'pagado', semana: 4, mes: 'Febrero' },
-    { id: 7, alumnoId: 5, alumnoNombre: 'Laura Díaz', monto: 1500, concepto: 'Mensualidad Marzo', fechaPago: new Date('2026-03-01'), estado: 'pagado', semana: 1, mes: 'Marzo' },
-    { id: 8, alumnoId: 3, alumnoNombre: 'Ana Torres', monto: 750, concepto: 'Semanal Semana 1', fechaPago: new Date('2026-03-05'), estado: 'pendiente', semana: 1, mes: 'Marzo' },
-    { id: 9, alumnoId: 1, alumnoNombre: 'María Hernández', monto: 750, concepto: 'Semanal Semana 2', fechaPago: new Date('2026-03-12'), estado: 'pagado', semana: 2, mes: 'Marzo' },
-    { id: 10, alumnoId: 1, alumnoNombre: 'María Hernández', monto: 1500, concepto: 'Mensualidad Marzo', fechaPago: new Date('2026-03-01'), estado: 'pagado', semana: 1, mes: 'Marzo' },
-    { id: 11, alumnoId: 1, alumnoNombre: 'María Hernández', monto: 1500, concepto: 'Mensualidad Abril', fechaPago: new Date('2026-04-05'), estado: 'pagado', semana: 2, mes: 'Abril' },
-    { id: 12, alumnoId: 1, alumnoNombre: 'María Hernández', monto: 1500, concepto: 'Mensualidad Mayo', fechaPago: new Date('2026-05-03'), estado: 'pagado', semana: 1, mes: 'Mayo' },
-    { id: 13, alumnoId: 1, alumnoNombre: 'María Hernández', monto: 1500, concepto: 'Mensualidad Junio', fechaPago: new Date('2026-06-08'), estado: 'pendiente', semana: 2, mes: 'Junio' },
-  ]);
+  private http = inject(HttpClient);
+  private alumnosService = inject(AlumnosService);
+  private preciosService = inject(PreciosService);
+  private apiUrl = environment.apiUrl;
+  private pagos = signal<Pago[]>([]);
+
+  loadAll(): Observable<Pago[]> {
+    return this.http.get<any[]>(`${this.apiUrl}/pagos`).pipe(
+      map(data => data.map(mapPagoFromBackend)),
+      map(data => {
+        this.pagos.set(data);
+        return data;
+      })
+    );
+  }
 
   getAll(): Pago[] {
     return this.pagos();
@@ -61,19 +67,51 @@ export class PagosService {
     };
   }
 
-  create(pago: Omit<Pago, 'id'>): void {
-    const newPago: Pago = {
-      ...pago,
-      id: this.pagos().length + 1,
-    };
-    this.pagos.update(list => [...list, newPago]);
+  calcularMonto(alumnoId: number, precioId: number): { montoOriginal: number; monto: number; becaPorcentaje: number } {
+    const alumno = this.alumnosService.getById(alumnoId);
+    const precios = this.preciosService.getAll();
+    const precio = precios.find(p => p.id === precioId);
+
+    if (!alumno || !precio) {
+      return { montoOriginal: 0, monto: 0, becaPorcentaje: 0 };
+    }
+
+    const becaPorcentaje = alumno.beca;
+    const montoOriginal = precio.monto;
+    const descuento = montoOriginal * (becaPorcentaje / 100);
+    const monto = montoOriginal - descuento;
+
+    return { montoOriginal, monto, becaPorcentaje };
   }
 
-  update(pago: Pago): void {
-    this.pagos.update(list => list.map(p => (p.id === pago.id ? pago : p)));
+  getPreciosDisponibles(alumnoId: number): { id: number; concepto: string; monto: number; tipo: string; montoConBeca: number }[] {
+    const alumno = this.alumnosService.getById(alumnoId);
+    if (!alumno) return [];
+
+    const precios = this.preciosService.getAll();
+    const becaPorcentaje = alumno.beca;
+
+    return precios.map(precio => ({
+      id: precio.id,
+      concepto: precio.concepto,
+      monto: precio.monto,
+      tipo: precio.tipo,
+      montoConBeca: precio.monto - (precio.monto * (becaPorcentaje / 100)),
+    }));
   }
 
-  delete(id: number): void {
-    this.pagos.update(list => list.filter(p => p.id !== id));
+  create(pago: Omit<Pago, 'id'>, metodoPago: string = 'efectivo'): Observable<any> {
+    const body = mapPagoToBackend(pago);
+    body.metodo_pago = metodoPago;
+    return this.http.post<any>(`${this.apiUrl}/pagos/agregar`, body);
+  }
+
+  update(pago: Pago): Observable<any> {
+    const body = mapPagoToBackend(pago);
+    return this.http.put<any>(`${this.apiUrl}/pagos/editar/${pago.id}`, body);
+  }
+
+  delete(id: number): Observable<any> {
+    return this.http.delete<any>(`${this.apiUrl}/pagos/eliminar/${id}`);
   }
 }

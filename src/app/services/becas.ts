@@ -1,30 +1,32 @@
-import { Injectable, signal } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+import { Observable, map } from 'rxjs';
 import { Beca } from '../models/beca.model';
+import { environment } from '../../environments/environment';
+import { mapBecaFromBackend, mapBecaToBackend } from '../utils/mappers';
 
 @Injectable({ providedIn: 'root' })
 export class BecasService {
-  private becas = signal<Beca[]>([
-    { id: 1, nombre: 'Beca Académica 50%', porcentaje: 50, descripcion: 'Beca para alumnos con excelente rendimiento académico', activa: true },
-    { id: 2, nombre: 'Beca Deportiva 100%', porcentaje: 100, descripcion: 'Beca completa para atletas destacados', activa: true },
-  ]);
+  private http = inject(HttpClient);
+  private apiUrl = environment.apiUrl;
 
-  getAll(): Beca[] {
-    return this.becas();
+  loadAll(): Observable<Beca[]> {
+    return this.http.get<any[]>(`${this.apiUrl}/becas`).pipe(
+      map(data => data.map(mapBecaFromBackend))
+    );
   }
 
-  create(beca: Omit<Beca, 'id'>): void {
-    const newBeca: Beca = {
-      ...beca,
-      id: this.becas().length + 1,
-    };
-    this.becas.update(list => [...list, newBeca]);
+  create(beca: Omit<Beca, 'id'>): Observable<any> {
+    const body = mapBecaToBackend(beca);
+    return this.http.post<any>(`${this.apiUrl}/becas/agregar`, body);
   }
 
-  update(beca: Beca): void {
-    this.becas.update(list => list.map(b => (b.id === beca.id ? beca : b)));
+  update(beca: Beca): Observable<any> {
+    const body = mapBecaToBackend(beca);
+    return this.http.put<any>(`${this.apiUrl}/becas/editar/${beca.id}`, body);
   }
 
-  delete(id: number): void {
-    this.becas.update(list => list.filter(b => b.id !== id));
+  delete(id: number): Observable<any> {
+    return this.http.delete<any>(`${this.apiUrl}/becas/eliminar/${id}`);
   }
 }

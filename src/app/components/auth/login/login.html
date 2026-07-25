@@ -38,7 +38,13 @@
         </div>
       </div>
 
-      <button type="submit" class="btn btn-primary btn-full">Ingresar al Sistema</button>
+      <button type="submit" class="btn btn-primary btn-full" [disabled]="loading">
+        @if (loading) {
+          <span class="spinner"></span> Ingresando...
+        } @else {
+          Ingresar al Sistema
+        }
+      </button>
 
       <div class="auth-links">
         <a routerLink="/forgot-password">¿Olvidaste tu contraseña?</a>

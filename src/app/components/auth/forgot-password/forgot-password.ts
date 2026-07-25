@@ -1,4 +1,4 @@
-import { Component, inject } from '@angular/core';
+import { Component, inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
@@ -11,7 +11,7 @@ import { AuthService } from '../../../services/auth';
   templateUrl: './forgot-password.html',
   styleUrl: './forgot-password.scss',
 })
-export class ForgotPassword {
+export class ForgotPassword implements OnInit {
   private authService = inject(AuthService);
 
   username = '';
@@ -21,6 +21,8 @@ export class ForgotPassword {
   successMsg = '';
   step = 1;
 
+  ngOnInit(): void {}
+
   onSubmitUsername(): void {
     this.errorMsg = '';
 
@@ -29,7 +31,19 @@ export class ForgotPassword {
       return;
     }
 
-    this.step = 2;
+    this.authService.getUsuarioIdByUsername(this.username).subscribe({
+      next: (usuarios) => {
+        const user = usuarios.find((u: any) => u.username === this.username);
+        if (user) {
+          this.step = 2;
+        } else {
+          this.errorMsg = 'Usuario no encontrado.';
+        }
+      },
+      error: () => {
+        this.errorMsg = 'Usuario no encontrado.';
+      }
+    });
   }
 
   onSubmitPassword(): void {
@@ -51,12 +65,14 @@ export class ForgotPassword {
       return;
     }
 
-    const success = this.authService.resetPassword(this.username, this.newPassword);
-    if (success) {
-      this.successMsg = 'Contraseña actualizada exitosamente.';
-      this.step = 3;
-    } else {
-      this.errorMsg = 'Usuario no encontrado.';
-    }
+    this.authService.resetPassword(this.username, this.newPassword).subscribe({
+      next: () => {
+        this.successMsg = 'Contraseña actualizada exitosamente.';
+        this.step = 3;
+      },
+      error: () => {
+        this.errorMsg = 'Error al actualizar la contraseña.';
+      }
+    });
   }
 }

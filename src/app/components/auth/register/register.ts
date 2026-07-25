@@ -19,6 +19,7 @@ export class Register {
   primerApellido = '';
   segundoApellido = '';
   username = '';
+  email = '';
   password = '';
   confirmPassword = '';
   errorMsg = '';
@@ -28,7 +29,7 @@ export class Register {
     this.errorMsg = '';
     this.successMsg = '';
 
-    if (!this.nombre || !this.primerApellido || !this.segundoApellido || !this.username || !this.password || !this.confirmPassword) {
+    if (!this.nombre || !this.username || !this.email || !this.password || !this.confirmPassword) {
       this.errorMsg = 'Por favor, completa todos los campos.';
       return;
     }
@@ -43,20 +44,24 @@ export class Register {
       return;
     }
 
-    const success = this.authService.register({
+    this.authService.register({
       nombre: this.nombre,
       primerApellido: this.primerApellido,
       segundoApellido: this.segundoApellido,
       username: this.username,
+      email: this.email,
       password: this.password,
       confirmPassword: this.confirmPassword,
+      rol: 'estudiante',
+    }).subscribe({
+      next: () => {
+        this.successMsg = 'Registro exitoso. Redirigiendo al login...';
+        this.authService.logout();
+        setTimeout(() => this.router.navigate(['/login']), 2000);
+      },
+      error: (err) => {
+        this.errorMsg = err.error?.message || 'Error al registrar.';
+      }
     });
-
-    if (success) {
-      this.successMsg = 'Registro exitoso. Redirigiendo al login...';
-      setTimeout(() => this.router.navigate(['/login']), 2000);
-    } else {
-      this.errorMsg = 'El nombre de usuario ya existe.';
-    }
   }
 }

@@ -1,10 +1,12 @@
-import { Component, inject } from '@angular/core';
+import { Component, inject, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ComprobantesService } from '../../../services/comprobantes';
 import { AlumnosService } from '../../../services/alumnos';
+import { PagosService } from '../../../services/pagos';
 import { Comprobante } from '../../../models/comprobante.model';
 import { Alumno } from '../../../models/alumno.model';
+import { Pago } from '../../../models/pago.model';
 
 @Component({
   selector: 'app-comprobantes',
@@ -13,15 +15,21 @@ import { Alumno } from '../../../models/alumno.model';
   templateUrl: './comprobantes.html',
   styleUrl: './comprobantes.scss',
 })
-export class Comprobantes {
+export class Comprobantes implements OnInit {
   private comprobantesService = inject(ComprobantesService);
   private alumnosService = inject(AlumnosService);
+  private pagosService = inject(PagosService);
+  private cdr = inject(ChangeDetectorRef);
 
   comprobantes: Comprobante[] = [];
   alumnos: Alumno[] = [];
+  pagos: Pago[] = [];
+  pagosAlumno: Pago[] = [];
   filtroNombre = '';
   filtroFechaInicio = '';
   filtroFechaFin = '';
+  mensajeError = '';
+  mensajeExito = '';
 
   showModal = false;
   showPreviewModal = false;
@@ -31,14 +39,49 @@ export class Comprobantes {
 
   formData = this.getEmptyForm();
 
-  constructor() {
-    this.comprobantes = this.comprobantesService.getAll();
-    this.alumnos = this.alumnosService.getAll();
+  ngOnInit(): void {
+    this.loadData();
+  }
+
+  private loadData(): void {
+    this.comprobantesService.loadAll().subscribe({
+      next: (data) => {
+        this.comprobantes = data;
+        this.cdr.detectChanges();
+      },
+      error: () => {
+        this.comprobantes = [];
+        this.mensajeError = 'Error al cargar comprobantes.';
+        this.cdr.detectChanges();
+      }
+    });
+
+    this.alumnosService.loadAll().subscribe({
+      next: (data) => {
+        this.alumnos = data;
+        this.cdr.detectChanges();
+      },
+      error: () => {
+        this.alumnos = [];
+        this.cdr.detectChanges();
+      }
+    });
+
+    this.pagosService.loadAll().subscribe({
+      next: (data) => {
+        this.pagos = data;
+        this.cdr.detectChanges();
+      },
+      error: () => {
+        this.pagos = [];
+      }
+    });
   }
 
   getEmptyForm() {
     return {
       alumnoId: 0,
+      pagoId: 0,
       concepto: '',
       monto: 0,
       metodoPago: 'efectivo' as const,
@@ -46,11 +89,45 @@ export class Comprobantes {
     };
   }
 
+  onAlumnoChange(): void {
+    const alumnoId = Number(this.formData.alumnoId);
+    if (!alumnoId) {
+      this.pagosAlumno = [];
+      this.formData.pagoId = 0;
+      this.cdr.detectChanges();
+      return;
+    }
+    this.pagosAlumno = this.pagos.filter(p => p.alumnoId === alumnoId);
+    this.formData.pagoId = 0;
+    this.formData.concepto = '';
+    this.formData.monto = 0;
+    this.cdr.detectChanges();
+  }
+
+  onPagoChange(): void {
+    const pagoId = Number(this.formData.pagoId);
+    if (!pagoId) {
+      this.formData.concepto = '';
+      this.formData.monto = 0;
+      this.cdr.detectChanges();
+      return;
+    }
+    const pago = this.pagos.find(p => p.id === pagoId);
+    if (pago) {
+      this.formData.concepto = pago.concepto;
+      this.formData.monto = pago.monto;
+    }
+    this.cdr.detectChanges();
+  }
+
   aplicarFiltros(): void {
     let resultado = this.comprobantesService.getAll();
 
     if (this.filtroNombre) {
-      resultado = this.comprobantesService.filtrarPorNombre(this.filtroNombre);
+      const termino = this.filtroNombre.toLowerCase();
+      resultado = resultado.filter(c =>
+        c.alumnoNombre.toLowerCase().includes(termino)
+      );
     }
 
     if (this.filtroFechaInicio && this.filtroFechaFin) {
@@ -63,37 +140,70 @@ export class Comprobantes {
     }
 
     this.comprobantes = resultado;
+    this.cdr.detectChanges();
   }
 
   limpiarFiltros(): void {
     this.filtroNombre = '';
     this.filtroFechaInicio = '';
     this.filtroFechaFin = '';
-    this.comprobantes = this.comprobantesService.getAll();
+    this.comprobantesService.loadAll().subscribe({
+      next: (data) => {
+        this.comprobantes = data;
+        this.cdr.detectChanges();
+      },
+      error: () => {
+        this.comprobantes = [];
+        this.cdr.detectChanges();
+      }
+    });
   }
 
   openCreateModal(): void {
     this.formData = this.getEmptyForm();
     this.showModal = true;
+    this.mensajeError = '';
+    this.mensajeExito = '';
+    this.cdr.detectChanges();
   }
 
   closeModal(): void {
     this.showModal = false;
     this.formData = this.getEmptyForm();
+    this.mensajeError = '';
+    this.mensajeExito = '';
+    this.cdr.detectChanges();
   }
 
   saveComprobante(): void {
+    this.mensajeError = '';
     const alumnoId = Number(this.formData.alumnoId);
 
-    if (!alumnoId || !this.formData.concepto || !this.formData.monto || this.formData.monto <= 0) {
+    if (!alumnoId) {
+      this.mensajeError = 'Selecciona un alumno.';
+      this.cdr.detectChanges();
+      return;
+    }
+    if (!this.formData.concepto.trim()) {
+      this.mensajeError = 'Ingresa un concepto.';
+      this.cdr.detectChanges();
+      return;
+    }
+    if (!this.formData.monto || this.formData.monto <= 0) {
+      this.mensajeError = 'El monto debe ser mayor a 0.';
+      this.cdr.detectChanges();
       return;
     }
 
     const alumno = this.alumnosService.getById(alumnoId);
-    if (!alumno) return;
+    if (!alumno) {
+      this.mensajeError = 'El alumno no es valido.';
+      this.cdr.detectChanges();
+      return;
+    }
 
     this.comprobantesService.create({
-      pagoId: 0,
+      pagoId: Number(this.formData.pagoId) || 0,
       alumnoId: alumno.id,
       alumnoNombre: `${alumno.nombre} ${alumno.primerApellido} ${alumno.segundoApellido}`,
       alumnoEmail: alumno.email,
@@ -102,20 +212,32 @@ export class Comprobantes {
       estado: 'activo',
       metodoPago: this.formData.metodoPago,
       observaciones: this.formData.observaciones,
+    }).subscribe({
+      next: () => {
+        this.mensajeExito = 'Comprobante generado correctamente.';
+        this.cdr.detectChanges();
+        setTimeout(() => {
+          this.closeModal();
+          this.recargarComprobantes();
+        }, 800);
+      },
+      error: (err) => {
+        this.mensajeError = err.error?.message || 'Error al generar el comprobante.';
+        this.cdr.detectChanges();
+      }
     });
-
-    this.comprobantes = this.comprobantesService.getAll();
-    this.closeModal();
   }
 
   openPreview(comprobante: Comprobante): void {
     this.comprobantePreview = comprobante;
     this.showPreviewModal = true;
+    this.cdr.detectChanges();
   }
 
   closePreview(): void {
     this.showPreviewModal = false;
     this.comprobantePreview = null;
+    this.cdr.detectChanges();
   }
 
   printComprobante(): void {
@@ -167,23 +289,53 @@ export class Comprobantes {
   openDeleteModal(comprobante: Comprobante): void {
     this.comprobanteToDelete = comprobante;
     this.showDeleteModal = true;
+    this.cdr.detectChanges();
   }
 
   closeDeleteModal(): void {
     this.showDeleteModal = false;
     this.comprobanteToDelete = null;
+    this.cdr.detectChanges();
   }
 
   cancelarComprobante(comprobante: Comprobante): void {
-    this.comprobantesService.cancelar(comprobante.id);
-    this.comprobantes = this.comprobantesService.getAll();
+    this.comprobantesService.cancelar(comprobante.id).subscribe({
+      next: () => {
+        this.recargarComprobantes();
+      },
+      error: () => {
+        this.mensajeError = 'Error al cancelar el comprobante.';
+        this.cdr.detectChanges();
+      }
+    });
   }
 
   deleteComprobante(): void {
-    if (this.comprobanteToDelete) {
-      this.comprobantesService.delete(this.comprobanteToDelete.id);
-      this.comprobantes = this.comprobantesService.getAll();
-      this.closeDeleteModal();
-    }
+    if (!this.comprobanteToDelete) return;
+
+    this.comprobantesService.delete(this.comprobanteToDelete.id).subscribe({
+      next: () => {
+        this.closeDeleteModal();
+        this.recargarComprobantes();
+      },
+      error: (err) => {
+        this.mensajeError = err.error?.message || 'Error al eliminar el comprobante.';
+        this.closeDeleteModal();
+        this.cdr.detectChanges();
+      }
+    });
+  }
+
+  private recargarComprobantes(): void {
+    this.comprobantesService.loadAll().subscribe({
+      next: (data) => {
+        this.comprobantes = data;
+        this.cdr.detectChanges();
+      },
+      error: () => {
+        this.comprobantes = [];
+        this.cdr.detectChanges();
+      }
+    });
   }
 }

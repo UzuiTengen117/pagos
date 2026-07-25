@@ -1,4 +1,4 @@
-import { Component, inject } from '@angular/core';
+import { Component, inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { AuthService } from '../../../services/auth';
@@ -13,7 +13,7 @@ import { Comprobante } from '../../../models/comprobante.model';
   templateUrl: './alumno-comprobantes.html',
   styleUrl: './alumno-comprobantes.scss',
 })
-export class AlumnoComprobantes {
+export class AlumnoComprobantes implements OnInit {
   private authService = inject(AuthService);
   private comprobantesService = inject(ComprobantesService);
   private alumnosService = inject(AlumnosService);
@@ -24,11 +24,16 @@ export class AlumnoComprobantes {
   filtroFechaInicio = '';
   filtroFechaFin = '';
 
+  ngOnInit(): void {
+    this.comprobantesService.loadAll().subscribe();
+    this.alumnosService.loadAll().subscribe();
+  }
+
   get misComprobantes(): Comprobante[] {
     const usuario = this.currentUser();
     if (!usuario) return [];
     const alumno = this.alumnosService.getAll().find(
-      a => a.username === usuario.username
+      a => a.username === usuario.username || a.email === usuario.email
     );
     if (!alumno) return [];
     let comprobantes = this.comprobantesService.getAll().filter(

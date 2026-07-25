@@ -1,4 +1,4 @@
-import { Component, inject } from '@angular/core';
+import { Component, inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { AuthService } from '../../../services/auth';
 import { PagosService } from '../../../services/pagos';
@@ -12,18 +12,23 @@ import { Pago } from '../../../models/pago.model';
   templateUrl: './alumno-home.html',
   styleUrl: './alumno-home.scss',
 })
-export class AlumnoHome {
+export class AlumnoHome implements OnInit {
   private authService = inject(AuthService);
   private pagosService = inject(PagosService);
   private alumnosService = inject(AlumnosService);
 
   currentUser = this.authService.currentUser;
 
+  ngOnInit(): void {
+    this.pagosService.loadAll().subscribe();
+    this.alumnosService.loadAll().subscribe();
+  }
+
   get misPagos(): Pago[] {
     const usuario = this.currentUser();
     if (!usuario) return [];
     const alumno = this.alumnosService.getAll().find(
-      a => a.username === usuario.username
+      a => a.username === usuario.username || a.email === usuario.email
     );
     if (!alumno) return [];
     return this.pagosService.getAll().filter(p => p.alumnoId === alumno.id);

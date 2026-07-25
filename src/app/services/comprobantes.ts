@@ -1,96 +1,25 @@
-import { Injectable, signal } from '@angular/core';
+import { Injectable, signal, inject } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+import { Observable, map } from 'rxjs';
 import { Comprobante } from '../models/comprobante.model';
+import { environment } from '../../environments/environment';
+import { mapComprobanteFromBackend, mapComprobanteToBackend } from '../utils/mappers';
 
 @Injectable({ providedIn: 'root' })
 export class ComprobantesService {
-  private comprobantes = signal<Comprobante[]>([
-    {
-      id: 1,
-      folio: 'COMP-2026-001',
-      pagoId: 1,
-      alumnoId: 1,
-      alumnoNombre: 'María Hernández Ruiz',
-      alumnoEmail: 'maria@email.com',
-      concepto: 'Mensualidad Enero',
-      monto: 1500,
-      fechaEmision: new Date('2026-01-15'),
-      estado: 'activo',
-      metodoPago: 'efectivo',
-      observaciones: 'Pago completo',
-    },
-    {
-      id: 2,
-      folio: 'COMP-2026-002',
-      pagoId: 2,
-      alumnoId: 2,
-      alumnoNombre: 'Juan Pérez Gómez',
-      alumnoEmail: 'juan@email.com',
-      concepto: 'Semanal Semana 2',
-      monto: 750,
-      fechaEmision: new Date('2026-01-10'),
-      estado: 'activo',
-      metodoPago: 'transferencia',
-      observaciones: '',
-    },
-    {
-      id: 3,
-      folio: 'COMP-2026-003',
-      pagoId: 4,
-      alumnoId: 1,
-      alumnoNombre: 'María Hernández Ruiz',
-      alumnoEmail: 'maria@email.com',
-      concepto: 'Mensualidad Febrero',
-      monto: 1500,
-      fechaEmision: new Date('2026-02-05'),
-      estado: 'activo',
-      metodoPago: 'tarjeta',
-      observaciones: 'Pago con tarjeta de débito',
-    },
-    {
-      id: 4,
-      folio: 'COMP-2026-004',
-      pagoId: 9,
-      alumnoId: 1,
-      alumnoNombre: 'María Hernández Ruiz',
-      alumnoEmail: 'maria@email.com',
-      concepto: 'Semanal Semana 2',
-      monto: 750,
-      fechaEmision: new Date('2026-03-12'),
-      estado: 'activo',
-      metodoPago: 'efectivo',
-      observaciones: '',
-    },
-    {
-      id: 5,
-      folio: 'COMP-2026-005',
-      pagoId: 10,
-      alumnoId: 1,
-      alumnoNombre: 'María Hernández Ruiz',
-      alumnoEmail: 'maria@email.com',
-      concepto: 'Mensualidad Marzo',
-      monto: 1500,
-      fechaEmision: new Date('2026-03-01'),
-      estado: 'activo',
-      metodoPago: 'transferencia',
-      observaciones: 'Pago completo',
-    },
-    {
-      id: 6,
-      folio: 'COMP-2026-006',
-      pagoId: 11,
-      alumnoId: 1,
-      alumnoNombre: 'María Hernández Ruiz',
-      alumnoEmail: 'maria@email.com',
-      concepto: 'Mensualidad Abril',
-      monto: 1500,
-      fechaEmision: new Date('2026-04-05'),
-      estado: 'activo',
-      metodoPago: 'tarjeta',
-      observaciones: 'Pago con tarjeta de crédito',
-    },
-  ]);
+  private http = inject(HttpClient);
+  private apiUrl = environment.apiUrl;
+  private comprobantes = signal<Comprobante[]>([]);
 
-  private counter = 7;
+  loadAll(): Observable<Comprobante[]> {
+    return this.http.get<any[]>(`${this.apiUrl}/comprobantes`).pipe(
+      map(data => data.map(mapComprobanteFromBackend)),
+      map(data => {
+        this.comprobantes.set(data);
+        return data;
+      })
+    );
+  }
 
   getAll(): Comprobante[] {
     return this.comprobantes();
@@ -116,28 +45,22 @@ export class ComprobantesService {
 
   generarFolio(): string {
     const year = new Date().getFullYear();
-    const num = String(this.counter).padStart(3, '0');
+    const num = String(this.comprobantes().length + 1).padStart(3, '0');
     return `COMP-${year}-${num}`;
   }
 
-  create(comprobante: Omit<Comprobante, 'id' | 'folio' | 'fechaEmision'>): void {
-    const newComprobante: Comprobante = {
-      ...comprobante,
-      id: this.comprobantes().length + 1,
-      folio: this.generarFolio(),
-      fechaEmision: new Date(),
-    };
-    this.comprobantes.update(list => [...list, newComprobante]);
-    this.counter++;
+  create(comprobante: Omit<Comprobante, 'id' | 'folio' | 'fechaEmision'>): Observable<any> {
+    const body = mapComprobanteToBackend(comprobante);
+    return this.http.post<any>(`${this.apiUrl}/comprobantes/agregar`, body);
   }
 
-  cancelar(id: number): void {
-    this.comprobantes.update(list =>
-      list.map(c => (c.id === id ? { ...c, estado: 'cancelado' as const } : c))
-    );
+  cancelar(id: number): Observable<any> {
+    return this.http.put<any>(`${this.apiUrl}/comprobantes/editar/${id}`, {
+      observaciones: 'Cancelado',
+    });
   }
 
-  delete(id: number): void {
-    this.comprobantes.update(list => list.filter(c => c.id !== id));
+  delete(id: number): Observable<any> {
+    return this.http.delete<any>(`${this.apiUrl}/comprobantes/eliminar/${id}`);
   }
 }

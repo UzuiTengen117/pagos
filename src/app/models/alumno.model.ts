@@ -10,4 +10,6 @@ export interface Alumno {
   fechaInscripcion: Date;
   beca: number;
   activo: boolean;
+  usuarioId?: number;
+  becaId?: number;
 }

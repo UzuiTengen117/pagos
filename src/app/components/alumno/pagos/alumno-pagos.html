@@ -6,11 +6,11 @@
   <div class="filters-bar">
     <div class="filter-group">
       <label>Fecha inicio</label>
-      <input type="date" [(ngModel)]="filtroFechaInicio" (change)="limpiarFiltros()" />
+      <input type="date" [(ngModel)]="filtroFechaInicio" />
     </div>
     <div class="filter-group">
       <label>Fecha fin</label>
-      <input type="date" [(ngModel)]="filtroFechaFin" (change)="limpiarFiltros()" />
+      <input type="date" [(ngModel)]="filtroFechaFin" />
     </div>
     <button class="btn btn-secondary" (click)="limpiarFiltros()">
       <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">

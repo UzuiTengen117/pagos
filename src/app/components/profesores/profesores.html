@@ -16,6 +16,7 @@
         <option value="todos">Todos</option>
         <option value="profesor">Profesores</option>
         <option value="administrador">Administradores</option>
+        <option value="estudiante">Estudiantes</option>
       </select>
     </div>
   </div>
@@ -26,9 +27,8 @@
         <tr>
           <th>ID</th>
           <th>Nombre</th>
-          <th>Primer Apellido</th>
-          <th>Segundo Apellido</th>
           <th>Usuario</th>
+          <th>Email</th>
           <th>Rol</th>
           <th>Acciones</th>
         </tr>
@@ -38,9 +38,8 @@
           <tr>
             <td data-label="ID">{{ usuario.id }}</td>
             <td data-label="Nombre">{{ usuario.nombre }}</td>
-            <td data-label="Primer Apellido">{{ usuario.primerApellido }}</td>
-            <td data-label="Segundo Apellido">{{ usuario.segundoApellido }}</td>
             <td data-label="Usuario">{{ usuario.username }}</td>
+            <td data-label="Email">{{ usuario.email }}</td>
             <td data-label="Rol">
               <span class="badge" [class]="'badge-' + usuario.rol">
                 {{ usuario.rol | titlecase }}
@@ -66,7 +65,7 @@
           </tr>
         } @empty {
           <tr>
-            <td colspan="7" class="empty-state">No hay usuarios registrados</td>
+            <td colspan="6" class="empty-state">No hay usuarios registrados</td>
           </tr>
         }
       </tbody>
@@ -89,23 +88,14 @@
         <div class="form-row two-col">
           <div class="form-group">
             <label>Nombre</label>
-            <input type="text" [(ngModel)]="formData.nombre" placeholder="Nombre" />
-          </div>
-          <div class="form-group">
-            <label>Primer Apellido</label>
-            <input type="text" [(ngModel)]="formData.primerApellido" placeholder="Primer apellido" />
-          </div>
-        </div>
-        <div class="form-row two-col">
-          <div class="form-group">
-            <label>Segundo Apellido</label>
-            <input type="text" [(ngModel)]="formData.segundoApellido" placeholder="Segundo apellido" />
+            <input type="text" [(ngModel)]="formData.nombre" placeholder="Nombre completo" />
           </div>
           <div class="form-group">
             <label>Rol</label>
-            <select [(ngModel)]="formData.rol">
+            <select [(ngModel)]="formData.rol" (change)="onRolChange()">
               <option value="profesor">Profesor</option>
               <option value="administrador">Administrador</option>
+              <option value="estudiante">Estudiante</option>
             </select>
           </div>
         </div>
@@ -115,10 +105,50 @@
             <input type="text" [(ngModel)]="formData.username" placeholder="Nombre de usuario" />
           </div>
           <div class="form-group">
-            <label>{{ isEditing ? 'Nueva Contraseña (dejar vacío para mantener)' : 'Contraseña' }}</label>
-            <input type="password" [(ngModel)]="formData.password" placeholder="Contraseña" />
+            <label>Email</label>
+            <input type="email" [(ngModel)]="formData.email" placeholder="correo@ejemplo.com" />
           </div>
         </div>
+        <div class="form-group">
+          <label>{{ isEditing ? 'Nueva Contraseña (dejar vacío para mantener)' : 'Contraseña' }}</label>
+          <input type="password" [(ngModel)]="formData.password" placeholder="Contraseña" />
+        </div>
+        @if (formData.rol === 'estudiante') {
+          <div class="form-group">
+            <label>Seleccionar Alumno Existente</label>
+            <select [(ngModel)]="selectedAlumnoId">
+              <option [ngValue]="null">-- Ninguno --</option>
+              @for (alumno of alumnosDisponibles; track alumno.id) {
+                <option [ngValue]="alumno.id">{{ alumno.nombre }} {{ alumno.primerApellido }} {{ alumno.segundoApellido }}</option>
+              }
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Beca (opcional)</label>
+            <select [(ngModel)]="selectedBecaId">
+              <option [ngValue]="null">-- Sin beca --</option>
+              @for (beca of becas; track beca.id) {
+                <option [ngValue]="beca.id">{{ beca.nombre }} ({{ beca.porcentaje }}%)</option>
+              }
+            </select>
+          </div>
+          @if (estudiantesExistentes.length > 0) {
+            <div class="form-group">
+              <label>Estudiantes Registrados (solo lectura)</label>
+              <div class="estudiantes-lista">
+                @for (est of estudiantesExistentes; track est.id) {
+                  <div class="estudiante-item">
+                    <div class="estudiante-info">
+                      <strong>{{ est.nombre }}</strong>
+                      <span>{{ est.username }}</span>
+                      <span>{{ est.email }}</span>
+                    </div>
+                  </div>
+                }
+              </div>
+            </div>
+          }
+        }
       </div>
       <div class="modal-footer">
         <button class="btn btn-secondary" (click)="closeModal()">Cancelar</button>
@@ -145,7 +175,7 @@
             <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>
           </svg>
         </div>
-        <p>¿Estás seguro de que deseas eliminar al usuario <strong>{{ usuarioToDelete?.nombre }} {{ usuarioToDelete?.primerApellido }}</strong>?</p>
+        <p>¿Estás seguro de que deseas eliminar al usuario <strong>{{ usuarioToDelete?.nombre }}</strong>?</p>
         <p class="warning-text">Esta acción no se puede deshacer.</p>
       </div>
       <div class="modal-footer">
@@ -168,12 +198,13 @@
         </button>
       </div>
       <div class="modal-body">
-        <p>Cambiar rol de <strong>{{ usuarioRol?.nombre }} {{ usuarioRol?.primerApellido }}</strong></p>
+        <p>Cambiar rol de <strong>{{ usuarioRol?.nombre }}</strong></p>
         <div class="form-group">
           <label>Nuevo Rol</label>
           <select [(ngModel)]="nuevoRol">
             <option value="profesor">Profesor</option>
             <option value="administrador">Administrador</option>
+            <option value="estudiante">Estudiante</option>
           </select>
         </div>
       </div>

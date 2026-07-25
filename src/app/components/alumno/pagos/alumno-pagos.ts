@@ -1,4 +1,4 @@
-import { Component, inject } from '@angular/core';
+import { Component, inject, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { AuthService } from '../../../services/auth';
@@ -13,20 +13,29 @@ import { Pago } from '../../../models/pago.model';
   templateUrl: './alumno-pagos.html',
   styleUrl: './alumno-pagos.scss',
 })
-export class AlumnoPagos {
+export class AlumnoPagos implements OnInit {
   private authService = inject(AuthService);
   private pagosService = inject(PagosService);
   private alumnosService = inject(AlumnosService);
+  private cdr = inject(ChangeDetectorRef);
 
   currentUser = this.authService.currentUser;
   filtroFechaInicio = '';
   filtroFechaFin = '';
 
+  ngOnInit(): void {
+    this.alumnosService.loadAll().subscribe(() => {
+      this.pagosService.loadAll().subscribe(() => {
+        this.cdr.detectChanges();
+      });
+    });
+  }
+
   get misPagos(): Pago[] {
     const usuario = this.currentUser();
     if (!usuario) return [];
     const alumno = this.alumnosService.getAll().find(
-      a => a.username === usuario.username
+      a => a.username === usuario.username || a.email === usuario.email
     );
     if (!alumno) return [];
     let pagos = this.pagosService.getAll().filter(p => p.alumnoId === alumno.id);

@@ -9,6 +9,13 @@
     </button>
   </div>
 
+  @if (mensajeError) {
+    <div class="alert alert-error">{{ mensajeError }}</div>
+  }
+  @if (mensajeExito) {
+    <div class="alert alert-exito">{{ mensajeExito }}</div>
+  }
+
   <div class="filters-bar">
     <div class="filter-group">
       <label>Buscar por nombre</label>
@@ -44,8 +51,10 @@
         <tr>
           <th>ID</th>
           <th>Alumno</th>
+          <th>Beca</th>
           <th>Concepto</th>
-          <th>Monto</th>
+          <th>Precio Original</th>
+          <th>Monto Final</th>
           <th>Fecha</th>
           <th>Semana</th>
           <th>Mes</th>
@@ -58,8 +67,36 @@
           <tr>
             <td data-label="ID">{{ pago.id }}</td>
             <td data-label="Alumno">{{ pago.alumnoNombre }}</td>
+            <td data-label="Beca">
+              @if (pago.becaPorcentaje > 0) {
+                <span class="status-badge status-beca">{{ pago.becaPorcentaje }}%</span>
+              } @else {
+                <span class="text-muted">-</span>
+              }
+            </td>
             <td data-label="Concepto">{{ pago.concepto }}</td>
-            <td class="monto" data-label="Monto">${{ pago.monto | number }}</td>
+            <td class="monto" data-label="Precio Original">
+              @if (pago.becaPorcentaje > 0) {
+                <span class="monto-original">${{ pago.montoOriginal | number }}</span>
+              } @else {
+                ${{ pago.montoOriginal | number }}
+              }
+            </td>
+            <td class="monto" data-label="Monto Final">
+              @if (pago.montoParcial && pago.montoParcial > 0 && pago.montoParcial < pago.monto) {
+                <span class="monto-descuento">${{ pago.montoParcial | number }}</span>
+                <span class="pago-parcial-info">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+                  </svg>
+                  de ${{ pago.monto | number }}
+                </span>
+              } @else if (pago.becaPorcentaje > 0) {
+                <span class="monto-descuento">${{ pago.monto | number }}</span>
+              } @else {
+                ${{ pago.monto | number }}
+              }
+            </td>
             <td data-label="Fecha">{{ pago.fechaPago | date:'dd/MM/yyyy' }}</td>
             <td data-label="Semana">{{ pago.semana }}</td>
             <td data-label="Mes">{{ pago.mes }}</td>
@@ -67,6 +104,17 @@
               <span class="status-badge" [class]="'status-' + pago.estado">
                 {{ pago.estado | titlecase }}
               </span>
+              @if (pago.montoParcial && pago.montoParcial > 0 && pago.montoParcial < pago.monto) {
+                <span class="status-badge status-parcial">Parcial</span>
+              }
+              @if (pago.notasPendiente) {
+                <span class="notas-pendiente-info" [title]="pago.notasPendiente">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14,2 14,8 20,8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10,9 9,9 8,9"/>
+                  </svg>
+                  {{ pago.notasPendiente }}
+                </span>
+              }
             </td>
             <td class="actions" data-label="Acciones">
               <button class="btn-icon btn-edit" (click)="openEditModal(pago)" title="Editar">
@@ -83,7 +131,7 @@
           </tr>
         } @empty {
           <tr>
-            <td colspan="9" class="empty-state">No se encontraron pagos</td>
+            <td colspan="11" class="empty-state">No se encontraron pagos</td>
           </tr>
         }
       </tbody>
@@ -103,15 +151,77 @@
         </button>
       </div>
       <div class="modal-body">
+        @if (mensajeError) {
+          <div class="alert alert-error">{{ mensajeError }}</div>
+        }
+        @if (mensajeExito) {
+          <div class="alert alert-exito">{{ mensajeExito }}</div>
+        }
+
         <div class="form-group">
           <label>Alumno</label>
-          <select [(ngModel)]="formData.alumnoId">
+          <select [(ngModel)]="formData.alumnoId" (ngModelChange)="onAlumnoChange()">
             <option [ngValue]="null" disabled>Selecciona un alumno</option>
             @for (alumno of alumnos; track alumno.id) {
-              <option [ngValue]="alumno.id">{{ alumno.nombre }} {{ alumno.primerApellido }}</option>
+              <option [ngValue]="alumno.id">{{ alumno.nombre }} {{ alumno.primerApellido }} {{ getAlumnoBeca(alumno.id) !== 'Sin beca' ? '(' + getAlumnoBeca(alumno.id) + ')' : '' }}</option>
             }
           </select>
+          @if (alumnos.length === 0) {
+            <small class="text-muted">No hay alumnos registrados</small>
+          }
         </div>
+
+        @if (formData.alumnoId) {
+          <div class="beca-info" [class]="formData.becaPorcentaje > 0 ? 'beca-activa' : 'beca-inactiva'">
+            @if (formData.becaPorcentaje > 0) {
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+                <polyline points="22,4 12,14.01 9,11.01"/>
+              </svg>
+              <span>Este alumno tiene una beca del <strong>{{ formData.becaPorcentaje }}%</strong>. El monto se calculará automáticamente con el descuento.</span>
+            } @else {
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="10"/>
+                <line x1="12" y1="8" x2="12" y2="12"/>
+                <line x1="12" y1="16" x2="12.01" y2="16"/>
+              </svg>
+              <span>Este alumno no tiene beca. Se aplicará el precio regular.</span>
+            }
+          </div>
+        }
+
+        <div class="form-group">
+          <label>Tipo de Pago</label>
+          <select (ngModelChange)="onTipoPagoSelect($event)" [ngModel]="formData.precioId" [disabled]="!formData.alumnoId">
+            <option [ngValue]="null" disabled>Selecciona un tipo de pago</option>
+            @for (precio of precios; track precio.id) {
+              <option [ngValue]="precio.id">{{ precio.concepto }} - ${{ precio.monto | number }} ({{ precio.tipo | titlecase }})</option>
+            }
+          </select>
+          @if (precios.length === 0) {
+            <small class="text-muted">No hay tipos de pago registrados</small>
+          }
+        </div>
+
+        @if (formData.montoOriginal > 0) {
+          <div class="descuento-resumen">
+            <div class="descuento-linea">
+              <span>Precio original:</span>
+              <span>${{ formData.montoOriginal | number }}</span>
+            </div>
+            @if (formData.becaPorcentaje > 0) {
+              <div class="descuento-linea descuento">
+                <span>Descuento ({{ formData.becaPorcentaje }}%):</span>
+                <span>-${{ (formData.montoOriginal - formData.monto) | number }}</span>
+              </div>
+            }
+            <div class="descuento-linea total">
+              <span>Monto a pagar:</span>
+              <span>${{ formData.monto | number }}</span>
+            </div>
+          </div>
+        }
+
         <div class="form-group">
           <label>Concepto</label>
           <input type="text" [(ngModel)]="formData.concepto" placeholder="Ej: Mensualidad Enero" />
@@ -119,29 +229,87 @@
         <div class="form-row three-col">
           <div class="form-group">
             <label>Monto ($)</label>
-            <input type="number" [(ngModel)]="formData.monto" placeholder="0.00" min="0" />
+            <input type="number" [(ngModel)]="formData.monto" placeholder="0.00" min="0" readonly class="input-readonly" />
           </div>
-          <div class="form-group">
-            <label>Semana</label>
-            <input type="number" [(ngModel)]="formData.semana" min="1" max="52" />
-          </div>
-          <div class="form-group">
-            <label>Mes</label>
-            <select [(ngModel)]="formData.mes">
-              @for (mes of meses; track mes) {
-                <option [value]="mes">{{ mes }}</option>
-              }
-            </select>
-          </div>
+          @if (formData.tipoPago === 'semanal') {
+            <div class="form-group">
+              <label>Semanas a pagar</label>
+              <input type="number" [(ngModel)]="formData.semana" min="1" max="52" (ngModelChange)="onSemanaChange()" />
+            </div>
+            <div class="form-group">
+              <label>Mes</label>
+              <select [(ngModel)]="formData.mes" (ngModelChange)="onMesChange()">
+                @for (mes of meses; track mes) {
+                  <option [value]="mes">{{ mes }}</option>
+                }
+              </select>
+            </div>
+          } @else {
+            <div class="form-group full-width">
+              <label>Meses a pagar</label>
+              <div class="dropdown-multi" (click)="$event.stopPropagation()">
+                <div class="dropdown-trigger" (click)="toggleMesesDropdown()">
+                  <span [class.placeholder]="formData.mesesSeleccionados.length === 0">{{ getMesesSeleccionadosText() }}</span>
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" [class.rotated]="showMesesDropdown">
+                    <polyline points="6,9 12,15 18,9"/>
+                  </svg>
+                </div>
+                @if (showMesesDropdown) {
+                  <div class="dropdown-menu">
+                    @for (mes of meses; track mes) {
+                      <label class="dropdown-item" (click)="$event.stopPropagation()">
+                        <input type="checkbox" [checked]="isMesSelected(mes)" (change)="toggleMes(mes)" />
+                        <span class="checkmark"></span>
+                        <span>{{ mes }}</span>
+                      </label>
+                    }
+                  </div>
+                }
+              </div>
+            </div>
+          }
         </div>
         <div class="form-group">
           <label>Estado</label>
-          <select [(ngModel)]="formData.estado">
+          <select [(ngModel)]="formData.estado" (ngModelChange)="togglePendienteNotas()" [disabled]="formData.esPagoParcial">
             <option value="pagado">Pagado</option>
             <option value="pendiente">Pendiente</option>
             <option value="vencido">Vencido</option>
           </select>
         </div>
+
+        @if (!isEditing) {
+          <div class="form-group">
+            <label>Metodo de Pago</label>
+            <select [(ngModel)]="formData.metodoPago">
+              <option value="efectivo">Efectivo</option>
+              <option value="transferencia">Transferencia</option>
+              <option value="tarjeta">Tarjeta</option>
+            </select>
+          </div>
+        }
+
+        <div class="form-group">
+          <label class="checkbox-label">
+            <input type="checkbox" [(ngModel)]="formData.esPagoParcial" (ngModelChange)="togglePagoParcial()" />
+            <span class="checkbox-text">Pago parcial (indicar monto a pagar)</span>
+          </label>
+        </div>
+
+        @if (formData.esPagoParcial) {
+          <div class="form-group">
+            <label>Monto a pagar ($)</label>
+            <input type="number" [(ngModel)]="formData.montoParcial" [max]="formData.monto" min="0" placeholder="0.00" />
+            <span class="field-hint">Monto total: ${{ formData.monto | number }}</span>
+          </div>
+        }
+
+        @if (formData.estado === 'pendiente' || formData.esPagoParcial) {
+          <div class="form-group">
+            <label>Notas / Motivo del pendiente</label>
+            <textarea [(ngModel)]="formData.notasPendiente" rows="3" placeholder="Ej: Falta documentacion, alumno solicito extension..."></textarea>
+          </div>
+        }
       </div>
       <div class="modal-footer">
         <button class="btn btn-secondary" (click)="closeModal()">Cancelar</button>
@@ -155,7 +323,7 @@
   <div class="modal-overlay" (click)="closeDeleteModal()">
     <div class="modal modal-sm" (click)="$event.stopPropagation()">
       <div class="modal-header">
-        <h3>Confirmar Eliminación</h3>
+        <h3>Confirmar Eliminacion</h3>
         <button class="btn-close" (click)="closeDeleteModal()">
           <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
@@ -168,8 +336,8 @@
             <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>
           </svg>
         </div>
-        <p>¿Estás seguro de que deseas eliminar el pago de <strong>{{ pagoToDelete?.alumnoNombre }}</strong> por <strong>${{ pagoToDelete?.monto | number }}</strong>?</p>
-        <p class="warning-text">Esta acción no se puede deshacer.</p>
+        <p>Estas seguro de que deseas eliminar el pago de <strong>{{ pagoToDelete?.alumnoNombre }}</strong> por <strong>${{ pagoToDelete?.monto | number }}</strong>?</p>
+        <p class="warning-text">Esta accion no se puede deshacer.</p>
       </div>
       <div class="modal-footer">
         <button class="btn btn-secondary" (click)="closeDeleteModal()">Cancelar</button>

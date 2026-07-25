@@ -1,6 +1,8 @@
-import { Component, inject } from '@angular/core';
+import { Component, inject, OnInit, OnDestroy, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { Router, NavigationEnd } from '@angular/router';
+import { Subscription, filter } from 'rxjs';
 import { BecasService } from '../../../services/becas';
 import { Beca } from '../../../models/beca.model';
 
@@ -11,8 +13,11 @@ import { Beca } from '../../../models/beca.model';
   templateUrl: './becas.html',
   styleUrl: './becas.scss',
 })
-export class Becas {
+export class Becas implements OnInit, OnDestroy {
   private becasService = inject(BecasService);
+  private router = inject(Router);
+  private cdr = inject(ChangeDetectorRef);
+  private routerSub?: Subscription;
 
   becas: Beca[] = [];
   showModal = false;
@@ -22,8 +27,28 @@ export class Becas {
 
   formData: Partial<Beca> = this.getEmptyForm();
 
-  constructor() {
-    this.becas = this.becasService.getAll();
+  ngOnInit(): void {
+    this.loadBecas();
+    this.routerSub = this.router.events
+      .pipe(filter(e => e instanceof NavigationEnd))
+      .subscribe(() => this.loadBecas());
+  }
+
+  ngOnDestroy(): void {
+    this.routerSub?.unsubscribe();
+  }
+
+  loadBecas(): void {
+    this.becasService.loadAll().subscribe({
+      next: (data) => {
+        this.becas = data;
+        this.cdr.detectChanges();
+      },
+      error: () => {
+        this.becas = [];
+        this.cdr.detectChanges();
+      }
+    });
   }
 
   getEmptyForm(): Partial<Beca> {
@@ -64,19 +89,42 @@ export class Becas {
 
   saveBeca(): void {
     if (this.isEditing && this.formData.id) {
-      this.becasService.update(this.formData as Beca);
+      this.becasService.update(this.formData as Beca).subscribe({
+        next: () => {
+          this.closeModal();
+          this.loadBecas();
+        },
+        error: () => {
+          this.closeModal();
+          this.loadBecas();
+        }
+      });
     } else {
-      this.becasService.create(this.formData as Omit<Beca, 'id'>);
+      this.becasService.create(this.formData as Omit<Beca, 'id'>).subscribe({
+        next: () => {
+          this.closeModal();
+          this.loadBecas();
+        },
+        error: () => {
+          this.closeModal();
+          this.loadBecas();
+        }
+      });
     }
-    this.becas = this.becasService.getAll();
-    this.closeModal();
   }
 
   deleteBeca(): void {
     if (this.becaToDelete) {
-      this.becasService.delete(this.becaToDelete.id);
-      this.becas = this.becasService.getAll();
-      this.closeDeleteModal();
+      this.becasService.delete(this.becaToDelete.id).subscribe({
+        next: () => {
+          this.closeDeleteModal();
+          this.loadBecas();
+        },
+        error: () => {
+          this.closeDeleteModal();
+          this.loadBecas();
+        }
+      });
     }
   }
 }

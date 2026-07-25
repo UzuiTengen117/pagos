@@ -1,0 +1,193 @@
+import { Usuario, RolUsuario } from '../models/usuario.model';
+import { Alumno } from '../models/alumno.model';
+import { Pago } from '../models/pago.model';
+import { Beca } from '../models/beca.model';
+import { Precio } from '../models/precio.model';
+import { Comprobante } from '../models/comprobante.model';
+
+export function mapRol(backendRol: string): RolUsuario {
+  switch (backendRol) {
+    case 'admin': return 'administrador';
+    case 'profesor': return 'profesor';
+    case 'estudiante': return 'estudiante';
+    default: return 'estudiante';
+  }
+}
+
+export function mapRolToFrontend(rol: RolUsuario): string {
+  switch (rol) {
+    case 'administrador': return 'admin';
+    case 'profesor': return 'profesor';
+    case 'estudiante': return 'estudiante';
+    default: return 'estudiante';
+  }
+}
+
+export function mapUsuarioFromBackend(data: any): Usuario {
+  return {
+    id: data.id,
+    nombre: data.nombre,
+    primerApellido: data.primer_apellido || '',
+    segundoApellido: data.segundo_apellido || '',
+    username: data.username,
+    email: data.email || '',
+    rol: mapRol(data.rol),
+    fechaCreacion: data.created_at ? new Date(data.created_at) : new Date(),
+  };
+}
+
+export function mapUsuarioToBackend(usuario: any): any {
+  const body: any = {
+    nombre: usuario.nombre,
+    username: usuario.username,
+    email: usuario.email,
+    rol: mapRolToFrontend(usuario.rol),
+  };
+  if (usuario.password) {
+    body.password = usuario.password;
+  }
+  return body;
+}
+
+export function mapAlumnoFromBackend(data: any): Alumno {
+  return {
+    id: data.id,
+    nombre: data.nombre,
+    primerApellido: data.primer_apellido || '',
+    segundoApellido: data.segundo_apellido || '',
+    username: data.usuario_nombre || '',
+    email: data.email || '',
+    telefono: data.telefono || '',
+    grado: data.grado || '',
+    fechaInscripcion: data.created_at ? new Date(data.created_at) : new Date(),
+    beca: data.beca_porcentaje ? Number(data.beca_porcentaje) : 0,
+    activo: data.activo !== false,
+    usuarioId: data.usuario_id,
+    becaId: data.beca_id,
+  };
+}
+
+export function mapAlumnoToBackend(alumno: any): any {
+  return {
+    nombre: alumno.nombre,
+    primer_apellido: alumno.primerApellido || '',
+    segundo_apellido: alumno.segundoApellido || '',
+    usuario_id: alumno.usuarioId || alumno.usuario_id,
+    email: alumno.email,
+    telefono: alumno.telefono || '',
+    grado: alumno.grado || '',
+    beca_id: alumno.becaId || alumno.beca_id || null,
+  };
+}
+
+export function mapPagoFromBackend(data: any): Pago {
+  const nombre = data.nombre || '';
+  const apellido = data.primer_apellido || '';
+  const segundoApellido = data.segundo_apellido || '';
+  const fullName = `${nombre} ${apellido} ${segundoApellido}`.trim();
+
+  return {
+    id: data.id,
+    alumnoId: data.alumno_id,
+    alumnoNombre: fullName,
+    monto: Number(data.monto_final),
+    montoOriginal: Number(data.monto_original),
+    concepto: data.concepto || '',
+    fechaPago: data.created_at ? new Date(data.created_at) : new Date(),
+    estado: data.estado || 'pendiente',
+    semana: data.semana || 0,
+    mes: data.mes || '',
+    becaPorcentaje: data.beca_porcentaje ? Number(data.beca_porcentaje) : 0,
+    precioId: data.tipo_pago_id,
+    tipoPago: data.tipo || 'mensualidad',
+    becaId: data.beca_id,
+    becaNombre: data.beca_nombre || '',
+    montoParcial: data.monto_parcial ? Number(data.monto_parcial) : undefined,
+    notasPendiente: data.notas_pendiente || undefined,
+  };
+}
+
+export function mapPagoToBackend(pago: any): any {
+  return {
+    alumno_id: pago.alumnoId,
+    tipo_pago_id: pago.precioId,
+    semana: pago.semana || null,
+    mes: pago.mes,
+    estado: pago.estado || 'pendiente',
+    monto: pago.monto || null,
+    monto_original: pago.montoOriginal || null,
+    beca_porcentaje: pago.becaPorcentaje ?? null,
+    monto_parcial: pago.montoParcial || null,
+    notas_pendiente: pago.notasPendiente || null,
+  };
+}
+
+export function mapBecaFromBackend(data: any): Beca {
+  return {
+    id: data.id,
+    nombre: data.nombre,
+    porcentaje: Number(data.porcentaje),
+    descripcion: data.descripcion || '',
+    activa: data.estado === 'activa',
+    estado: data.estado,
+  };
+}
+
+export function mapBecaToBackend(beca: any): any {
+  return {
+    nombre: beca.nombre,
+    porcentaje: beca.porcentaje,
+    estado: beca.activa ? 'activa' : (beca.estado || 'inactiva'),
+    descripcion: beca.descripcion || '',
+  };
+}
+
+export function mapPrecioFromBackend(data: any): Precio {
+  return {
+    id: data.id,
+    concepto: data.concepto,
+    monto: Number(data.monto),
+    tipo: data.tipo,
+  };
+}
+
+export function mapPrecioToBackend(precio: any): any {
+  return {
+    concepto: precio.concepto,
+    monto: precio.monto,
+    tipo: precio.tipo,
+  };
+}
+
+export function mapComprobanteFromBackend(data: any): Comprobante {
+  const nombre = data.nombre || '';
+  const apellido = data.primer_apellido || '';
+  const segundoApellido = data.segundo_apellido || '';
+  const fullName = `${nombre} ${apellido} ${segundoApellido}`.trim();
+
+  return {
+    id: data.id,
+    folio: data.folio || `COMP-${new Date().getFullYear()}-${String(data.id).padStart(3, '0')}`,
+    pagoId: data.pago_id || 0,
+    alumnoId: data.alumno_id,
+    alumnoNombre: fullName,
+    alumnoEmail: '',
+    concepto: data.concepto || '',
+    monto: Number(data.monto),
+    fechaEmision: data.created_at ? new Date(data.created_at) : new Date(),
+    estado: 'activo' as const,
+    metodoPago: data.metodo_pago || 'efectivo',
+    observaciones: data.observaciones || '',
+  };
+}
+
+export function mapComprobanteToBackend(comprobante: any): any {
+  return {
+    alumno_id: comprobante.alumnoId,
+    pago_id: comprobante.pagoId || null,
+    concepto: comprobante.concepto,
+    monto: comprobante.monto,
+    metodo_pago: comprobante.metodoPago,
+    observaciones: comprobante.observaciones || '',
+  };
+}

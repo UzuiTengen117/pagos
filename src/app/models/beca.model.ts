@@ -4,4 +4,5 @@ export interface Beca {
   porcentaje: number;
   descripcion: string;
   activa: boolean;
+  estado?: string;
 }

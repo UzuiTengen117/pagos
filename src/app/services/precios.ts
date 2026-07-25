@@ -1,33 +1,41 @@
-import { Injectable, signal } from '@angular/core';
+import { Injectable, signal, inject } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+import { Observable, map } from 'rxjs';
 import { Precio } from '../models/precio.model';
+import { environment } from '../../environments/environment';
+import { mapPrecioFromBackend, mapPrecioToBackend } from '../utils/mappers';
 
 @Injectable({ providedIn: 'root' })
 export class PreciosService {
-  private precios = signal<Precio[]>([
-    { id: 1, concepto: 'Mensualidad Regular', monto: 1500, tipo: 'mensualidad' },
-    { id: 2, concepto: 'Semanal Regular', monto: 750, tipo: 'semanal' },
-    { id: 3, concepto: 'Inscripción', monto: 500, tipo: 'otro' },
-    { id: 4, concepto: 'Mensualidad Becado 50%', monto: 750, tipo: 'mensualidad' },
-    { id: 5, concepto: 'Mensualidad Becado 100%', monto: 0, tipo: 'mensualidad' },
-  ]);
+  private http = inject(HttpClient);
+  private apiUrl = environment.apiUrl;
+  private precios = signal<Precio[]>([]);
+
+  loadAll(): Observable<Precio[]> {
+    return this.http.get<any[]>(`${this.apiUrl}/tipos-pago`).pipe(
+      map(data => data.map(mapPrecioFromBackend)),
+      map(data => {
+        this.precios.set(data);
+        return data;
+      })
+    );
+  }
 
   getAll(): Precio[] {
     return this.precios();
   }
 
-  create(precio: Omit<Precio, 'id'>): void {
-    const newPrecio: Precio = {
-      ...precio,
-      id: this.precios().length + 1,
-    };
-    this.precios.update(list => [...list, newPrecio]);
+  create(precio: Omit<Precio, 'id'>): Observable<any> {
+    const body = mapPrecioToBackend(precio);
+    return this.http.post<any>(`${this.apiUrl}/tipos-pago/agregar`, body);
   }
 
-  update(precio: Precio): void {
-    this.precios.update(list => list.map(p => (p.id === precio.id ? precio : p)));
+  update(precio: Precio): Observable<any> {
+    const body = mapPrecioToBackend(precio);
+    return this.http.put<any>(`${this.apiUrl}/tipos-pago/editar/${precio.id}`, body);
   }
 
-  delete(id: number): void {
-    this.precios.update(list => list.filter(p => p.id !== id));
+  delete(id: number): Observable<any> {
+    return this.http.delete<any>(`${this.apiUrl}/tipos-pago/eliminar/${id}`);
   }
 }

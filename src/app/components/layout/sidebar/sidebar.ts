@@ -19,20 +19,20 @@ export class Sidebar {
 
   menuItems = [
     { label: 'Inicio', route: '/home', icon: 'home', roles: ['administrador', 'profesor'] },
-    { label: 'Mi Resumen', route: '/alumno/home', icon: 'home', roles: ['alumno'] },
+    { label: 'Mi Resumen', route: '/alumno/home', icon: 'home', roles: ['estudiante'] },
     { label: 'Pagos', route: '/pagos', icon: 'pagos', roles: ['administrador', 'profesor'] },
     { label: 'Comprobantes', route: '/comprobantes', icon: 'comprobantes', roles: ['administrador', 'profesor'] },
     { label: 'Registro de Alumnos', route: '/alumnos', icon: 'alumnos', roles: ['administrador', 'profesor'] },
     { label: 'Registro de Usuarios', route: '/profesores', icon: 'usuarios', roles: ['administrador'] },
     { label: 'Precios', route: '/precios', icon: 'precios', roles: ['administrador'] },
     { label: 'Becas', route: '/becas', icon: 'becas', roles: ['administrador'] },
-    { label: 'Mis Pagos', route: '/alumno/pagos', icon: 'alumno-pagos', roles: ['alumno'] },
-    { label: 'Mis Comprobantes', route: '/alumno/comprobantes', icon: 'alumno-comprobantes', roles: ['alumno'] },
+    { label: 'Mis Pagos', route: '/alumno/pagos', icon: 'alumno-pagos', roles: ['estudiante'] },
+    { label: 'Mis Comprobantes', route: '/alumno/comprobantes', icon: 'alumno-comprobantes', roles: ['estudiante'] },
   ];
 
   get filteredMenuItems() {
     const rol = this.currentUser()?.rol;
-    return this.menuItems.filter(item => item.roles.includes(rol || 'alumno'));
+    return this.menuItems.filter(item => item.roles.includes(rol || 'estudiante'));
   }
 
   onClose(): void {
