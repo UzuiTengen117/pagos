@@ -18,7 +18,7 @@
 
 .content {
   flex: 1;
-  background: #f1f5f9;
+  background: var(--bg-page);
   overflow-y: auto;
 }
 
@@ -29,7 +29,7 @@
     display: block;
     position: fixed;
     inset: 0;
-    background: rgba(0, 0, 0, 0.5);
+    background: var(--bg-overlay);
     z-index: 99;
   }
 }

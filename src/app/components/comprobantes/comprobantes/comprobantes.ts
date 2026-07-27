@@ -34,8 +34,11 @@ export class Comprobantes implements OnInit {
   showModal = false;
   showPreviewModal = false;
   showDeleteModal = false;
+  showEditModal = false;
   comprobantePreview: Comprobante | null = null;
   comprobanteToDelete: Comprobante | null = null;
+  comprobanteToEdit: Comprobante | null = null;
+  editFecha = '';
 
   formData = this.getEmptyForm();
 
@@ -284,6 +287,53 @@ export class Comprobantes implements OnInit {
     `);
     windowprint.document.close();
     windowprint.print();
+  }
+
+  openEditModal(comprobante: Comprobante): void {
+    this.comprobanteToEdit = comprobante;
+    const fecha = comprobante.fechaEmision instanceof Date ? comprobante.fechaEmision : new Date(comprobante.fechaEmision);
+    const y = fecha.getFullYear();
+    const m = String(fecha.getMonth() + 1).padStart(2, '0');
+    const d = String(fecha.getDate()).padStart(2, '0');
+    this.editFecha = `${y}-${m}-${d}`;
+    this.showEditModal = true;
+    this.mensajeError = '';
+    this.mensajeExito = '';
+    this.cdr.detectChanges();
+  }
+
+  closeEditModal(): void {
+    this.showEditModal = false;
+    this.comprobanteToEdit = null;
+    this.editFecha = '';
+    this.mensajeError = '';
+    this.mensajeExito = '';
+    this.cdr.detectChanges();
+  }
+
+  saveFechaEdit(): void {
+    if (!this.comprobanteToEdit) return;
+    if (!this.editFecha) {
+      this.mensajeError = 'Selecciona una fecha válida.';
+      this.cdr.detectChanges();
+      return;
+    }
+    this.mensajeError = '';
+    const nuevaFecha = new Date(this.editFecha + 'T12:00:00');
+    this.comprobantesService.updateFecha(this.comprobanteToEdit.id, nuevaFecha).subscribe({
+      next: () => {
+        this.mensajeExito = 'Fecha actualizada correctamente.';
+        this.cdr.detectChanges();
+        setTimeout(() => {
+          this.closeEditModal();
+          this.recargarComprobantes();
+        }, 800);
+      },
+      error: (err) => {
+        this.mensajeError = err.error?.message || 'Error al actualizar la fecha.';
+        this.cdr.detectChanges();
+      }
+    });
   }
 
   openDeleteModal(comprobante: Comprobante): void {

@@ -1,7 +1,7 @@
 .main-header {
   height: 64px;
-  background: white;
-  border-bottom: 1px solid #e5e7eb;
+  background: var(--bg-card);
+  border-bottom: 1px solid var(--border-primary);
   display: flex;
   align-items: center;
   padding: 0 1.5rem;
@@ -14,13 +14,13 @@
     display: none;
     background: none;
     border: none;
-    color: #374151;
+    color: var(--text-label);
     cursor: pointer;
     padding: 0.5rem;
     border-radius: 8px;
 
     &:hover {
-      background: #f3f4f6;
+      background: var(--bg-input);
     }
 
     @media (max-width: 768px) {
@@ -31,8 +31,31 @@
   .page-title {
     font-size: 1.25rem;
     font-weight: 700;
-    color: #1e1b4b;
+    color: var(--text-page-title);
     margin: 0;
+  }
+
+  .header-spacer {
+    flex: 1;
+  }
+
+  .theme-toggle {
+    background: var(--bg-input);
+    border: 1px solid var(--border-primary);
+    color: var(--text-primary);
+    cursor: pointer;
+    padding: 0.5rem;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+
+    &:hover {
+      background: var(--bg-input-focus);
+      border-color: var(--border-input-focus);
+      color: var(--primary);
+    }
   }
 
   @media (max-width: 480px) {
