@@ -9,6 +9,7 @@ import { Pago } from '../../../models/pago.model';
 import { Alumno } from '../../../models/alumno.model';
 import { Beca } from '../../../models/beca.model';
 import { Precio } from '../../../models/precio.model';
+import * as XLSX from 'xlsx';
 
 @Component({
   selector: 'app-pagos',
@@ -514,5 +515,40 @@ export class Pagos implements OnInit {
         this.cdr.detectChanges();
       }
     });
+  }
+
+  descargarExcel(): void {
+    const datos = this.pagos.map(p => ({
+      'ID': p.id,
+      'Alumno': p.alumnoNombre,
+      'Beca': p.becaPorcentaje > 0 ? `${p.becaPorcentaje}%` : '-',
+      'Concepto': p.concepto,
+      'Precio Original': p.montoOriginal,
+      'Monto Final': p.montoParcial && p.montoParcial > 0 && p.montoParcial < p.monto ? p.montoParcial : p.monto,
+      'Fecha': new Date(p.fechaPago).toLocaleDateString('es-MX'),
+      'Semana': p.semana,
+      'Mes': p.mes,
+      'Estado': p.estado.charAt(0).toUpperCase() + p.estado.slice(1),
+    }));
+
+    const ws: XLSX.WorkSheet = XLSX.utils.json_to_sheet(datos);
+    const wb: XLSX.WorkBook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'Pagos');
+
+    ws['!cols'] = [
+      { wch: 6 },
+      { wch: 30 },
+      { wch: 8 },
+      { wch: 30 },
+      { wch: 16 },
+      { wch: 16 },
+      { wch: 14 },
+      { wch: 10 },
+      { wch: 16 },
+      { wch: 12 },
+    ];
+
+    const fecha = new Date().toISOString().slice(0, 10);
+    XLSX.writeFile(wb, `pagos_resumen_${fecha}.xlsx`);
   }
 }
