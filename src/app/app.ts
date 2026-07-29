@@ -21,6 +21,7 @@ export class App {
   private pageTitles: { [key: string]: string } = {
     '/home': 'Inicio',
     '/pagos': 'Pagos',
+    '/inscripciones': 'Inscripciones',
     '/comprobantes': 'Comprobantes de Pago',
     '/alumnos': 'Registro de Alumnos',
     '/profesores': 'Registro de Usuarios',

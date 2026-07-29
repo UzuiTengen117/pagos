@@ -21,6 +21,7 @@ export class Sidebar {
     { label: 'Inicio', route: '/home', icon: 'home', roles: ['administrador', 'profesor'] },
     { label: 'Mi Resumen', route: '/alumno/home', icon: 'home', roles: ['estudiante'] },
     { label: 'Pagos', route: '/pagos', icon: 'pagos', roles: ['administrador', 'profesor'] },
+    { label: 'Inscripciones', route: '/inscripciones', icon: 'inscripciones', roles: ['administrador', 'profesor'] },
     { label: 'Comprobantes', route: '/comprobantes', icon: 'comprobantes', roles: ['administrador', 'profesor'] },
     { label: 'Registro de Alumnos', route: '/alumnos', icon: 'alumnos', roles: ['administrador', 'profesor'] },
     { label: 'Registro de Usuarios', route: '/profesores', icon: 'usuarios', roles: ['administrador'] },

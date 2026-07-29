@@ -92,13 +92,15 @@ export class PagosService {
     const precios = this.preciosService.getAll();
     const becaPorcentaje = alumno.beca;
 
-    return precios.map(precio => ({
-      id: precio.id,
-      concepto: precio.concepto,
-      monto: precio.monto,
-      tipo: precio.tipo,
-      montoConBeca: precio.monto - (precio.monto * (becaPorcentaje / 100)),
-    }));
+    return precios
+      .filter(precio => !precio.concepto.toLowerCase().includes('inscripcion'))
+      .map(precio => ({
+        id: precio.id,
+        concepto: precio.concepto,
+        monto: precio.monto,
+        tipo: precio.tipo,
+        montoConBeca: precio.monto - (precio.monto * (becaPorcentaje / 100)),
+      }));
   }
 
   create(pago: Omit<Pago, 'id'>, metodoPago: string = 'efectivo'): Observable<any> {

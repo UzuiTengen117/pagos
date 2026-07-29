@@ -4,6 +4,7 @@ import { Pago } from '../models/pago.model';
 import { Beca } from '../models/beca.model';
 import { Precio } from '../models/precio.model';
 import { Comprobante } from '../models/comprobante.model';
+import { Inscripcion } from '../models/inscripcion.model';
 
 export function mapRol(backendRol: string): RolUsuario {
   switch (backendRol) {
@@ -189,5 +190,47 @@ export function mapComprobanteToBackend(comprobante: any): any {
     monto: comprobante.monto,
     metodo_pago: comprobante.metodoPago,
     observaciones: comprobante.observaciones || '',
+  };
+}
+
+export function mapInscripcionFromBackend(data: any): Inscripcion {
+  const alumnoObj = data.alumno || {};
+  const nombre = data.nombre || (data.alumno && data.alumno.nombre) || data.alumno_nombre || '';
+  const apellido = data.primer_apellido || (data.alumno && data.alumno.primer_apellido) || data.alumno_primer_apellido || '';
+  const segundoApellido = data.segundo_apellido || (data.alumno && data.alumno.segundo_apellido) || data.alumno_segundo_apellido || '';
+  const fullName = data.alumno_nombre_completo || `${nombre} ${apellido} ${segundoApellido}`.trim();
+
+  return {
+    id: data.id,
+    alumnoId: data.alumno_id,
+    alumnoNombre: fullName,
+    monto: Number(data.monto_final || data.monto || data.monto_total || 0),
+    montoOriginal: Number(data.monto_original || data.monto || data.precio_original || 0),
+    becaPorcentaje: data.beca_porcentaje ? Number(data.beca_porcentaje) : 0,
+    precioId: data.tipo_pago_id || data.precio_id,
+    fechaInscripcion: data.fecha_inscripcion ? new Date(data.fecha_inscripcion) : new Date(),
+    cicloEscolar: data.ciclo_escolar || '',
+    estado: data.estado || 'pendiente',
+    metodoPago: data.metodo_pago || 'efectivo',
+    notas: data.notas || '',
+  };
+}
+
+export function mapInscripcionToBackend(inscripcion: any): any {
+  const fecha = inscripcion.fechaInscripcion instanceof Date
+    ? inscripcion.fechaInscripcion.toISOString()
+    : inscripcion.fechaInscripcion || new Date().toISOString();
+
+  return {
+    alumno_id: inscripcion.alumnoId,
+    tipo_pago_id: inscripcion.precioId,
+    fecha_inscripcion: fecha,
+    ciclo_escolar: inscripcion.cicloEscolar || '',
+    monto: inscripcion.monto || null,
+    monto_original: inscripcion.montoOriginal || null,
+    beca_porcentaje: inscripcion.becaPorcentaje ?? null,
+    estado: inscripcion.estado || 'pendiente',
+    metodo_pago: inscripcion.metodoPago || 'efectivo',
+    notas: inscripcion.notas || '',
   };
 }

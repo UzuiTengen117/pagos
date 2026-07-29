@@ -104,7 +104,7 @@ export class Pagos implements OnInit {
 
     this.preciosService.loadAll().subscribe({
       next: (preciosData) => {
-        this.precios = preciosData;
+        this.precios = preciosData.filter(p => !p.concepto.toLowerCase().includes('inscripcion'));
         this.cdr.detectChanges();
       },
       error: () => {
