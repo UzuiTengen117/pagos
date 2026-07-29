@@ -213,6 +213,24 @@
 
         @if (formData.montoOriginal > 0) {
           <div class="descuento-resumen">
+            @if (formData.tipoPago === 'semanal') {
+              <div class="descuento-linea detalle">
+                <span>Semanas a pagar:</span>
+                <span>{{ formData.semana }} {{ formData.semana === 1 ? 'semana' : 'semanas' }}</span>
+              </div>
+            }
+            @if (formData.tipoPago === 'diario') {
+              <div class="descuento-linea detalle">
+                <span>Dias a pagar:</span>
+                <span>{{ formData.semana }} {{ formData.semana === 1 ? 'dia' : 'dias' }}</span>
+              </div>
+            }
+            @if (formData.tipoPago === 'mensualidad' && formData.mesesSeleccionados.length > 0) {
+              <div class="descuento-linea detalle">
+                <span>Meses a pagar:</span>
+                <span>{{ formData.mesesSeleccionados.length }} {{ formData.mesesSeleccionados.length === 1 ? 'mes' : 'meses' }}</span>
+              </div>
+            }
             <div class="descuento-linea">
               <span>Precio original:</span>
               <span>${{ formData.montoOriginal | number }}</span>
@@ -243,6 +261,9 @@
             <div class="form-group">
               <label>Semanas a pagar</label>
               <input type="number" [(ngModel)]="formData.semana" min="1" max="52" (ngModelChange)="onSemanaChange()" />
+              @if (formData.semana > 0) {
+                <span class="field-hint">{{ formData.semana }} {{ formData.semana === 1 ? 'semana seleccionada' : 'semanas seleccionadas' }}</span>
+              }
             </div>
             <div class="form-group">
               <label>Mes</label>
@@ -251,6 +272,14 @@
                   <option [value]="mes">{{ mes }}</option>
                 }
               </select>
+            </div>
+          } @else if (formData.tipoPago === 'diario') {
+            <div class="form-group full-width">
+              <label>Dias a pagar</label>
+              <input type="number" [(ngModel)]="formData.semana" min="1" max="365" (ngModelChange)="onSemanaChange()" />
+              @if (formData.semana > 0) {
+                <span class="field-hint">{{ formData.semana }} {{ formData.semana === 1 ? 'dia seleccionado' : 'dias seleccionados' }}</span>
+              }
             </div>
           } @else {
             <div class="form-group full-width">

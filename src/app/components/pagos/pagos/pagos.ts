@@ -45,7 +45,7 @@ export class Pagos implements OnInit {
   formData: {
     alumnoId: number | null;
     precioId: number | null;
-    tipoPago: 'mensualidad' | 'semanal';
+    tipoPago: 'mensualidad' | 'semanal' | 'diario';
     concepto: string;
     monto: number;
     montoOriginal: number;
@@ -117,7 +117,7 @@ export class Pagos implements OnInit {
     return {
       alumnoId: null as number | null,
       precioId: null as number | null,
-      tipoPago: 'mensualidad' as 'mensualidad' | 'semanal',
+      tipoPago: 'mensualidad' as 'mensualidad' | 'semanal' | 'diario',
       concepto: '',
       monto: 0,
       montoOriginal: 0,
@@ -144,6 +144,7 @@ export class Pagos implements OnInit {
       this.formData.tipoPago = 'mensualidad';
       this.formData.semana = 1;
       this.formData.mesesSeleccionados = [];
+      this.formData.mes = 'Enero';
       this.cdr.detectChanges();
       return;
     }
@@ -165,9 +166,12 @@ export class Pagos implements OnInit {
     if (!precio) return;
 
     this.formData.precioId = precioId;
-    this.formData.tipoPago = precio.tipo === 'semanal' ? 'semanal' : 'mensualidad';
+    this.formData.tipoPago = precio.tipo === 'semanal' ? 'semanal' : precio.tipo === 'otro' ? 'diario' : 'mensualidad';
     this.formData.semana = 1;
     this.formData.mesesSeleccionados = [];
+    if (this.formData.tipoPago === 'diario') {
+      this.formData.mes = '';
+    }
     this.onPrecioChange();
     this.actualizarConcepto();
     this.cdr.detectChanges();
@@ -176,6 +180,9 @@ export class Pagos implements OnInit {
   onTipoPagoChange(): void {
     this.formData.semana = 1;
     this.formData.mesesSeleccionados = [];
+    if (this.formData.tipoPago === 'diario') {
+      this.formData.mes = '';
+    }
     this.autoSeleccionarPrecio();
     this.actualizarConcepto();
     this.cdr.detectChanges();
@@ -190,6 +197,9 @@ export class Pagos implements OnInit {
       }
       if (this.formData.tipoPago === 'semanal') {
         return p.tipo === 'semanal';
+      }
+      if (this.formData.tipoPago === 'diario') {
+        return p.tipo === 'otro';
       }
       return false;
     });
@@ -207,6 +217,8 @@ export class Pagos implements OnInit {
 
     if (this.formData.tipoPago === 'semanal') {
       this.formData.concepto = `Semanal Semana ${this.formData.semana} ${this.formData.mes}`;
+    } else if (this.formData.tipoPago === 'diario') {
+      this.formData.concepto = `Diario ${this.formData.semana} ${this.formData.semana === 1 ? 'dia' : 'dias'}`;
     } else {
       if (this.formData.mesesSeleccionados.length > 0) {
         this.formData.concepto = `${precio.concepto} ${this.formData.mesesSeleccionados.join(', ')}`;
@@ -227,7 +239,9 @@ export class Pagos implements OnInit {
     const resultado = this.pagosService.calcularMonto(this.formData.alumnoId, this.formData.precioId);
     const multiplicador = this.formData.tipoPago === 'mensualidad'
       ? (this.formData.mesesSeleccionados.length || 1)
-      : (this.formData.semana || 1);
+      : this.formData.tipoPago === 'diario'
+        ? (this.formData.semana || 1)
+        : (this.formData.semana || 1);
 
     this.formData.montoOriginal = resultado.montoOriginal * multiplicador;
     this.formData.monto = resultado.monto * multiplicador;
@@ -351,18 +365,29 @@ export class Pagos implements OnInit {
     this.cdr.detectChanges();
   }
 
+  private detectarTipoPago(concepto: string, precioId: number | null): 'mensualidad' | 'semanal' | 'diario' {
+    const precio = precioId ? this.precios.find(p => p.id === precioId) : null;
+    if (precio?.tipo === 'semanal') return 'semanal';
+    if (precio?.tipo === 'otro') return 'diario';
+    if (precio?.tipo === 'mensualidad') return 'mensualidad';
+    if (concepto.toLowerCase().includes('semanal')) return 'semanal';
+    if (concepto.toLowerCase().includes('diario')) return 'diario';
+    return 'mensualidad';
+  }
+
   openEditModal(pago: Pago): void {
+    const tipoPago = this.detectarTipoPago(pago.concepto, pago.precioId);
     this.formData = {
       alumnoId: pago.alumnoId,
       precioId: pago.precioId,
-      tipoPago: pago.concepto.toLowerCase().includes('semanal') ? 'semanal' : 'mensualidad',
+      tipoPago,
       concepto: pago.concepto,
       monto: pago.monto,
       montoOriginal: pago.montoOriginal,
       becaPorcentaje: pago.becaPorcentaje,
       semana: pago.semana,
       mesesSeleccionados: pago.mes ? pago.mes.split(', ').filter(m => m.trim()) : [],
-      mes: pago.mes,
+      mes: tipoPago === 'diario' ? '' : (pago.mes || ''),
       estado: pago.estado,
       esPagoParcial: !!(pago.montoParcial && pago.montoParcial > 0 && pago.montoParcial < pago.monto),
       montoParcial: pago.montoParcial ?? 0,
@@ -429,7 +454,9 @@ export class Pagos implements OnInit {
 
     const mesFinal = this.formData.tipoPago === 'mensualidad' && this.formData.mesesSeleccionados.length > 0
       ? this.formData.mesesSeleccionados.join(', ')
-      : this.formData.mes;
+      : this.formData.tipoPago === 'diario'
+        ? '-'
+        : this.formData.mes;
 
     const pagoData = {
       alumnoId: alumno.id,

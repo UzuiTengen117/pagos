@@ -53,7 +53,8 @@ export class AlumnoHome implements OnInit {
     this.misPagos
       .filter(p => p.estado === 'pagado')
       .forEach(p => {
-        agrupado[p.mes] = (agrupado[p.mes] || 0) + p.monto;
+        const key = p.mes || 'Sin mes';
+        agrupado[key] = (agrupado[key] || 0) + p.monto;
       });
     return Object.entries(agrupado).map(([mes, monto]) => ({ mes, monto }));
   }

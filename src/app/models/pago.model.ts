@@ -8,7 +8,7 @@ export interface Pago {
   fechaPago: Date;
   estado: 'pagado' | 'pendiente' | 'vencido';
   semana: number;
-  mes: string;
+  mes: string | null;
   becaPorcentaje: number;
   precioId: number;
   tipoPago?: string;

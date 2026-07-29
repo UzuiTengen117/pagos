@@ -54,7 +54,8 @@ export class PagosService {
 
     pagos.filter(p => p.estado === 'pagado').forEach(p => {
       gananciasPorSemana[p.semana] = (gananciasPorSemana[p.semana] || 0) + p.monto;
-      gananciasPorMes[p.mes] = (gananciasPorMes[p.mes] || 0) + p.monto;
+      const key = p.mes || 'Sin mes';
+      gananciasPorMes[key] = (gananciasPorMes[key] || 0) + p.monto;
     });
 
     return {
