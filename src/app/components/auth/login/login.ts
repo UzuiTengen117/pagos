@@ -33,9 +33,9 @@ export class Login {
 
     this.authService.login({ username: this.username, password: this.password }).pipe(
       timeout(5000),
-      catchError(() => {
+      catchError((error) => {
         this.loading = false;
-        this.errorMsg = 'Usuario o contraseña incorrectos';
+        this.errorMsg = error?.error?.message || 'Usuario o contraseña incorrectos';
         return of(null);
       })
     ).subscribe({

@@ -58,6 +58,12 @@ export class AuthService {
   }
 
   logout(): void {
+    const token = localStorage.getItem('auth_token');
+    if (token) {
+      this.http.post(`${this.apiUrl}/usuarios/logout`, {}, {
+        headers: { Authorization: `Bearer ${token}` },
+      }).subscribe({ error: () => {} });
+    }
     this.currentUser.set(null);
     localStorage.removeItem('currentUser');
     localStorage.removeItem('auth_token');
