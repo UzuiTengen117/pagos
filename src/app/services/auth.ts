@@ -16,19 +16,25 @@ export class AuthService {
   isLoggedIn = computed(() => this.currentUser() !== null);
 
   private readonly INACTIVITY_LIMIT_MS = 3 * 60 * 1000;
+  private readonly AUTH_LAST_ACTIVITY_KEY = 'auth_last_activity';
   private inactivityTimer: ReturnType<typeof setTimeout> | null = null;
   private activityEvents = ['mousemove', 'mousedown', 'keydown', 'touchstart', 'scroll'];
 
   constructor() {
     const saved = localStorage.getItem('currentUser');
     const token = localStorage.getItem('auth_token');
+    const lastActivity = Number(localStorage.getItem(this.AUTH_LAST_ACTIVITY_KEY)) || 0;
     if (saved && token) {
       try {
-        this.currentUser.set(JSON.parse(saved));
+        const user = JSON.parse(saved);
+        if (Date.now() - lastActivity > this.INACTIVITY_LIMIT_MS) {
+          this.clearSession();
+          return;
+        }
+        this.currentUser.set(user);
         this.startInactivityTimer();
       } catch {
-        localStorage.removeItem('currentUser');
-        localStorage.removeItem('auth_token');
+        this.clearSession();
       }
     }
   }
@@ -48,6 +54,7 @@ export class AuthService {
   }
 
   private resetInactivityTimer = (): void => {
+    localStorage.setItem(this.AUTH_LAST_ACTIVITY_KEY, String(Date.now()));
     if (this.inactivityTimer) {
       clearTimeout(this.inactivityTimer);
     }
@@ -87,6 +94,14 @@ export class AuthService {
     );
   }
 
+  clearSession(): void {
+    this.stopInactivityTimer();
+    this.currentUser.set(null);
+    localStorage.removeItem('currentUser');
+    localStorage.removeItem('auth_token');
+    localStorage.removeItem(this.AUTH_LAST_ACTIVITY_KEY);
+  }
+
   logout(): void {
     this.stopInactivityTimer();
     const token = localStorage.getItem('auth_token');
@@ -95,9 +110,7 @@ export class AuthService {
         headers: { Authorization: `Bearer ${token}` },
       }).subscribe({ error: () => {} });
     }
-    this.currentUser.set(null);
-    localStorage.removeItem('currentUser');
-    localStorage.removeItem('auth_token');
+    this.clearSession();
     this.router.navigate(['/login']);
   }
 
