@@ -15,18 +15,46 @@ export class AuthService {
   currentUser = signal<Usuario | null>(null);
   isLoggedIn = computed(() => this.currentUser() !== null);
 
+  private readonly INACTIVITY_LIMIT_MS = 3 * 60 * 1000;
+  private inactivityTimer: ReturnType<typeof setTimeout> | null = null;
+  private activityEvents = ['mousemove', 'mousedown', 'keydown', 'touchstart', 'scroll'];
+
   constructor() {
     const saved = localStorage.getItem('currentUser');
     const token = localStorage.getItem('auth_token');
     if (saved && token) {
       try {
         this.currentUser.set(JSON.parse(saved));
+        this.startInactivityTimer();
       } catch {
         localStorage.removeItem('currentUser');
         localStorage.removeItem('auth_token');
       }
     }
   }
+
+  private startInactivityTimer(): void {
+    this.stopInactivityTimer();
+    this.activityEvents.forEach(event => document.addEventListener(event, this.resetInactivityTimer));
+    this.resetInactivityTimer();
+  }
+
+  private stopInactivityTimer(): void {
+    if (this.inactivityTimer) {
+      clearTimeout(this.inactivityTimer);
+      this.inactivityTimer = null;
+    }
+    this.activityEvents.forEach(event => document.removeEventListener(event, this.resetInactivityTimer));
+  }
+
+  private resetInactivityTimer = (): void => {
+    if (this.inactivityTimer) {
+      clearTimeout(this.inactivityTimer);
+    }
+    this.inactivityTimer = setTimeout(() => {
+      this.logout();
+    }, this.INACTIVITY_LIMIT_MS);
+  };
 
   login(request: LoginRequest): Observable<any> {
     return this.http.post<{ token: string; usuario: any }>(`${this.apiUrl}/usuarios/login`, request).pipe(
@@ -35,6 +63,7 @@ export class AuthService {
         this.currentUser.set(user);
         localStorage.setItem('currentUser', JSON.stringify(user));
         localStorage.setItem('auth_token', response.token);
+        this.startInactivityTimer();
       })
     );
   }
@@ -53,11 +82,13 @@ export class AuthService {
         this.currentUser.set(user);
         localStorage.setItem('currentUser', JSON.stringify(user));
         localStorage.setItem('auth_token', response.token);
+        this.startInactivityTimer();
       })
     );
   }
 
   logout(): void {
+    this.stopInactivityTimer();
     const token = localStorage.getItem('auth_token');
     if (token) {
       this.http.post(`${this.apiUrl}/usuarios/logout`, {}, {
