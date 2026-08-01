@@ -138,7 +138,7 @@ export function mapBecaToBackend(beca: any): any {
   return {
     nombre: beca.nombre,
     porcentaje: beca.porcentaje,
-    estado: beca.activa ? 'activa' : (beca.estado || 'inactiva'),
+    estado: String(beca.activa) === 'true' ? 'activa' : 'inactiva',
     descripcion: beca.descripcion || '',
   };
 }

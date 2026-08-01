@@ -122,7 +122,7 @@ export class Profesores implements OnInit, OnDestroy {
   loadBecas(): void {
     this.becasService.loadAll().subscribe({
       next: (data) => {
-        this.becas = data;
+        this.becas = data.filter(b => b.activa);
         this.cdr.detectChanges();
       },
       error: () => {
