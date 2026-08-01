@@ -28,6 +28,7 @@ export class AuthService {
       try {
         const user = JSON.parse(saved);
         if (Date.now() - lastActivity > this.INACTIVITY_LIMIT_MS) {
+          this.releaseBackendSession(token);
           this.clearSession();
           return;
         }
@@ -37,6 +38,12 @@ export class AuthService {
         this.clearSession();
       }
     }
+  }
+
+  private releaseBackendSession(token: string): void {
+    this.http.post(`${this.apiUrl}/usuarios/logout`, {}, {
+      headers: { Authorization: `Bearer ${token}` },
+    }).subscribe({ error: () => {} });
   }
 
   private startInactivityTimer(): void {
@@ -106,9 +113,7 @@ export class AuthService {
     this.stopInactivityTimer();
     const token = localStorage.getItem('auth_token');
     if (token) {
-      this.http.post(`${this.apiUrl}/usuarios/logout`, {}, {
-        headers: { Authorization: `Bearer ${token}` },
-      }).subscribe({ error: () => {} });
+      this.releaseBackendSession(token);
     }
     this.clearSession();
     this.router.navigate(['/login']);
