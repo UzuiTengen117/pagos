@@ -4,11 +4,12 @@ import { CommonModule } from '@angular/common';
 import { filter } from 'rxjs/operators';
 import { Sidebar } from './components/layout/sidebar/sidebar';
 import { Header } from './components/layout/header/header';
+import { ToastComponent } from './components/notification/toast';
 
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [RouterOutlet, CommonModule, Sidebar, Header],
+  imports: [RouterOutlet, CommonModule, Sidebar, Header, ToastComponent],
   templateUrl: './app.html',
   styleUrl: './app.scss',
 })

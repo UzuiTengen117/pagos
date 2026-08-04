@@ -6,7 +6,6 @@ export interface Usuario {
   primerApellido: string;
   segundoApellido: string;
   username: string;
-  password?: string;
   email: string;
   rol: RolUsuario;
   fechaCreacion: Date;

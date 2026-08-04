@@ -41,6 +41,7 @@ export class Profesores implements OnInit, OnDestroy {
 
   selectedAlumnoId: number | null = null;
   selectedBecaId: number | null = null;
+  formPassword = '';
 
   formData: Partial<Usuario> = this.getEmptyForm();
 
@@ -83,7 +84,6 @@ export class Profesores implements OnInit, OnDestroy {
       nombre: '',
       username: '',
       email: '',
-      password: '',
       rol: 'profesor',
     };
   }
@@ -157,7 +157,8 @@ export class Profesores implements OnInit, OnDestroy {
   }
 
   openEditModal(usuario: Usuario): void {
-    this.formData = { ...usuario, password: '' };
+    this.formData = { ...usuario };
+    this.formPassword = '';
     this.isEditing = true;
     this.selectedAlumnoId = null;
     this.selectedBecaId = null;
@@ -205,7 +206,7 @@ export class Profesores implements OnInit, OnDestroy {
 
   saveUsuario(): void {
     if (this.isEditing && this.formData.id) {
-      this.profesoresService.update(this.formData as Usuario).subscribe({
+      this.profesoresService.update(this.formData as Usuario, this.formPassword || undefined).subscribe({
         next: (res) => {
           if (this.formData.rol === 'estudiante' && this.selectedAlumnoId) {
             this.vincularAlumno(res.id || this.formData.id);
@@ -220,7 +221,7 @@ export class Profesores implements OnInit, OnDestroy {
         }
       });
     } else {
-      this.profesoresService.create(this.formData).subscribe({
+      this.profesoresService.create(this.formData, this.formPassword || undefined).subscribe({
         next: (res) => {
           if (this.formData.rol === 'estudiante' && this.selectedAlumnoId) {
             this.vincularAlumno(res.usuario?.id || res.id);

@@ -111,7 +111,7 @@
         </div>
         <div class="form-group">
           <label>{{ isEditing ? 'Nueva Contraseña (dejar vacío para mantener)' : 'Contraseña' }}</label>
-          <input type="password" [(ngModel)]="formData.password" placeholder="Contraseña" />
+          <input type="password" [(ngModel)]="formPassword" placeholder="Contraseña" />
         </div>
         @if (formData.rol === 'estudiante') {
           <div class="form-group">

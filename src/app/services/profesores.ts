@@ -1,7 +1,6 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, map, tap } from 'rxjs';
-import { AuthService } from './auth';
 import { Usuario, RolUsuario } from '../models/usuario.model';
 import { environment } from '../../environments/environment';
 import { mapUsuarioFromBackend, mapRolToFrontend } from '../utils/mappers';
@@ -9,7 +8,6 @@ import { mapUsuarioFromBackend, mapRolToFrontend } from '../utils/mappers';
 @Injectable({ providedIn: 'root' })
 export class ProfesoresService {
   private http = inject(HttpClient);
-  private authService = inject(AuthService);
   private apiUrl = environment.apiUrl;
 
   getAllProfesores(): Observable<Usuario[]> {
@@ -36,26 +34,28 @@ export class ProfesoresService {
     );
   }
 
-  create(usuario: any): Observable<any> {
-    const body = {
-      nombre: usuario.nombre,
-      username: usuario.username,
-      email: usuario.email,
-      password: usuario.password,
-      rol: mapRolToFrontend(usuario.rol),
-    };
-    return this.http.post<any>(`${this.apiUrl}/usuarios/registro`, body);
-  }
-
-  update(usuario: Usuario): Observable<any> {
+  create(usuario: any, password?: string): Observable<any> {
     const body: any = {
       nombre: usuario.nombre,
       username: usuario.username,
       email: usuario.email,
       rol: mapRolToFrontend(usuario.rol),
     };
-    if (usuario.password) {
-      body.password = usuario.password;
+    if (password) {
+      body.password = password;
+    }
+    return this.http.post<any>(`${this.apiUrl}/usuarios/registro`, body);
+  }
+
+  update(usuario: Usuario, password?: string): Observable<any> {
+    const body: any = {
+      nombre: usuario.nombre,
+      username: usuario.username,
+      email: usuario.email,
+      rol: mapRolToFrontend(usuario.rol),
+    };
+    if (password) {
+      body.password = password;
     }
     return this.http.put<any>(`${this.apiUrl}/usuarios/editar/${usuario.id}`, body);
   }
@@ -65,14 +65,17 @@ export class ProfesoresService {
   }
 
   cambiarRol(id: number, nuevoRol: RolUsuario): Observable<any> {
-    return this.http.get<any>(`${this.apiUrl}/usuarios/${id}`).pipe(
+    return this.http.get<any[]>(`${this.apiUrl}/usuarios`).pipe(
+      map(users => users.find((u: any) => u.id === id)),
       tap((user: any) => {
-        this.http.put<any>(`${this.apiUrl}/usuarios/editar/${id}`, {
-          nombre: user.nombre,
-          username: user.username,
-          email: user.email,
-          rol: mapRolToFrontend(nuevoRol),
-        }).subscribe();
+        if (user) {
+          this.http.put<any>(`${this.apiUrl}/usuarios/editar/${id}`, {
+            nombre: user.nombre,
+            username: user.username,
+            email: user.email,
+            rol: mapRolToFrontend(nuevoRol),
+          }).subscribe();
+        }
       })
     );
   }

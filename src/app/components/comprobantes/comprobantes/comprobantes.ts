@@ -1,6 +1,7 @@
 import { Component, inject, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { ComprobantesService } from '../../../services/comprobantes';
 import { AlumnosService } from '../../../services/alumnos';
 import { PagosService } from '../../../services/pagos';
@@ -20,6 +21,7 @@ export class Comprobantes implements OnInit {
   private alumnosService = inject(AlumnosService);
   private pagosService = inject(PagosService);
   private cdr = inject(ChangeDetectorRef);
+  private sanitizer = inject(DomSanitizer);
 
   comprobantes: Comprobante[] = [];
   alumnos: Alumno[] = [];
@@ -250,6 +252,8 @@ export class Comprobantes implements OnInit {
     const windowprint = window.open('', '_blank', 'width=800,height=600');
     if (!windowprint) return;
 
+    const sanitizedContent = this.sanitizer.sanitize(1, printContent.innerHTML) || '';
+
     windowprint.document.write(`
       <!DOCTYPE html>
       <html>
@@ -281,7 +285,7 @@ export class Comprobantes implements OnInit {
         </style>
       </head>
       <body>
-        ${printContent.innerHTML}
+        ${sanitizedContent}
       </body>
       </html>
     `);

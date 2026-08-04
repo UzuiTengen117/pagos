@@ -1,35 +1,25 @@
 import { Routes } from '@angular/router';
-import { Login } from './components/auth/login/login';
-import { Register } from './components/auth/register/register';
-import { ForgotPassword } from './components/auth/forgot-password/forgot-password';
-import { Home } from './components/dashboard/home/home';
-import { Pagos } from './components/pagos/pagos/pagos';
-import { Alumnos } from './components/alumnos/alumnos/alumnos';
-import { Profesores } from './components/profesores/profesores';
-import { Precios } from './components/precios/precios/precios';
-import { Becas } from './components/becas/becas/becas';
-import { Comprobantes } from './components/comprobantes/comprobantes/comprobantes';
-import { Inscripciones } from './components/inscripciones/inscripciones/inscripciones';
-import { AlumnoHome } from './components/alumno/home/alumno-home';
-import { AlumnoPagos } from './components/alumno/pagos/alumno-pagos';
-import { AlumnoComprobantes } from './components/alumno/comprobantes/alumno-comprobantes';
 import { authGuard } from './guards/auth.guard';
+import { roleGuard } from './guards/role.guard';
 
 export const routes: Routes = [
   { path: '', redirectTo: '/login', pathMatch: 'full' },
-  { path: 'login', component: Login },
-  { path: 'register', component: Register },
-  { path: 'forgot-password', component: ForgotPassword },
-  { path: 'home', component: Home, canActivate: [authGuard] },
-  { path: 'pagos', component: Pagos, canActivate: [authGuard] },
-  { path: 'inscripciones', component: Inscripciones, canActivate: [authGuard] },
-  { path: 'comprobantes', component: Comprobantes, canActivate: [authGuard] },
-  { path: 'alumnos', component: Alumnos, canActivate: [authGuard] },
-  { path: 'profesores', component: Profesores, canActivate: [authGuard] },
-  { path: 'precios', component: Precios, canActivate: [authGuard] },
-  { path: 'becas', component: Becas, canActivate: [authGuard] },
-  { path: 'alumno/home', component: AlumnoHome, canActivate: [authGuard] },
-  { path: 'alumno/pagos', component: AlumnoPagos, canActivate: [authGuard] },
-  { path: 'alumno/comprobantes', component: AlumnoComprobantes, canActivate: [authGuard] },
+  { path: 'login', loadComponent: () => import('./components/auth/login/login').then(m => m.Login) },
+  { path: 'register', loadComponent: () => import('./components/auth/register/register').then(m => m.Register) },
+  { path: 'forgot-password', loadComponent: () => import('./components/auth/forgot-password/forgot-password').then(m => m.ForgotPassword) },
+
+  { path: 'home', loadComponent: () => import('./components/dashboard/home/home').then(m => m.Home), canActivate: [authGuard] },
+  { path: 'pagos', loadComponent: () => import('./components/pagos/pagos/pagos').then(m => m.Pagos), canActivate: [authGuard] },
+  { path: 'inscripciones', loadComponent: () => import('./components/inscripciones/inscripciones/inscripciones').then(m => m.Inscripciones), canActivate: [authGuard] },
+  { path: 'comprobantes', loadComponent: () => import('./components/comprobantes/comprobantes/comprobantes').then(m => m.Comprobantes), canActivate: [authGuard] },
+  { path: 'alumnos', loadComponent: () => import('./components/alumnos/alumnos/alumnos').then(m => m.Alumnos), canActivate: [authGuard] },
+
+  { path: 'profesores', loadComponent: () => import('./components/profesores/profesores').then(m => m.Profesores), canActivate: [authGuard, roleGuard], data: { roles: ['administrador'] } },
+  { path: 'precios', loadComponent: () => import('./components/precios/precios/precios').then(m => m.Precios), canActivate: [authGuard, roleGuard], data: { roles: ['administrador'] } },
+  { path: 'becas', loadComponent: () => import('./components/becas/becas/becas').then(m => m.Becas), canActivate: [authGuard, roleGuard], data: { roles: ['administrador'] } },
+
+  { path: 'alumno/home', loadComponent: () => import('./components/alumno/home/alumno-home').then(m => m.AlumnoHome), canActivate: [authGuard] },
+  { path: 'alumno/pagos', loadComponent: () => import('./components/alumno/pagos/alumno-pagos').then(m => m.AlumnoPagos), canActivate: [authGuard] },
+  { path: 'alumno/comprobantes', loadComponent: () => import('./components/alumno/comprobantes/alumno-comprobantes').then(m => m.AlumnoComprobantes), canActivate: [authGuard] },
   { path: '**', redirectTo: '/login' },
 ];

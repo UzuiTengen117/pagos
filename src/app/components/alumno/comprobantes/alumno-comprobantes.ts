@@ -1,6 +1,7 @@
 import { Component, inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { DomSanitizer } from '@angular/platform-browser';
 import { AuthService } from '../../../services/auth';
 import { ComprobantesService } from '../../../services/comprobantes';
 import { AlumnosService } from '../../../services/alumnos';
@@ -17,6 +18,7 @@ export class AlumnoComprobantes implements OnInit {
   private authService = inject(AuthService);
   private comprobantesService = inject(ComprobantesService);
   private alumnosService = inject(AlumnosService);
+  private sanitizer = inject(DomSanitizer);
 
   currentUser = this.authService.currentUser;
   showPreviewModal = false;
@@ -74,6 +76,8 @@ export class AlumnoComprobantes implements OnInit {
     const windowprint = window.open('', '_blank', 'width=800,height=600');
     if (!windowprint) return;
 
+    const sanitizedContent = this.sanitizer.sanitize(1, printContent.innerHTML) || '';
+
     windowprint.document.write(`
       <!DOCTYPE html>
       <html>
@@ -105,7 +109,7 @@ export class AlumnoComprobantes implements OnInit {
         </style>
       </head>
       <body>
-        ${printContent.innerHTML}
+        ${sanitizedContent}
       </body>
       </html>
     `);

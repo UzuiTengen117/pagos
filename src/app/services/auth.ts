@@ -18,20 +18,15 @@ export class AuthService {
   private readonly INACTIVITY_LIMIT_MS = 3 * 60 * 1000;
   private readonly AUTH_LAST_ACTIVITY_KEY = 'auth_last_activity';
   private inactivityTimer: ReturnType<typeof setTimeout> | null = null;
+  private lastResetTime = 0;
   private activityEvents = ['mousemove', 'mousedown', 'keydown', 'touchstart', 'scroll'];
 
   constructor() {
     const saved = localStorage.getItem('currentUser');
     const token = localStorage.getItem('auth_token');
-    const lastActivity = Number(localStorage.getItem(this.AUTH_LAST_ACTIVITY_KEY)) || 0;
     if (saved && token) {
       try {
         const user = JSON.parse(saved);
-        if (Date.now() - lastActivity > this.INACTIVITY_LIMIT_MS) {
-          this.releaseBackendSession(token);
-          this.clearSession();
-          return;
-        }
         this.currentUser.set(user);
         this.startInactivityTimer();
       } catch {
@@ -48,8 +43,10 @@ export class AuthService {
 
   private startInactivityTimer(): void {
     this.stopInactivityTimer();
+    this.lastResetTime = Date.now();
+    localStorage.setItem(this.AUTH_LAST_ACTIVITY_KEY, String(this.lastResetTime));
     this.activityEvents.forEach(event => document.addEventListener(event, this.resetInactivityTimer));
-    this.resetInactivityTimer();
+    this.setInactivityTimeout();
   }
 
   private stopInactivityTimer(): void {
@@ -60,14 +57,23 @@ export class AuthService {
     this.activityEvents.forEach(event => document.removeEventListener(event, this.resetInactivityTimer));
   }
 
-  private resetInactivityTimer = (): void => {
-    localStorage.setItem(this.AUTH_LAST_ACTIVITY_KEY, String(Date.now()));
+  private setInactivityTimeout(): void {
     if (this.inactivityTimer) {
       clearTimeout(this.inactivityTimer);
     }
     this.inactivityTimer = setTimeout(() => {
       this.logout();
     }, this.INACTIVITY_LIMIT_MS);
+  }
+
+  private resetInactivityTimer = (): void => {
+    const now = Date.now();
+    if (now - this.lastResetTime < 10000) {
+      return;
+    }
+    this.lastResetTime = now;
+    localStorage.setItem(this.AUTH_LAST_ACTIVITY_KEY, String(now));
+    this.setInactivityTimeout();
   };
 
   login(request: LoginRequest): Observable<any> {
@@ -143,23 +149,13 @@ export class AuthService {
   }
 
   resetPassword(username: string, newPassword: string): Observable<any> {
-    return this.http.get<any[]>(`${this.apiUrl}/usuarios`).pipe(
-      tap((usuarios: any[]) => {
-        const user = usuarios.find((u: any) => u.username === username);
-        if (user) {
-          this.http.put<any>(`${this.apiUrl}/usuarios/editar/${user.id}`, {
-            nombre: user.nombre,
-            username: user.username,
-            email: user.email,
-            password: newPassword,
-            rol: user.rol,
-          }).subscribe();
-        }
-      })
-    );
+    return this.http.post<{ success: boolean; message: string }>(`${this.apiUrl}/usuarios/reset-password`, {
+      username,
+      newPassword,
+    });
   }
 
-  getUsuarioIdByUsername(username: string): Observable<any[]> {
-    return this.http.get<any[]>(`${this.apiUrl}/usuarios`);
+  getUsuarioIdByUsername(username: string): Observable<any> {
+    return this.http.get<any>(`${this.apiUrl}/usuarios/buscar/${username}`);
   }
 }

@@ -44,9 +44,6 @@ export function mapUsuarioToBackend(usuario: any): any {
     email: usuario.email,
     rol: mapRolToFrontend(usuario.rol),
   };
-  if (usuario.password) {
-    body.password = usuario.password;
-  }
   return body;
 }
 
