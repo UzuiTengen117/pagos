@@ -29,6 +29,7 @@ export class Sidebar {
     { label: 'Becas', route: '/becas', icon: 'becas', roles: ['administrador'] },
     { label: 'Mis Pagos', route: '/alumno/pagos', icon: 'alumno-pagos', roles: ['estudiante'] },
     { label: 'Mis Comprobantes', route: '/alumno/comprobantes', icon: 'alumno-comprobantes', roles: ['estudiante'] },
+    { label: 'Mi Perfil', route: '/perfil', icon: 'perfil', roles: ['administrador', 'profesor', 'estudiante'] },
   ];
 
   get filteredMenuItems() {

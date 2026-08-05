@@ -1,10 +1,19 @@
 import { Injectable, signal, computed, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
-import { Observable, tap } from 'rxjs';
+import { Observable, tap, switchMap } from 'rxjs';
 import { Usuario, LoginRequest, RegisterRequest, RolUsuario } from '../models/usuario.model';
 import { environment } from '../../environments/environment';
-import { mapUsuarioFromBackend, mapUsuarioToBackend, mapRol } from '../utils/mappers';
+import { mapUsuarioFromBackend, mapUsuarioToBackend, mapRol, mapRolToFrontend } from '../utils/mappers';
+
+export interface UploadPhotoResponse {
+  url: string;
+}
+
+export interface ChangePasswordRequest {
+  currentPassword: string;
+  newPassword: string;
+}
 
 @Injectable({ providedIn: 'root' })
 export class AuthService {
@@ -148,14 +157,85 @@ export class AuthService {
     });
   }
 
-  resetPassword(username: string, newPassword: string): Observable<any> {
-    return this.http.post<{ success: boolean; message: string }>(`${this.apiUrl}/usuarios/reset-password`, {
-      username,
+  resetPassword(userId: number, newPassword: string): Observable<any> {
+    return this.http.post<any>(`${this.apiUrl}/usuarios/reset-password`, {
+      userId,
       newPassword,
     });
   }
 
-  getUsuarioIdByUsername(username: string): Observable<any> {
-    return this.http.get<any>(`${this.apiUrl}/usuarios/buscar/${username}`);
+  getUsuarioByUsername(username: string): Observable<any> {
+    return this.http.get<any>(`${this.apiUrl}/usuarios/buscar?username=${encodeURIComponent(username)}`);
+  }
+
+  uploadPhoto(file: File): Observable<UploadPhotoResponse> {
+    const formData = new FormData();
+    formData.append('foto', file);
+    return this.http.post<UploadPhotoResponse>(`${this.apiUrl}/usuarios/upload-photo`, formData, {
+      headers: { 'X-Skip-Loading': 'true' }
+    }).pipe(
+      tap(response => {
+        const user = this.currentUser();
+        if (user) {
+          const updated = { ...user, foto: response.url };
+          this.currentUser.set(updated);
+          localStorage.setItem('currentUser', JSON.stringify(updated));
+        }
+      })
+    );
+  }
+
+  deletePhoto(): Observable<any> {
+    const user = this.currentUser();
+    if (!user) {
+      return new Observable(subscriber => subscriber.error('No hay usuario autenticado'));
+    }
+    return this.http.put<any>(`${this.apiUrl}/usuarios/editar/${user.id}`, {
+      nombre: user.nombre,
+      username: user.username,
+      email: user.email,
+      rol: mapRolToFrontend(user.rol),
+      foto: null,
+    }, {
+      headers: { 'X-Skip-Loading': 'true' }
+    }).pipe(
+      tap(() => {
+        const updated = { ...user, foto: '' };
+        this.currentUser.set(updated);
+        localStorage.setItem('currentUser', JSON.stringify(updated));
+      })
+    );
+  }
+
+  updateProfile(usuario: Usuario): Observable<any> {
+    const body = mapUsuarioToBackend(usuario);
+    return this.http.put<any>(`${this.apiUrl}/usuarios/editar/${usuario.id}`, body, {
+      headers: { 'X-Skip-Loading': 'true' }
+    }).pipe(
+      tap(() => {
+        const current = this.currentUser();
+        if (current && current.id === usuario.id) {
+          const updated = { ...current, ...usuario };
+          this.currentUser.set(updated);
+          localStorage.setItem('currentUser', JSON.stringify(updated));
+        }
+      })
+    );
+  }
+
+  changePassword(currentPassword: string, newPassword: string): Observable<any> {
+    const user = this.currentUser();
+    if (!user) {
+      return new Observable(subscriber => subscriber.error('No hay usuario autenticado'));
+    }
+    return this.http.put<any>(`${this.apiUrl}/usuarios/editar/${user.id}`, {
+      nombre: user.nombre,
+      username: user.username,
+      email: user.email,
+      rol: mapRolToFrontend(user.rol),
+      password: newPassword,
+    }, {
+      headers: { 'X-Skip-Loading': 'true' }
+    });
   }
 }

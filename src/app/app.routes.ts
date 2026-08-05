@@ -13,6 +13,7 @@ export const routes: Routes = [
   { path: 'inscripciones', loadComponent: () => import('./components/inscripciones/inscripciones/inscripciones').then(m => m.Inscripciones), canActivate: [authGuard] },
   { path: 'comprobantes', loadComponent: () => import('./components/comprobantes/comprobantes/comprobantes').then(m => m.Comprobantes), canActivate: [authGuard] },
   { path: 'alumnos', loadComponent: () => import('./components/alumnos/alumnos/alumnos').then(m => m.Alumnos), canActivate: [authGuard] },
+  { path: 'perfil', loadComponent: () => import('./components/perfil/perfil').then(m => m.Perfil), canActivate: [authGuard] },
 
   { path: 'profesores', loadComponent: () => import('./components/profesores/profesores').then(m => m.Profesores), canActivate: [authGuard, roleGuard], data: { roles: ['administrador'] } },
   { path: 'precios', loadComponent: () => import('./components/precios/precios/precios').then(m => m.Precios), canActivate: [authGuard, roleGuard], data: { roles: ['administrador'] } },

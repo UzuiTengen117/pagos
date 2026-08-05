@@ -14,4 +14,7 @@
 } @else {
   <router-outlet />
 }
+@if (isLoading()) {
+  <app-loader />
+}
 <app-toast />

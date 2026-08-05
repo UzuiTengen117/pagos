@@ -8,6 +8,11 @@ import { AuthService } from '../services/auth';
 export const authInterceptor: HttpInterceptorFn = (req, next) => {
   const router = inject(Router);
   const authService = inject(AuthService);
+
+  if (req.headers.has('X-Skip-Auth')) {
+    return next(req.clone({ headers: req.headers.delete('X-Skip-Auth') }));
+  }
+
   const token = localStorage.getItem('auth_token');
 
   if (token) {

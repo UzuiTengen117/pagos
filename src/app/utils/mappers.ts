@@ -34,16 +34,22 @@ export function mapUsuarioFromBackend(data: any): Usuario {
     email: data.email || '',
     rol: mapRol(data.rol),
     fechaCreacion: data.created_at ? new Date(data.created_at) : new Date(),
+    foto: data.foto || '',
   };
 }
 
 export function mapUsuarioToBackend(usuario: any): any {
   const body: any = {
     nombre: usuario.nombre,
+    primer_apellido: usuario.primerApellido || '',
+    segundo_apellido: usuario.segundoApellido || '',
     username: usuario.username,
     email: usuario.email,
     rol: mapRolToFrontend(usuario.rol),
   };
+  if (usuario.foto !== undefined) {
+    body.foto = usuario.foto || '';
+  }
   return body;
 }
 

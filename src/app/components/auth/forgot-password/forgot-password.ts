@@ -20,6 +20,7 @@ export class ForgotPassword implements OnInit {
   errorMsg = '';
   successMsg = '';
   step = 1;
+  userId: number | null = null;
 
   ngOnInit(): void {}
 
@@ -31,17 +32,17 @@ export class ForgotPassword implements OnInit {
       return;
     }
 
-    this.authService.getUsuarioIdByUsername(this.username).subscribe({
-      next: (usuarios) => {
-        const user = usuarios.find((u: any) => u.username === this.username);
-        if (user) {
+    this.authService.getUsuarioByUsername(this.username.trim()).subscribe({
+      next: (user) => {
+        if (user && user.id) {
+          this.userId = user.id;
           this.step = 2;
         } else {
           this.errorMsg = 'Usuario no encontrado.';
         }
       },
-      error: () => {
-        this.errorMsg = 'Usuario no encontrado.';
+      error: (err) => {
+        this.errorMsg = err.status === 404 ? 'Usuario no encontrado.' : 'Error al buscar el usuario.';
       }
     });
   }
@@ -65,13 +66,18 @@ export class ForgotPassword implements OnInit {
       return;
     }
 
-    this.authService.resetPassword(this.username, this.newPassword).subscribe({
+    if (!this.userId) {
+      this.errorMsg = 'Error: usuario no identificado.';
+      return;
+    }
+
+    this.authService.resetPassword(this.userId, this.newPassword).subscribe({
       next: () => {
         this.successMsg = 'Contraseña actualizada exitosamente.';
         this.step = 3;
       },
-      error: () => {
-        this.errorMsg = 'Error al actualizar la contraseña.';
+      error: (err) => {
+        this.errorMsg = err.error?.message || 'Error al actualizar la contraseña.';
       }
     });
   }

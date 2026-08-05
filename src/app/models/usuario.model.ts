@@ -9,6 +9,7 @@ export interface Usuario {
   email: string;
   rol: RolUsuario;
   fechaCreacion: Date;
+  foto?: string;
 }
 
 export interface LoginRequest {
