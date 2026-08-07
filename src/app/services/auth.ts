@@ -1,8 +1,8 @@
 import { Injectable, signal, computed, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
-import { Observable, tap, switchMap } from 'rxjs';
-import { Usuario, LoginRequest, RegisterRequest, RolUsuario } from '../models/usuario.model';
+import { Observable, tap } from 'rxjs';
+import { Usuario, LoginRequest, RolUsuario } from '../models/usuario.model';
 import { environment } from '../../environments/environment';
 import { mapUsuarioFromBackend, mapUsuarioToBackend, mapRol, mapRolToFrontend } from '../utils/mappers';
 
@@ -97,25 +97,6 @@ export class AuthService {
     );
   }
 
-  register(request: RegisterRequest): Observable<any> {
-    const body = {
-      nombre: request.nombre,
-      username: request.username,
-      email: request.email,
-      password: request.password,
-      rol: request.rol || 'estudiante',
-    };
-    return this.http.post<{ token: string; usuario: any }>(`${this.apiUrl}/usuarios/registro`, body).pipe(
-      tap(response => {
-        const user = mapUsuarioFromBackend(response.usuario);
-        this.currentUser.set(user);
-        localStorage.setItem('currentUser', JSON.stringify(user));
-        localStorage.setItem('auth_token', response.token);
-        this.startInactivityTimer();
-      })
-    );
-  }
-
   clearSession(): void {
     this.stopInactivityTimer();
     this.currentUser.set(null);
@@ -162,10 +143,6 @@ export class AuthService {
       userId,
       newPassword,
     });
-  }
-
-  getUsuarioByUsername(username: string): Observable<any> {
-    return this.http.get<any>(`${this.apiUrl}/usuarios/buscar?username=${encodeURIComponent(username)}`);
   }
 
   uploadPhoto(file: File): Observable<UploadPhotoResponse> {
@@ -234,6 +211,7 @@ export class AuthService {
       email: user.email,
       rol: mapRolToFrontend(user.rol),
       password: newPassword,
+      currentPassword,
     }, {
       headers: { 'X-Skip-Loading': 'true' }
     });

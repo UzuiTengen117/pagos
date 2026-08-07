@@ -42,7 +42,7 @@ export class App {
       .pipe(filter(event => event instanceof NavigationEnd))
       .subscribe((event) => {
         const navEnd = event as NavigationEnd;
-        const isAuth = ['/login', '/register', '/forgot-password'].includes(navEnd.urlAfterRedirects || navEnd.url);
+        const isAuth = ['/login'].includes(navEnd.urlAfterRedirects || navEnd.url);
         this.showLayout.set(!isAuth);
         this.pageTitle.set(this.pageTitles[navEnd.urlAfterRedirects || navEnd.url] || 'Inicio');
         this.sidebarOpen.set(false);

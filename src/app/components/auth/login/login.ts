@@ -1,7 +1,7 @@
 import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { Router, RouterLink } from '@angular/router';
+import { Router } from '@angular/router';
 import { AuthService } from '../../../services/auth';
 import { timeout, catchError } from 'rxjs/operators';
 import { of } from 'rxjs';
@@ -9,7 +9,7 @@ import { of } from 'rxjs';
 @Component({
   selector: 'app-login',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterLink],
+  imports: [CommonModule, FormsModule],
   templateUrl: './login.html',
   styleUrl: './login.scss',
 })
@@ -24,14 +24,19 @@ export class Login {
 
   onSubmit(): void {
     this.errorMsg = '';
-    if (!this.username || !this.password) {
+    const usernameClean = this.username.trim();
+    if (!usernameClean || !this.password) {
       this.errorMsg = 'Por favor, ingresa todos los campos.';
+      return;
+    }
+    if (usernameClean.length > 255) {
+      this.errorMsg = 'El nombre de usuario no puede superar los 255 caracteres.';
       return;
     }
 
     this.loading = true;
 
-    this.authService.login({ username: this.username, password: this.password }).pipe(
+    this.authService.login({ username: usernameClean, password: this.password }).pipe(
       timeout(5000),
       catchError((error) => {
         this.loading = false;

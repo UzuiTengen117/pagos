@@ -5,8 +5,6 @@ import { roleGuard } from './guards/role.guard';
 export const routes: Routes = [
   { path: '', redirectTo: '/login', pathMatch: 'full' },
   { path: 'login', loadComponent: () => import('./components/auth/login/login').then(m => m.Login) },
-  { path: 'register', loadComponent: () => import('./components/auth/register/register').then(m => m.Register) },
-  { path: 'forgot-password', loadComponent: () => import('./components/auth/forgot-password/forgot-password').then(m => m.ForgotPassword) },
 
   { path: 'home', loadComponent: () => import('./components/dashboard/home/home').then(m => m.Home), canActivate: [authGuard] },
   { path: 'pagos', loadComponent: () => import('./components/pagos/pagos/pagos').then(m => m.Pagos), canActivate: [authGuard] },
