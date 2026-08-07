@@ -114,6 +114,38 @@
     </div>
 
     <div class="perfil-card password-card">
+      <h3>Pregunta de Seguridad</h3>
+      <p class="card-hint">Úsala para recuperar tu contraseña si la olvidas.</p>
+
+      @if (questionError()) {
+        <div class="alert alert-error">{{ questionError() }}</div>
+      }
+      @if (questionSuccess()) {
+        <div class="alert alert-success">{{ questionSuccess() }}</div>
+      }
+
+      <form (ngSubmit)="saveQuestion()" class="perfil-form">
+        <div class="form-group">
+          <label for="preguntaSecreta">Pregunta de seguridad</label>
+          <input type="text" id="preguntaSecreta" [(ngModel)]="preguntaSecreta" name="preguntaSecreta" placeholder="Ej. ¿Nombre de tu primera mascota?" />
+        </div>
+
+        <div class="form-group">
+          <label for="respuestaSecreta">Tu respuesta</label>
+          <input type="text" id="respuestaSecreta" [(ngModel)]="respuestaSecreta" name="respuestaSecreta" placeholder="Tu respuesta" autocomplete="off" />
+        </div>
+
+        <button type="submit" class="btn btn-primary" [disabled]="savingQuestion()">
+          @if (savingQuestion()) {
+            <span class="spinner-sm"></span> Guardando...
+          } @else {
+            Guardar pregunta
+          }
+        </button>
+      </form>
+    </div>
+
+    <div class="perfil-card password-card">
       <h3>Cambiar Contraseña</h3>
 
       @if (passwordError()) {

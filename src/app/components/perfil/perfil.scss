@@ -43,6 +43,12 @@
   }
 }
 
+.card-hint {
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  margin: -0.75rem 0 1rem;
+}
+
 .photo-card {
   .avatar-section {
     display: flex;

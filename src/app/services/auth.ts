@@ -145,6 +145,44 @@ export class AuthService {
     });
   }
 
+  getPreguntaSecreta(username: string): Observable<{ pregunta: string }> {
+    return this.http.get<{ pregunta: string }>(`${this.apiUrl}/usuarios/pregunta-secreta?username=${encodeURIComponent(username)}`);
+  }
+
+  recuperarContrasena(username: string, respuesta: string, newPassword: string): Observable<any> {
+    return this.http.post<any>(`${this.apiUrl}/usuarios/recuperar-contrasena`, {
+      username,
+      respuesta,
+      newPassword,
+    });
+  }
+
+  setPreguntaSecreta(preguntaSecreta: string, respuestaSecreta: string): Observable<any> {
+    const user = this.currentUser();
+    if (!user) {
+      return new Observable(subscriber => subscriber.error('No hay usuario autenticado'));
+    }
+    return this.http.put<any>(`${this.apiUrl}/usuarios/editar/${user.id}`, {
+      nombre: user.nombre,
+      username: user.username,
+      email: user.email,
+      rol: mapRolToFrontend(user.rol),
+      pregunta_secreta: preguntaSecreta,
+      respuesta_secreta: respuestaSecreta,
+    }, {
+      headers: { 'X-Skip-Loading': 'true' }
+    }).pipe(
+      tap(() => {
+        const current = this.currentUser();
+        if (current && current.id === user.id) {
+          const updated = { ...current, preguntaSecreta };
+          this.currentUser.set(updated);
+          localStorage.setItem('currentUser', JSON.stringify(updated));
+        }
+      })
+    );
+  }
+
   uploadPhoto(file: File): Observable<UploadPhotoResponse> {
     const formData = new FormData();
     formData.append('foto', file);
