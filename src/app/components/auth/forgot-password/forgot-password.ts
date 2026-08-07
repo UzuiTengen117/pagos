@@ -19,15 +19,13 @@ export class ForgotPassword {
 
   step: 1 | 2 = 1;
   username = '';
-  pregunta = '';
-  respuesta = '';
   newPassword = '';
   confirmNewPassword = '';
   errorMsg = '';
   successMsg = '';
   loading = false;
 
-  buscarPregunta(): void {
+  buscarUsuario(): void {
     this.errorMsg = '';
     const usernameClean = this.username.trim();
     if (!usernameClean) {
@@ -36,18 +34,17 @@ export class ForgotPassword {
     }
 
     this.loading = true;
-    this.authService.getPreguntaSecreta(usernameClean).pipe(
+    this.authService.verificarUsuario(usernameClean).pipe(
       timeout(5000),
       catchError((error) => {
         this.loading = false;
-        this.errorMsg = error?.error?.message || 'No se pudo recuperar la pregunta de seguridad.';
+        this.errorMsg = error?.error?.message || 'No se pudo verificar el usuario.';
         return of(null);
       })
     ).subscribe({
       next: (res) => {
         this.loading = false;
         if (!res) return;
-        this.pregunta = res.pregunta;
         this.step = 2;
       },
     });
@@ -55,10 +52,6 @@ export class ForgotPassword {
 
   restablecer(): void {
     this.errorMsg = '';
-    if (!this.respuesta.trim()) {
-      this.errorMsg = 'Responde la pregunta de seguridad.';
-      return;
-    }
     if (this.newPassword.length < 6) {
       this.errorMsg = 'La nueva contraseña debe tener al menos 6 caracteres.';
       return;
@@ -69,7 +62,7 @@ export class ForgotPassword {
     }
 
     this.loading = true;
-    this.authService.recuperarContrasena(this.username.trim(), this.respuesta.trim(), this.newPassword).pipe(
+    this.authService.recuperarContrasena(this.username.trim(), this.newPassword).pipe(
       timeout(5000),
       catchError((error) => {
         this.loading = false;

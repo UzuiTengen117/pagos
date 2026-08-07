@@ -149,10 +149,13 @@ export class AuthService {
     return this.http.get<{ pregunta: string }>(`${this.apiUrl}/usuarios/pregunta-secreta?username=${encodeURIComponent(username)}`);
   }
 
-  recuperarContrasena(username: string, respuesta: string, newPassword: string): Observable<any> {
+  verificarUsuario(username: string): Observable<{ existe: boolean }> {
+    return this.http.get<{ existe: boolean }>(`${this.apiUrl}/usuarios/verificar-usuario?username=${encodeURIComponent(username)}`);
+  }
+
+  recuperarContrasena(username: string, newPassword: string): Observable<any> {
     return this.http.post<any>(`${this.apiUrl}/usuarios/recuperar-contrasena`, {
       username,
-      respuesta,
       newPassword,
     });
   }
