@@ -35,7 +35,6 @@ export function mapUsuarioFromBackend(data: any): Usuario {
     rol: mapRol(data.rol),
     fechaCreacion: data.created_at ? new Date(data.created_at) : new Date(),
     foto: data.foto || '',
-    preguntaSecreta: data.pregunta_secreta || '',
   };
 }
 

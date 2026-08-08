@@ -10,7 +10,6 @@ export interface Usuario {
   rol: RolUsuario;
   fechaCreacion: Date;
   foto?: string;
-  preguntaSecreta?: string;
 }
 
 export interface LoginRequest {

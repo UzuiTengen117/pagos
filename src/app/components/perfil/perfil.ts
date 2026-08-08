@@ -27,8 +27,7 @@ export class Perfil implements OnInit {
   newPassword = '';
   confirmNewPassword = '';
 
-  preguntaSecreta = '';
-  respuestaSecreta = '';
+
 
   photoPreview = signal<string>('');
   selectedFile = signal<File | null>(null);
@@ -36,15 +35,12 @@ export class Perfil implements OnInit {
   uploadingPhoto = signal(false);
   savingProfile = signal(false);
   changingPassword = signal(false);
-  savingQuestion = signal(false);
 
   photoError = signal('');
   profileError = signal('');
   profileSuccess = signal('');
   passwordError = signal('');
   passwordSuccess = signal('');
-  questionError = signal('');
-  questionSuccess = signal('');
 
   ngOnInit(): void {
     const user = this.authService.currentUser();
@@ -55,7 +51,6 @@ export class Perfil implements OnInit {
       this.segundoApellido = user.segundoApellido;
       this.email = user.email;
       this.username = user.username;
-      this.preguntaSecreta = user.preguntaSecreta || '';
       if (user.foto) {
         this.photoPreview.set(user.foto);
       }
@@ -233,33 +228,6 @@ export class Perfil implements OnInit {
       error: (err) => {
         this.changingPassword.set(false);
         this.passwordError.set(err.error?.message || 'Error al cambiar la contraseña. Verifica la contraseña actual.');
-      },
-    });
-  }
-
-  saveQuestion(): void {
-    const pregunta = this.preguntaSecreta.trim();
-    const respuesta = this.respuestaSecreta.trim();
-
-    if (!pregunta || !respuesta) {
-      this.questionError.set('Ingresa la pregunta y tu respuesta.');
-      return;
-    }
-
-    this.savingQuestion.set(true);
-    this.questionError.set('');
-    this.questionSuccess.set('');
-
-    this.authService.setPreguntaSecreta(pregunta, respuesta).subscribe({
-      next: () => {
-        this.savingQuestion.set(false);
-        this.questionSuccess.set('Pregunta de seguridad guardada correctamente.');
-        this.respuestaSecreta = '';
-        this.usuario.set(this.authService.currentUser());
-      },
-      error: (err) => {
-        this.savingQuestion.set(false);
-        this.questionError.set(err.error?.message || 'Error al guardar la pregunta de seguridad.');
       },
     });
   }
