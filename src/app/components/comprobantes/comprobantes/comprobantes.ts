@@ -1,10 +1,12 @@
-import { Component, inject, OnInit, ChangeDetectorRef } from '@angular/core';
+import { Component, inject, OnInit, OnDestroy, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { Subscription } from 'rxjs';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { ComprobantesService } from '../../../services/comprobantes';
 import { AlumnosService } from '../../../services/alumnos';
 import { PagosService } from '../../../services/pagos';
+import { RefreshService } from '../../../services/refresh';
 import { Comprobante } from '../../../models/comprobante.model';
 import { Alumno } from '../../../models/alumno.model';
 import { Pago } from '../../../models/pago.model';
@@ -16,12 +18,14 @@ import { Pago } from '../../../models/pago.model';
   templateUrl: './comprobantes.html',
   styleUrl: './comprobantes.scss',
 })
-export class Comprobantes implements OnInit {
+export class Comprobantes implements OnInit, OnDestroy {
   private comprobantesService = inject(ComprobantesService);
   private alumnosService = inject(AlumnosService);
   private pagosService = inject(PagosService);
+  private refreshService = inject(RefreshService);
   private cdr = inject(ChangeDetectorRef);
   private sanitizer = inject(DomSanitizer);
+  private refreshSub?: Subscription;
 
   comprobantes: Comprobante[] = [];
   alumnos: Alumno[] = [];
@@ -46,6 +50,11 @@ export class Comprobantes implements OnInit {
 
   ngOnInit(): void {
     this.loadData();
+    this.refreshSub = this.refreshService.refresh$.subscribe(() => this.recargarComprobantes());
+  }
+
+  ngOnDestroy(): void {
+    this.refreshSub?.unsubscribe();
   }
 
   private loadData(): void {

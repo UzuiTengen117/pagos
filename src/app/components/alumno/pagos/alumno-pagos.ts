@@ -1,9 +1,11 @@
-import { Component, inject, OnInit, ChangeDetectorRef } from '@angular/core';
+import { Component, inject, OnInit, OnDestroy, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { Subscription } from 'rxjs';
 import { AuthService } from '../../../services/auth';
 import { PagosService } from '../../../services/pagos';
 import { AlumnosService } from '../../../services/alumnos';
+import { RefreshService } from '../../../services/refresh';
 import { Pago } from '../../../models/pago.model';
 
 @Component({
@@ -13,17 +15,28 @@ import { Pago } from '../../../models/pago.model';
   templateUrl: './alumno-pagos.html',
   styleUrl: './alumno-pagos.scss',
 })
-export class AlumnoPagos implements OnInit {
+export class AlumnoPagos implements OnInit, OnDestroy {
   private authService = inject(AuthService);
   private pagosService = inject(PagosService);
   private alumnosService = inject(AlumnosService);
+  private refreshService = inject(RefreshService);
   private cdr = inject(ChangeDetectorRef);
+  private refreshSub?: Subscription;
 
   currentUser = this.authService.currentUser;
   filtroFechaInicio = '';
   filtroFechaFin = '';
 
   ngOnInit(): void {
+    this.loadData();
+    this.refreshSub = this.refreshService.refresh$.subscribe(() => this.loadData());
+  }
+
+  ngOnDestroy(): void {
+    this.refreshSub?.unsubscribe();
+  }
+
+  private loadData(): void {
     this.alumnosService.loadAll().subscribe(() => {
       this.pagosService.loadAll().subscribe(() => {
         this.cdr.detectChanges();

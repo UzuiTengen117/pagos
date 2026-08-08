@@ -1,8 +1,10 @@
-import { Component, inject, OnInit } from '@angular/core';
+import { Component, inject, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { Subscription } from 'rxjs';
 import { AuthService } from '../../../services/auth';
 import { PagosService } from '../../../services/pagos';
 import { AlumnosService } from '../../../services/alumnos';
+import { RefreshService } from '../../../services/refresh';
 import { Pago } from '../../../models/pago.model';
 
 @Component({
@@ -12,14 +14,25 @@ import { Pago } from '../../../models/pago.model';
   templateUrl: './alumno-home.html',
   styleUrl: './alumno-home.scss',
 })
-export class AlumnoHome implements OnInit {
+export class AlumnoHome implements OnInit, OnDestroy {
   private authService = inject(AuthService);
   private pagosService = inject(PagosService);
   private alumnosService = inject(AlumnosService);
+  private refreshService = inject(RefreshService);
+  private refreshSub?: Subscription;
 
   currentUser = this.authService.currentUser;
 
   ngOnInit(): void {
+    this.loadData();
+    this.refreshSub = this.refreshService.refresh$.subscribe(() => this.loadData());
+  }
+
+  ngOnDestroy(): void {
+    this.refreshSub?.unsubscribe();
+  }
+
+  private loadData(): void {
     this.pagosService.loadAll().subscribe();
     this.alumnosService.loadAll().subscribe();
   }

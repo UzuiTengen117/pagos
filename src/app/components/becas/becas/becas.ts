@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { Router, NavigationEnd } from '@angular/router';
 import { Subscription, filter } from 'rxjs';
 import { BecasService } from '../../../services/becas';
+import { RefreshService } from '../../../services/refresh';
 import { Beca } from '../../../models/beca.model';
 
 @Component({
@@ -15,9 +16,11 @@ import { Beca } from '../../../models/beca.model';
 })
 export class Becas implements OnInit, OnDestroy {
   private becasService = inject(BecasService);
+  private refreshService = inject(RefreshService);
   private router = inject(Router);
   private cdr = inject(ChangeDetectorRef);
   private routerSub?: Subscription;
+  private refreshSub?: Subscription;
 
   becas: Beca[] = [];
   showModal = false;
@@ -32,10 +35,12 @@ export class Becas implements OnInit, OnDestroy {
     this.routerSub = this.router.events
       .pipe(filter(e => e instanceof NavigationEnd))
       .subscribe(() => this.loadBecas());
+    this.refreshSub = this.refreshService.refresh$.subscribe(() => this.loadBecas());
   }
 
   ngOnDestroy(): void {
     this.routerSub?.unsubscribe();
+    this.refreshSub?.unsubscribe();
   }
 
   loadBecas(): void {

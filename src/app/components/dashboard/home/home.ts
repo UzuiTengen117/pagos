@@ -1,12 +1,14 @@
-import { Component, inject, OnInit, ChangeDetectorRef } from '@angular/core';
+import { Component, inject, OnInit, OnDestroy, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { Subscription } from 'rxjs';
 import * as XLSX from 'xlsx';
 import { PagosService } from '../../../services/pagos';
 import { AlumnosService } from '../../../services/alumnos';
 import { ComprobantesService } from '../../../services/comprobantes';
 import { BecasService } from '../../../services/becas';
 import { AuthService } from '../../../services/auth';
+import { RefreshService } from '../../../services/refresh';
 import { Pago } from '../../../models/pago.model';
 
 @Component({
@@ -16,13 +18,15 @@ import { Pago } from '../../../models/pago.model';
   templateUrl: './home.html',
   styleUrl: './home.scss',
 })
-export class Home implements OnInit {
+export class Home implements OnInit, OnDestroy {
   private pagosService = inject(PagosService);
   private alumnosService = inject(AlumnosService);
   private comprobantesService = inject(ComprobantesService);
   private becasService = inject(BecasService);
   private authService = inject(AuthService);
+  private refreshService = inject(RefreshService);
   private cdr = inject(ChangeDetectorRef);
+  private refreshSub?: Subscription;
 
   resumen = this.pagosService.getResumen();
   totalAlumnos = 0;
@@ -38,6 +42,15 @@ export class Home implements OnInit {
   fechasConfirmadas = { inicio: '', fin: '' };
 
   ngOnInit(): void {
+    this.loadData();
+    this.refreshSub = this.refreshService.refresh$.subscribe(() => this.loadData());
+  }
+
+  ngOnDestroy(): void {
+    this.refreshSub?.unsubscribe();
+  }
+
+  private loadData(): void {
     this.pagosService.loadAll().subscribe({
       next: () => {
         this.resumen = this.pagosService.getResumen();

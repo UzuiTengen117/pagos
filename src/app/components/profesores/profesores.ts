@@ -6,6 +6,7 @@ import { Subscription, filter } from 'rxjs';
 import { ProfesoresService } from '../../services/profesores';
 import { AlumnosService } from '../../services/alumnos';
 import { BecasService } from '../../services/becas';
+import { RefreshService } from '../../services/refresh';
 import { Usuario, RolUsuario } from '../../models/usuario.model';
 import { Alumno } from '../../models/alumno.model';
 import { Beca } from '../../models/beca.model';
@@ -21,9 +22,11 @@ export class Profesores implements OnInit, OnDestroy {
   private profesoresService = inject(ProfesoresService);
   private alumnosService = inject(AlumnosService);
   private becasService = inject(BecasService);
+  private refreshService = inject(RefreshService);
   private router = inject(Router);
   private cdr = inject(ChangeDetectorRef);
   private routerSub?: Subscription;
+  private refreshSub?: Subscription;
 
   allUsuarios: Usuario[] = [];
   usuarios: Usuario[] = [];
@@ -49,11 +52,13 @@ export class Profesores implements OnInit, OnDestroy {
     this.routerSub = this.router.events
       .pipe(filter(e => e instanceof NavigationEnd))
       .subscribe(() => this.loadAllUsuarios());
+    this.refreshSub = this.refreshService.refresh$.subscribe(() => this.loadAllUsuarios());
     this.loadAllUsuarios();
   }
 
   ngOnDestroy(): void {
     this.routerSub?.unsubscribe();
+    this.refreshSub?.unsubscribe();
   }
 
   loadAllUsuarios(): void {

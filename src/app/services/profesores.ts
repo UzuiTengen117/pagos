@@ -2,12 +2,14 @@ import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, map, tap } from 'rxjs';
 import { Usuario, RolUsuario } from '../models/usuario.model';
+import { RefreshService } from './refresh';
 import { environment } from '../../environments/environment';
 import { mapUsuarioFromBackend, mapRolToFrontend } from '../utils/mappers';
 
 @Injectable({ providedIn: 'root' })
 export class ProfesoresService {
   private http = inject(HttpClient);
+  private refreshService = inject(RefreshService);
   private apiUrl = environment.apiUrl;
 
   getAllProfesores(): Observable<Usuario[]> {
@@ -44,7 +46,9 @@ export class ProfesoresService {
     if (password) {
       body.password = password;
     }
-    return this.http.post<any>(`${this.apiUrl}/usuarios/registro`, body);
+    return this.http.post<any>(`${this.apiUrl}/usuarios/registro`, body).pipe(
+      tap(() => this.refreshService.refresh())
+    );
   }
 
   update(usuario: Usuario, password?: string): Observable<any> {
@@ -57,11 +61,15 @@ export class ProfesoresService {
     if (password) {
       body.password = password;
     }
-    return this.http.put<any>(`${this.apiUrl}/usuarios/editar/${usuario.id}`, body);
+    return this.http.put<any>(`${this.apiUrl}/usuarios/editar/${usuario.id}`, body).pipe(
+      tap(() => this.refreshService.refresh())
+    );
   }
 
   delete(id: number): Observable<any> {
-    return this.http.delete<any>(`${this.apiUrl}/usuarios/eliminar/${id}`);
+    return this.http.delete<any>(`${this.apiUrl}/usuarios/eliminar/${id}`).pipe(
+      tap(() => this.refreshService.refresh())
+    );
   }
 
   cambiarRol(id: number, nuevoRol: RolUsuario): Observable<any> {
@@ -74,7 +82,9 @@ export class ProfesoresService {
             username: user.username,
             email: user.email,
             rol: mapRolToFrontend(nuevoRol),
-          }).subscribe();
+          }).subscribe({
+            next: () => this.refreshService.refresh(),
+          });
         }
       })
     );

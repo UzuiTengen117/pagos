@@ -1,13 +1,15 @@
 import { Injectable, signal, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable, map } from 'rxjs';
+import { Observable, map, tap } from 'rxjs';
 import { Inscripcion } from '../models/inscripcion.model';
+import { RefreshService } from './refresh';
 import { environment } from '../../environments/environment';
 import { mapInscripcionFromBackend, mapInscripcionToBackend } from '../utils/mappers';
 
 @Injectable({ providedIn: 'root' })
 export class InscripcionesService {
   private http = inject(HttpClient);
+  private refreshService = inject(RefreshService);
   private apiUrl = environment.apiUrl;
   private inscripciones = signal<Inscripcion[]>([]);
 
@@ -27,15 +29,21 @@ export class InscripcionesService {
 
   create(inscripcion: Omit<Inscripcion, 'id'>): Observable<any> {
     const body = mapInscripcionToBackend(inscripcion);
-    return this.http.post<any>(`${this.apiUrl}/inscripciones/agregar`, body);
+    return this.http.post<any>(`${this.apiUrl}/inscripciones/agregar`, body).pipe(
+      tap(() => this.refreshService.refresh())
+    );
   }
 
   update(inscripcion: Inscripcion): Observable<any> {
     const body = mapInscripcionToBackend(inscripcion);
-    return this.http.put<any>(`${this.apiUrl}/inscripciones/editar/${inscripcion.id}`, body);
+    return this.http.put<any>(`${this.apiUrl}/inscripciones/editar/${inscripcion.id}`, body).pipe(
+      tap(() => this.refreshService.refresh())
+    );
   }
 
   delete(id: number): Observable<any> {
-    return this.http.delete<any>(`${this.apiUrl}/inscripciones/eliminar/${id}`);
+    return this.http.delete<any>(`${this.apiUrl}/inscripciones/eliminar/${id}`).pipe(
+      tap(() => this.refreshService.refresh())
+    );
   }
 }

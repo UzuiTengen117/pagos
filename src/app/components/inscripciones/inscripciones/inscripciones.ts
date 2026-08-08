@@ -1,11 +1,13 @@
-import { Component, inject, OnInit, ChangeDetectorRef } from '@angular/core';
+import { Component, inject, OnInit, OnDestroy, ChangeDetectorRef } from '@angular/core';
 import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { Subscription } from 'rxjs';
 import { InscripcionesService } from '../../../services/inscripciones';
 import { ComprobantesService } from '../../../services/comprobantes';
 import { AlumnosService } from '../../../services/alumnos';
 import { PreciosService } from '../../../services/precios';
+import { RefreshService } from '../../../services/refresh';
 import { Inscripcion } from '../../../models/inscripcion.model';
 import { Alumno } from '../../../models/alumno.model';
 import { Precio } from '../../../models/precio.model';
@@ -18,13 +20,15 @@ import * as XLSX from 'xlsx';
   templateUrl: './inscripciones.html',
   styleUrl: './inscripciones.scss',
 })
-export class Inscripciones implements OnInit {
+export class Inscripciones implements OnInit, OnDestroy {
   private router = inject(Router);
   private inscripcionesService = inject(InscripcionesService);
   private comprobantesService = inject(ComprobantesService);
   private alumnosService = inject(AlumnosService);
   private preciosService = inject(PreciosService);
+  private refreshService = inject(RefreshService);
   private cdr = inject(ChangeDetectorRef);
+  private refreshSub?: Subscription;
 
   inscripciones: Inscripcion[] = [];
   alumnos: Alumno[] = [];
@@ -62,6 +66,11 @@ export class Inscripciones implements OnInit {
 
   ngOnInit(): void {
     this.loadData();
+    this.refreshSub = this.refreshService.refresh$.subscribe(() => this.recargarInscripciones());
+  }
+
+  ngOnDestroy(): void {
+    this.refreshSub?.unsubscribe();
   }
 
   private loadData(): void {
@@ -377,6 +386,7 @@ export class Inscripciones implements OnInit {
     this.inscripcionesService.loadAll().subscribe({
       next: (data) => {
         this.inscripciones = data;
+        this.completarCargaInicial();
         this.cdr.detectChanges();
       },
     });

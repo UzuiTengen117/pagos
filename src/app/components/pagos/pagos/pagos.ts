@@ -1,10 +1,12 @@
-import { Component, inject, OnInit, ChangeDetectorRef } from '@angular/core';
+import { Component, inject, OnInit, OnDestroy, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { Subscription } from 'rxjs';
 import { PagosService } from '../../../services/pagos';
 import { AlumnosService } from '../../../services/alumnos';
 import { BecasService } from '../../../services/becas';
 import { PreciosService } from '../../../services/precios';
+import { RefreshService } from '../../../services/refresh';
 import { Pago } from '../../../models/pago.model';
 import { Alumno } from '../../../models/alumno.model';
 import { Beca } from '../../../models/beca.model';
@@ -18,12 +20,14 @@ import * as XLSX from 'xlsx';
   templateUrl: './pagos.html',
   styleUrl: './pagos.scss',
 })
-export class Pagos implements OnInit {
+export class Pagos implements OnInit, OnDestroy {
   private pagosService = inject(PagosService);
   private alumnosService = inject(AlumnosService);
   private becasService = inject(BecasService);
   private preciosService = inject(PreciosService);
+  private refreshService = inject(RefreshService);
   private cdr = inject(ChangeDetectorRef);
+  private refreshSub?: Subscription;
 
   pagos: Pago[] = [];
   alumnos: Alumno[] = [];
@@ -64,6 +68,11 @@ export class Pagos implements OnInit {
 
   ngOnInit(): void {
     this.loadData();
+    this.refreshSub = this.refreshService.refresh$.subscribe(() => this.loadData());
+  }
+
+  ngOnDestroy(): void {
+    this.refreshSub?.unsubscribe();
   }
 
   private loadData(): void {

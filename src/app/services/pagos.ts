@@ -1,9 +1,10 @@
 import { Injectable, signal, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable, map } from 'rxjs';
+import { Observable, map, tap } from 'rxjs';
 import { Pago } from '../models/pago.model';
 import { AlumnosService } from './alumnos';
 import { PreciosService } from './precios';
+import { RefreshService } from './refresh';
 import { environment } from '../../environments/environment';
 import { mapPagoFromBackend, mapPagoToBackend } from '../utils/mappers';
 
@@ -12,6 +13,7 @@ export class PagosService {
   private http = inject(HttpClient);
   private alumnosService = inject(AlumnosService);
   private preciosService = inject(PreciosService);
+  private refreshService = inject(RefreshService);
   private apiUrl = environment.apiUrl;
   private pagos = signal<Pago[]>([]);
 
@@ -106,15 +108,21 @@ export class PagosService {
   create(pago: Omit<Pago, 'id'>, metodoPago: string = 'efectivo'): Observable<any> {
     const body = mapPagoToBackend(pago);
     body.metodo_pago = metodoPago;
-    return this.http.post<any>(`${this.apiUrl}/pagos/agregar`, body);
+    return this.http.post<any>(`${this.apiUrl}/pagos/agregar`, body).pipe(
+      tap(() => this.refreshService.refresh())
+    );
   }
 
   update(pago: Pago): Observable<any> {
     const body = mapPagoToBackend(pago);
-    return this.http.put<any>(`${this.apiUrl}/pagos/editar/${pago.id}`, body);
+    return this.http.put<any>(`${this.apiUrl}/pagos/editar/${pago.id}`, body).pipe(
+      tap(() => this.refreshService.refresh())
+    );
   }
 
   delete(id: number): Observable<any> {
-    return this.http.delete<any>(`${this.apiUrl}/pagos/eliminar/${id}`);
+    return this.http.delete<any>(`${this.apiUrl}/pagos/eliminar/${id}`).pipe(
+      tap(() => this.refreshService.refresh())
+    );
   }
 }

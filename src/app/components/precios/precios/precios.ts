@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { Router, NavigationEnd } from '@angular/router';
 import { Subscription, filter } from 'rxjs';
 import { PreciosService } from '../../../services/precios';
+import { RefreshService } from '../../../services/refresh';
 import { Precio } from '../../../models/precio.model';
 
 @Component({
@@ -15,9 +16,11 @@ import { Precio } from '../../../models/precio.model';
 })
 export class Precios implements OnInit, OnDestroy {
   private preciosService = inject(PreciosService);
+  private refreshService = inject(RefreshService);
   private router = inject(Router);
   private cdr = inject(ChangeDetectorRef);
   private routerSub?: Subscription;
+  private refreshSub?: Subscription;
 
   precios: Precio[] = [];
   showModal = false;
@@ -34,10 +37,12 @@ export class Precios implements OnInit, OnDestroy {
     this.routerSub = this.router.events
       .pipe(filter(e => e instanceof NavigationEnd))
       .subscribe(() => this.loadPrecios());
+    this.refreshSub = this.refreshService.refresh$.subscribe(() => this.loadPrecios());
   }
 
   ngOnDestroy(): void {
     this.routerSub?.unsubscribe();
+    this.refreshSub?.unsubscribe();
   }
 
   loadPrecios(): void {

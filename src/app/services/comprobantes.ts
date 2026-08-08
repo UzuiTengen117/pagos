@@ -1,7 +1,8 @@
 import { Injectable, signal, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable, map, of } from 'rxjs';
+import { Observable, map, tap, of } from 'rxjs';
 import { Comprobante } from '../models/comprobante.model';
+import { RefreshService } from './refresh';
 import { environment } from '../../environments/environment';
 import { mapComprobanteFromBackend, mapComprobanteToBackend } from '../utils/mappers';
 
@@ -10,6 +11,7 @@ const FECHAS_KEY = 'comprobantes_fechas_override';
 @Injectable({ providedIn: 'root' })
 export class ComprobantesService {
   private http = inject(HttpClient);
+  private refreshService = inject(RefreshService);
   private apiUrl = environment.apiUrl;
   private comprobantes = signal<Comprobante[]>([]);
 
@@ -59,7 +61,12 @@ export class ComprobantesService {
 
   create(comprobante: Omit<Comprobante, 'id' | 'folio' | 'fechaEmision'>): Observable<any> {
     const body = mapComprobanteToBackend(comprobante);
-    return this.http.post<any>(`${this.apiUrl}/comprobantes/agregar`, body);
+    return this.http.post<any>(`${this.apiUrl}/comprobantes/agregar`, body).pipe(
+      map(res => {
+        this.refreshService.refresh();
+        return res;
+      })
+    );
   }
 
   updateFecha(id: number, fecha: Date): Observable<any> {
@@ -69,18 +76,23 @@ export class ComprobantesService {
       comprobante.fechaEmision = fecha;
       this.comprobantes.set([...this.comprobantes()]);
     }
+    this.refreshService.refresh();
     return of({ success: true });
   }
 
   cancelar(id: number): Observable<any> {
     return this.http.put<any>(`${this.apiUrl}/comprobantes/editar/${id}`, {
       observaciones: 'Cancelado',
-    });
+    }).pipe(
+      tap(() => this.refreshService.refresh())
+    );
   }
 
   delete(id: number): Observable<any> {
     this.removeFechaOverride(id);
-    return this.http.delete<any>(`${this.apiUrl}/comprobantes/eliminar/${id}`);
+    return this.http.delete<any>(`${this.apiUrl}/comprobantes/eliminar/${id}`).pipe(
+      tap(() => this.refreshService.refresh())
+    );
   }
 
   private loadFechaOverrides(): Record<number, string> {

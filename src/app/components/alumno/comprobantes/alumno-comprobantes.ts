@@ -1,10 +1,12 @@
-import { Component, inject, OnInit } from '@angular/core';
+import { Component, inject, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { Subscription } from 'rxjs';
 import { DomSanitizer } from '@angular/platform-browser';
 import { AuthService } from '../../../services/auth';
 import { ComprobantesService } from '../../../services/comprobantes';
 import { AlumnosService } from '../../../services/alumnos';
+import { RefreshService } from '../../../services/refresh';
 import { Comprobante } from '../../../models/comprobante.model';
 
 @Component({
@@ -14,11 +16,13 @@ import { Comprobante } from '../../../models/comprobante.model';
   templateUrl: './alumno-comprobantes.html',
   styleUrl: './alumno-comprobantes.scss',
 })
-export class AlumnoComprobantes implements OnInit {
+export class AlumnoComprobantes implements OnInit, OnDestroy {
   private authService = inject(AuthService);
   private comprobantesService = inject(ComprobantesService);
   private alumnosService = inject(AlumnosService);
+  private refreshService = inject(RefreshService);
   private sanitizer = inject(DomSanitizer);
+  private refreshSub?: Subscription;
 
   currentUser = this.authService.currentUser;
   showPreviewModal = false;
@@ -27,6 +31,15 @@ export class AlumnoComprobantes implements OnInit {
   filtroFechaFin = '';
 
   ngOnInit(): void {
+    this.loadData();
+    this.refreshSub = this.refreshService.refresh$.subscribe(() => this.loadData());
+  }
+
+  ngOnDestroy(): void {
+    this.refreshSub?.unsubscribe();
+  }
+
+  private loadData(): void {
     this.comprobantesService.loadAll().subscribe();
     this.alumnosService.loadAll().subscribe();
   }
