@@ -10,6 +10,7 @@ import { AlumnosService } from '../../services/alumnos';
 import { BecasService } from '../../services/becas';
 import { RefreshService } from '../../services/refresh';
 import { PermisosService } from '../../services/permisos';
+import { AuthService } from '../../services/auth';
 import { NotificationService } from '../../services/notification';
 import { Usuario, RolUsuario } from '../../models/usuario.model';
 import { Alumno } from '../../models/alumno.model';
@@ -29,6 +30,7 @@ export class Profesores implements OnInit, OnDestroy {
   private becasService = inject(BecasService);
   private refreshService = inject(RefreshService);
   private permisosService = inject(PermisosService);
+  private authService = inject(AuthService);
   private notificationService = inject(NotificationService);
   private router = inject(Router);
   private cdr = inject(ChangeDetectorRef);
@@ -54,6 +56,10 @@ export class Profesores implements OnInit, OnDestroy {
   permisosUsuario: string[] = [];
   cargandoPermisos = false;
   private usuarioEnEdicion: Usuario | null = null;
+
+  get esAdmin(): boolean {
+    return this.authService.currentUser()?.rol === 'administrador';
+  }
 
   selectedAlumnoId: number | null = null;
   selectedBecaId: number | null = null;
@@ -181,8 +187,10 @@ export class Profesores implements OnInit, OnDestroy {
     this.estudiantesExistentes = [];
     this.becas = [];
     this.permisosUsuario = [];
-    this.cargarModulosPermisos();
-    this.cargarDefaultsParaRol(this.formData.rol || 'profesor');
+    if (this.esAdmin) {
+      this.cargarModulosPermisos();
+      this.cargarDefaultsParaRol(this.formData.rol || 'profesor');
+    }
     this.showModal = true;
   }
 
@@ -197,8 +205,10 @@ export class Profesores implements OnInit, OnDestroy {
     this.becas = [];
     this.usuarioEnEdicion = usuario;
     this.permisosUsuario = [];
-    this.cargarModulosPermisos();
-    this.cargarPermisosUsuario(usuario.id);
+    if (this.esAdmin) {
+      this.cargarModulosPermisos();
+      this.cargarPermisosUsuario(usuario.id);
+    }
     if (usuario.rol === 'estudiante') {
       this.loadAlumnosDisponibles();
       this.cargarEstudiantesExistentes();
@@ -287,7 +297,7 @@ export class Profesores implements OnInit, OnDestroy {
   }
 
   get mostrarPermisos(): boolean {
-    return this.formData.rol !== 'estudiante';
+    return this.esAdmin && this.formData.rol !== 'estudiante';
   }
 
   private construirSeleccionPermisos(): PermisoSeleccion[] {
@@ -314,6 +324,7 @@ export class Profesores implements OnInit, OnDestroy {
   }
 
   private guardarPermisos(usuarioId: number, seleccion?: PermisoSeleccion[]): void {
+    if (!this.esAdmin) return;
     const lista = seleccion ?? this.construirSeleccionPermisos();
     if (!this.modulosPermisos) return;
     this.permisosService.updatePermisos(usuarioId, lista).subscribe({
