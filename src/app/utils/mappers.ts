@@ -64,6 +64,7 @@ export function mapAlumnoFromBackend(data: any): Alumno {
     email: data.email || '',
     telefono: data.telefono || '',
     grado: data.grado || '',
+    sede: data.sede || '',
     fechaInscripcion: data.created_at ? new Date(data.created_at) : new Date(),
     beca: data.beca_porcentaje ? Number(data.beca_porcentaje) : 0,
     activo: data.activo !== false,
@@ -81,6 +82,7 @@ export function mapAlumnoToBackend(alumno: any): any {
     email: alumno.email,
     telefono: alumno.telefono || '',
     grado: alumno.grado || '',
+    sede: alumno.sede || '',
     beca_id: alumno.becaId || alumno.beca_id || null,
   };
 }

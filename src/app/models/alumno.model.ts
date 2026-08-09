@@ -7,6 +7,7 @@ export interface Alumno {
   email: string;
   telefono: string;
   grado: string;
+  sede: string;
   fechaInscripcion: Date;
   beca: number;
   activo: boolean;

@@ -50,6 +50,7 @@
           <th>Email</th>
           <th>Teléfono</th>
           <th>Grado</th>
+          <th>Sede</th>
           <th>Beca</th>
           <th>Acciones</th>
         </tr>
@@ -65,6 +66,13 @@
             <td data-label="Email">{{ alumno.email }}</td>
             <td data-label="Teléfono">{{ alumno.telefono }}</td>
             <td data-label="Grado">{{ alumno.grado }}</td>
+            <td data-label="Sede">
+              @if (alumno.sede) {
+                <span class="badge badge-sede">{{ alumno.sede }}</span>
+              } @else {
+                <span class="badge badge-none">Sin sede</span>
+              }
+            </td>
             <td data-label="Beca">
               @if (alumno.beca > 0) {
                 <span class="badge badge-beca">{{ alumno.beca }}%</span>
@@ -87,7 +95,7 @@
           </tr>
         } @empty {
           <tr>
-            <td colspan="10" class="empty-state">No hay alumnos registrados</td>
+            <td colspan="11" class="empty-state">No hay alumnos registrados</td>
           </tr>
         }
       </tbody>
@@ -170,6 +178,14 @@
             <option value="Cinta roja avanzada">Cinta roja avanzada</option>
             <option value="Cinta negra primer dan">Cinta negra primer dan</option>
             <option value="Cinta negra segundo dan">Cinta negra segundo dan</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Sede</label>
+          <select [(ngModel)]="formData.sede">
+            <option value="" disabled>-- Seleccionar sede --</option>
+            <option value="Progreso">Progreso</option>
+            <option value="Morelos">Morelos</option>
           </select>
         </div>
         <div class="form-group">

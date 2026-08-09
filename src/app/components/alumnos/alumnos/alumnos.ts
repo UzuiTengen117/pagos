@@ -9,6 +9,7 @@ import { AlumnosService } from '../../../services/alumnos';
 import { BecasService } from '../../../services/becas';
 import { ProfesoresService } from '../../../services/profesores';
 import { RefreshService } from '../../../services/refresh';
+import { NotificationService } from '../../../services/notification';
 import { Alumno } from '../../../models/alumno.model';
 import { Beca } from '../../../models/beca.model';
 import { Usuario } from '../../../models/usuario.model';
@@ -25,6 +26,7 @@ export class Alumnos implements OnInit, OnDestroy {
   private becasService = inject(BecasService);
   private profesoresService = inject(ProfesoresService);
   private refreshService = inject(RefreshService);
+  private notificationService = inject(NotificationService);
   private router = inject(Router);
   private cdr = inject(ChangeDetectorRef);
   private routerSub?: Subscription;
@@ -166,6 +168,7 @@ export class Alumnos implements OnInit, OnDestroy {
       email: '',
       telefono: '',
       grado: '',
+      sede: '',
       fechaInscripcion: new Date(),
       beca: 0,
       activo: true,
@@ -211,6 +214,10 @@ export class Alumnos implements OnInit, OnDestroy {
   }
 
   saveAlumno(): void {
+    if (!this.formData.sede) {
+      this.notificationService.error('La sede es requerida (Progreso o Morelos)');
+      return;
+    }
     if (this.isEditing && this.formData.id) {
       this.alumnosService.update(this.formData as Alumno).subscribe({
         next: () => {
