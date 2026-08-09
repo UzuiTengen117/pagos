@@ -1,6 +1,7 @@
 import { Routes } from '@angular/router';
 import { authGuard } from './guards/auth.guard';
 import { roleGuard } from './guards/role.guard';
+import { permisosGuard } from './guards/permisos.guard';
 
 export const routes: Routes = [
   { path: '', redirectTo: '/login', pathMatch: 'full' },
@@ -14,12 +15,14 @@ export const routes: Routes = [
   { path: 'alumnos', loadComponent: () => import('./components/alumnos/alumnos/alumnos').then(m => m.Alumnos), canActivate: [authGuard] },
   { path: 'perfil', loadComponent: () => import('./components/perfil/perfil').then(m => m.Perfil), canActivate: [authGuard] },
 
-  { path: 'profesores', loadComponent: () => import('./components/profesores/profesores').then(m => m.Profesores), canActivate: [authGuard, roleGuard], data: { roles: ['administrador'] } },
-  { path: 'precios', loadComponent: () => import('./components/precios/precios/precios').then(m => m.Precios), canActivate: [authGuard, roleGuard], data: { roles: ['administrador'] } },
-  { path: 'becas', loadComponent: () => import('./components/becas/becas/becas').then(m => m.Becas), canActivate: [authGuard, roleGuard], data: { roles: ['administrador'] } },
+  { path: 'profesores', loadComponent: () => import('./components/profesores/profesores').then(m => m.Profesores), canActivate: [authGuard, roleGuard, permisosGuard], data: { roles: ['administrador', 'profesor'], permisoModulo: 'usuarios' } },
+  { path: 'precios', loadComponent: () => import('./components/precios/precios/precios').then(m => m.Precios), canActivate: [authGuard, roleGuard, permisosGuard], data: { roles: ['administrador', 'profesor'], permisoModulo: 'precios' } },
+  { path: 'becas', loadComponent: () => import('./components/becas/becas/becas').then(m => m.Becas), canActivate: [authGuard, roleGuard, permisosGuard], data: { roles: ['administrador', 'profesor'], permisoModulo: 'becas' } },
+  { path: 'reembolsos', loadComponent: () => import('./components/reembolsos/reembolsos/reembolsos').then(m => m.Reembolsos), canActivate: [authGuard, roleGuard, permisosGuard], data: { roles: ['administrador', 'profesor'], permisoModulo: 'solicitudes_reembolso' } },
 
   { path: 'alumno/home', loadComponent: () => import('./components/alumno/home/alumno-home').then(m => m.AlumnoHome), canActivate: [authGuard] },
   { path: 'alumno/pagos', loadComponent: () => import('./components/alumno/pagos/alumno-pagos').then(m => m.AlumnoPagos), canActivate: [authGuard] },
   { path: 'alumno/comprobantes', loadComponent: () => import('./components/alumno/comprobantes/alumno-comprobantes').then(m => m.AlumnoComprobantes), canActivate: [authGuard] },
+  { path: 'alumno/solicitudes', loadComponent: () => import('./components/alumno/solicitudes/alumno-solicitudes').then(m => m.AlumnoSolicitudes), canActivate: [authGuard] },
   { path: '**', redirectTo: '/login' },
 ];

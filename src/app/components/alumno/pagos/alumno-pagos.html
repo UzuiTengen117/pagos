@@ -6,11 +6,11 @@
   <div class="filters-bar">
     <div class="filter-group">
       <label>Fecha inicio</label>
-      <input type="date" [(ngModel)]="filtroFechaInicio" />
+      <input type="date" [(ngModel)]="filtroFechaInicio" (ngModelChange)="paginaPagos = 1; paginaInscripciones = 1" />
     </div>
     <div class="filter-group">
       <label>Fecha fin</label>
-      <input type="date" [(ngModel)]="filtroFechaFin" />
+      <input type="date" [(ngModel)]="filtroFechaFin" (ngModelChange)="paginaPagos = 1; paginaInscripciones = 1" />
     </div>
     <button class="btn btn-secondary" (click)="limpiarFiltros()">
       <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -21,6 +21,42 @@
   </div>
 
   <div class="table-card">
+    <div class="section-title">Inscripciones</div>
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>Ciclo Escolar</th>
+          <th>Monto</th>
+          <th>Fecha</th>
+          <th>Grado</th>
+          <th>Estado</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (inscripcion of misInscripcionesPagina; track inscripcion.id) {
+          <tr>
+            <td data-label="Ciclo Escolar">{{ inscripcion.cicloEscolar }}</td>
+            <td class="monto" data-label="Monto">${{ inscripcion.monto | number }}</td>
+            <td data-label="Fecha">{{ inscripcion.fechaInscripcion | date:'dd/MM/yyyy' }}</td>
+            <td data-label="Grado">{{ inscripcion.grado }}</td>
+            <td data-label="Estado">
+              <span class="status-badge" [class]="'status-' + inscripcion.estado">
+                {{ inscripcion.estado | titlecase }}
+              </span>
+            </td>
+          </tr>
+        } @empty {
+          <tr>
+            <td colspan="5" class="empty-state">No tienes inscripciones registradas</td>
+          </tr>
+        }
+      </tbody>
+    </table>
+    <app-paginacion [total]="misInscripciones.length" [pagina]="paginaInscripciones" (cambiarPagina)="paginaInscripciones = $event"></app-paginacion>
+  </div>
+
+  <div class="table-card">
+    <div class="section-title">Pagos</div>
     <table class="data-table">
       <thead>
         <tr>
@@ -33,7 +69,7 @@
         </tr>
       </thead>
       <tbody>
-        @for (pago of misPagos; track pago.id) {
+        @for (pago of misPagosPagina; track pago.id) {
           <tr>
             <td data-label="Concepto">{{ pago.concepto }}</td>
             <td class="monto" data-label="Monto">${{ pago.monto | number }}</td>
@@ -53,5 +89,6 @@
         }
       </tbody>
     </table>
+    <app-paginacion [total]="misPagos.length" [pagina]="paginaPagos" (cambiarPagina)="paginaPagos = $event"></app-paginacion>
   </div>
 </div>

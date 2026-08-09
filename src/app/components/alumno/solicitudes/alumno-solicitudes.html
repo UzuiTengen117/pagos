@@ -1,0 +1,55 @@
+<div class="page-container">
+  <div class="page-header">
+    <h2>Mis Solicitudes de Reembolso</h2>
+  </div>
+
+  <div class="table-card">
+    @if (cargando) {
+      <p class="empty-state">Cargando solicitudes...</p>
+    } @else {
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Comprobante</th>
+            <th>Monto</th>
+            <th>Motivo</th>
+            <th>Estado</th>
+            <th>Mensaje del revisor</th>
+            <th>Revisado por</th>
+            <th>Fecha</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (s of solicitudesPagina; track s.id) {
+            <tr>
+              <td data-label="ID">{{ s.id }}</td>
+              <td data-label="Comprobante">{{ s.comprobanteConcepto || 'Comprobante ' + s.folio }}</td>
+              <td class="monto" data-label="Monto">${{ s.monto | number }}</td>
+              <td data-label="Motivo">{{ s.motivo }}</td>
+              <td data-label="Estado">
+                <span class="status-badge" [class]="'status-' + s.estado">{{ s.estado | titlecase }}</span>
+              </td>
+              <td data-label="Mensaje del revisor">
+                @if (s.estado === 'pendiente') {
+                  <span class="text-muted">—</span>
+                } @else {
+                  <div class="revisor-msg" [class.msg-aprobada]="s.estado === 'aprobada'" [class.msg-rechazada]="s.estado === 'rechazada'">
+                    {{ s.estado === 'aprobada' ? s.motivoAprobacion : s.motivoRechazo }}
+                  </div>
+                }
+              </td>
+              <td data-label="Revisado por">{{ s.revisadoPorNombre || '—' }}</td>
+              <td data-label="Fecha">{{ s.createdAt | date:'dd/MM/yyyy' }}</td>
+            </tr>
+          } @empty {
+            <tr>
+              <td colspan="8" class="empty-state">No has realizado solicitudes de reembolso</td>
+            </tr>
+          }
+        </tbody>
+      </table>
+      <app-paginacion [total]="solicitudes.length" [pagina]="pagina" (cambiarPagina)="pagina = $event"></app-paginacion>
+    }
+  </div>
+</div>

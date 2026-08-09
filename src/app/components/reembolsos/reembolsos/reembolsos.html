@@ -1,0 +1,256 @@
+<div class="page-container">
+  <div class="page-header">
+    <h2>Solicitudes de Reembolso</h2>
+  </div>
+
+  <div class="tabs-bar">
+    <button class="tab-btn" [class.active]="tabActivo === 'pendientes'" (click)="setTab('pendientes')">
+      Pendientes
+    </button>
+    <button class="tab-btn" [class.active]="tabActivo === 'historial'" (click)="setTab('historial')">
+      Historial
+    </button>
+  </div>
+
+  @if (tabActivo === 'pendientes') {
+    <div class="table-card">
+      @if (cargandoPendientes) {
+        <p class="empty-state">Cargando solicitudes...</p>
+      } @else {
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Alumno</th>
+              <th>Concepto</th>
+              <th>Monto</th>
+              <th>Motivo</th>
+              <th>Fecha</th>
+              <th>Acciones</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (s of pendientesPagina; track s.id) {
+              <tr>
+                <td data-label="ID">{{ s.id }}</td>
+                <td data-label="Alumno">{{ s.alumnoNombre }}</td>
+                <td data-label="Concepto">
+                  {{ s.comprobanteConcepto || 'Comprobante ' + s.folio }}
+                  @if (s.pagoMes) { <span class="text-muted">· {{ s.pagoMes }}</span> }
+                </td>
+                <td class="monto" data-label="Monto">${{ s.monto | number }}</td>
+                <td data-label="Motivo">{{ s.motivo }}</td>
+                <td data-label="Fecha">{{ s.createdAt | date:'dd/MM/yyyy' }}</td>
+                <td class="actions" data-label="Acciones">
+                  @if (tieneAprobar) {
+                    <button class="btn-icon btn-aprobar" (click)="abrirAprobacion(s)" title="Aprobar">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <polyline points="20,6 9,17 4,12"/>
+                      </svg>
+                    </button>
+                  }
+                  @if (tieneRechazar) {
+                    <button class="btn-icon btn-rechazar" (click)="abrirRechazo(s)" title="Rechazar">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+                      </svg>
+                    </button>
+                  }
+                  @if (tieneEditar) {
+                    <button class="btn-icon btn-edit" (click)="abrirEdicion(s)" title="Editar">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                      </svg>
+                    </button>
+                  }
+                  @if (tieneEliminar) {
+                    <button class="btn-icon btn-delete" (click)="abrirEliminar(s)" title="Eliminar">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <polyline points="3,6 5,6 21,6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+                      </svg>
+                    </button>
+                  }
+                </td>
+              </tr>
+            } @empty {
+              <tr>
+                <td colspan="7" class="empty-state">No hay solicitudes pendientes</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+        <app-paginacion [total]="pendientes.length" [pagina]="paginaPendientes" (cambiarPagina)="paginaPendientes = $event"></app-paginacion>
+      }
+    </div>
+  }
+
+  @if (tabActivo === 'historial') {
+    <div class="table-card">
+      @if (cargandoHistorial) {
+        <p class="empty-state">Cargando historial...</p>
+      } @else {
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Alumno</th>
+              <th>Concepto</th>
+              <th>Monto</th>
+              <th>Estado</th>
+              <th>Revisado por</th>
+              <th>Motivo</th>
+              <th>Fecha</th>
+              <th>Acciones</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (s of historialPagina; track s.id) {
+              <tr>
+                <td data-label="ID">{{ s.id }}</td>
+                <td data-label="Alumno">{{ s.alumnoNombre }}</td>
+                <td data-label="Concepto">{{ s.comprobanteConcepto || 'Comprobante ' + s.folio }}</td>
+                <td class="monto" data-label="Monto">${{ s.monto | number }}</td>
+                <td data-label="Estado">
+                  <span class="status-badge" [class]="'status-' + s.estado">{{ s.estado | titlecase }}</span>
+                </td>
+                <td data-label="Revisado por">{{ s.revisadoPorNombre || '—' }}</td>
+                <td data-label="Motivo">{{ s.estado === 'aprobada' ? s.motivoAprobacion : s.motivoRechazo }}</td>
+                <td data-label="Fecha">{{ s.createdAt | date:'dd/MM/yyyy' }}</td>
+                <td class="actions" data-label="Acciones">
+                  @if (tieneEditar) {
+                    <button class="btn-icon btn-edit" (click)="abrirEdicion(s)" title="Editar">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                      </svg>
+                    </button>
+                    <button class="btn-icon btn-reabrir" (click)="reabrir(s)" title="Volver a pendientes">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/>
+                      </svg>
+                    </button>
+                  }
+                  @if (tieneEliminar) {
+                    <button class="btn-icon btn-delete" (click)="abrirEliminar(s)" title="Eliminar">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <polyline points="3,6 5,6 21,6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+                      </svg>
+                    </button>
+                  }
+                </td>
+              </tr>
+            } @empty {
+              <tr>
+                <td colspan="9" class="empty-state">No hay solicitudes en el historial</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+        <app-paginacion [total]="historial.length" [pagina]="paginaHistorial" (cambiarPagina)="paginaHistorial = $event"></app-paginacion>
+      }
+    </div>
+  }
+</div>
+
+@if (showRechazarModal && solicitudRechazar) {
+  <div class="modal-overlay" (click)="cerrarRechazo()">
+    <div class="modal" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h3>Rechazar Solicitud</h3>
+        <button class="btn-close" (click)="cerrarRechazo()">
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+          </svg>
+        </button>
+      </div>
+      <div class="modal-body">
+        <p>Rechazar la solicitud de <strong>{{ solicitudRechazar.alumnoNombre }}</strong> por ${{ solicitudRechazar.monto | number }}.</p>
+        <div class="form-group">
+          <label>Motivo del rechazo</label>
+          <textarea [(ngModel)]="motivoRechazo" rows="3" placeholder="Escribe el motivo del rechazo"></textarea>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" (click)="cerrarRechazo()">Cancelar</button>
+        <button class="btn btn-danger" (click)="confirmarRechazo()">Rechazar</button>
+      </div>
+    </div>
+  </div>
+}
+
+@if (showAprobarModal && solicitudAprobar) {
+  <div class="modal-overlay" (click)="cerrarAprobacion()">
+    <div class="modal" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h3>Aprobar Solicitud</h3>
+        <button class="btn-close" (click)="cerrarAprobacion()">
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+          </svg>
+        </button>
+      </div>
+      <div class="modal-body">
+        <p>Aprobar la solicitud de <strong>{{ solicitudAprobar.alumnoNombre }}</strong> por ${{ solicitudAprobar.monto | number }}.</p>
+        <div class="form-group">
+          <label>Motivo de la aprobación</label>
+          <textarea [(ngModel)]="motivoAprobacion" rows="3" placeholder="Escribe el motivo de la aprobación"></textarea>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" (click)="cerrarAprobacion()">Cancelar</button>
+        <button class="btn btn-primary" (click)="confirmarAprobacion()">Aprobar</button>
+      </div>
+    </div>
+  </div>
+}
+
+@if (showEditarModal && solicitudEditar) {
+  <div class="modal-overlay" (click)="cerrarEdicion()">
+    <div class="modal" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h3>Editar Solicitud</h3>
+        <button class="btn-close" (click)="cerrarEdicion()">
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+          </svg>
+        </button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label>Motivo</label>
+          <textarea [(ngModel)]="editarMotivo" rows="3" placeholder="Motivo de la solicitud"></textarea>
+        </div>
+        <div class="form-group">
+          <label>Monto</label>
+          <input type="number" [(ngModel)]="editarMonto" min="0" />
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" (click)="cerrarEdicion()">Cancelar</button>
+        <button class="btn btn-primary" (click)="guardarEdicion()">Guardar</button>
+      </div>
+    </div>
+  </div>
+}
+
+@if (showEliminarModal && solicitudEliminar) {
+  <div class="modal-overlay" (click)="cerrarEliminar()">
+    <div class="modal modal-sm" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h3>Confirmar Eliminación</h3>
+        <button class="btn-close" (click)="cerrarEliminar()">
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+          </svg>
+        </button>
+      </div>
+      <div class="modal-body">
+        <p>¿Estás seguro de que deseas eliminar la solicitud de <strong>{{ solicitudEliminar.alumnoNombre }}</strong>?</p>
+        <p class="warning-text">Esta acción no se puede deshacer.</p>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" (click)="cerrarEliminar()">Cancelar</button>
+        <button class="btn btn-danger" (click)="confirmarEliminar()">Eliminar</button>
+      </div>
+    </div>
+  </div>
+}

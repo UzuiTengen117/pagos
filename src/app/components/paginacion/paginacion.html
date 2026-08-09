@@ -1,0 +1,20 @@
+@if (mostrarPaginacion) {
+  <div class="paginacion">
+    <span class="paginacion-info">Página {{ pagina }} de {{ totalPaginas }} · {{ total }} registros</span>
+    <div class="paginacion-botones">
+      <button class="pag-btn" (click)="ir(pagina - 1)" [disabled]="pagina === 1" aria-label="Página anterior">
+        ‹
+      </button>
+      @for (p of paginas; track p) {
+        @if (p === '...') {
+          <span class="pag-ellipsis">…</span>
+        } @else {
+          <button class="pag-btn" [class.active]="p === pagina" (click)="ir(p)">{{ p }}</button>
+        }
+      }
+      <button class="pag-btn" (click)="ir(pagina + 1)" [disabled]="pagina === totalPaginas" aria-label="Página siguiente">
+        ›
+      </button>
+    </div>
+  </div>
+}

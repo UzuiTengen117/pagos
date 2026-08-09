@@ -2,6 +2,8 @@ import { Component, inject, OnInit, OnDestroy, ChangeDetectorRef } from '@angula
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Subscription } from 'rxjs';
+import { PaginacionComponent } from '../../paginacion/paginacion';
+import { paginar } from '../../../utils/paginacion';
 import { PagosService } from '../../../services/pagos';
 import { AlumnosService } from '../../../services/alumnos';
 import { BecasService } from '../../../services/becas';
@@ -16,7 +18,7 @@ import * as XLSX from 'xlsx';
 @Component({
   selector: 'app-pagos',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, PaginacionComponent],
   templateUrl: './pagos.html',
   styleUrl: './pagos.scss',
 })
@@ -33,6 +35,7 @@ export class Pagos implements OnInit, OnDestroy {
   alumnos: Alumno[] = [];
   becas: Beca[] = [];
   precios: Precio[] = [];
+  pagina = 1;
   preciosDisponibles: { id: number; concepto: string; monto: number; tipo: string; montoConBeca: number }[] = [];
   filtroNombre = '';
   filtroFechaInicio = '';
@@ -325,7 +328,12 @@ export class Pagos implements OnInit, OnDestroy {
     return `Beca ${alumno.beca}%`;
   }
 
+  get pagosPagina(): Pago[] {
+    return paginar(this.pagos, this.pagina);
+  }
+
   aplicarFiltros(): void {
+    this.pagina = 1;
     let resultado = this.pagosService.getAll();
 
     if (this.filtroNombre) {
@@ -349,6 +357,7 @@ export class Pagos implements OnInit, OnDestroy {
   }
 
   limpiarFiltros(): void {
+    this.pagina = 1;
     this.filtroNombre = '';
     this.filtroFechaInicio = '';
     this.filtroFechaFin = '';
@@ -540,6 +549,7 @@ export class Pagos implements OnInit, OnDestroy {
   }
 
   private recargarPagos(): void {
+    this.pagina = 1;
     this.pagosService.loadAll().subscribe({
       next: (data) => {
         this.pagos = data;

@@ -5,6 +5,7 @@ import { Beca } from '../models/beca.model';
 import { Precio } from '../models/precio.model';
 import { Comprobante } from '../models/comprobante.model';
 import { Inscripcion } from '../models/inscripcion.model';
+import { SolicitudReembolso } from '../models/reembolso.model';
 
 export function mapRol(backendRol: string): RolUsuario {
   switch (backendRol) {
@@ -196,6 +197,36 @@ export function mapComprobanteToBackend(comprobante: any): any {
   };
 }
 
+export function mapReembolsoFromBackend(data: any): SolicitudReembolso {
+  const nombre = data.nombre || '';
+  const apellido = data.primer_apellido || '';
+  const segundoApellido = data.segundo_apellido || '';
+  const fullName = `${nombre} ${apellido} ${segundoApellido}`.trim();
+
+  return {
+    id: data.id,
+    alumnoId: data.alumno_id,
+    alumnoNombre: fullName,
+    pagoId: data.pago_id ?? null,
+    comprobanteId: data.comprobante_id ?? null,
+    comprobanteConcepto: data.comprobante_concepto || '',
+    comprobanteMetodoPago: data.comprobante_metodo_pago || '',
+    comprobanteFecha: data.comprobante_fecha ? new Date(data.comprobante_fecha) : null,
+    folio: data.folio || '',
+    pagoMes: data.pago_mes || '',
+    monto: Number(data.monto) || 0,
+    motivo: data.motivo || '',
+    estado: data.estado || 'pendiente',
+    motivoRechazo: data.motivo_rechazo || '',
+    motivoAprobacion: data.motivo_aprobacion || '',
+    revisadoPor: data.revisado_por ?? null,
+    revisadoPorNombre: data.revisado_por_nombre || '',
+    creadaPor: data.creada_por ?? null,
+    createdAt: data.created_at ? new Date(data.created_at) : new Date(),
+    updatedAt: data.updated_at ? new Date(data.updated_at) : null,
+  };
+}
+
 export function mapInscripcionFromBackend(data: any): Inscripcion {
   const alumnoObj = data.alumno || {};
   const nombre = data.nombre || (data.alumno && data.alumno.nombre) || data.alumno_nombre || '';
@@ -207,12 +238,13 @@ export function mapInscripcionFromBackend(data: any): Inscripcion {
     id: data.id,
     alumnoId: data.alumno_id,
     alumnoNombre: fullName,
-    monto: Number(data.monto_final || data.monto || data.monto_total || 0),
-    montoOriginal: Number(data.monto_original || data.monto || data.precio_original || 0),
+    monto: Number(data.monto_final || data.monto_inscripcion || data.monto || data.monto_total || 0),
+    montoOriginal: Number(data.monto_original || data.monto_inscripcion || data.monto || data.precio_original || 0),
     becaPorcentaje: data.beca_porcentaje ? Number(data.beca_porcentaje) : 0,
     precioId: data.tipo_pago_id || data.precio_id,
     fechaInscripcion: data.fecha_inscripcion ? new Date(data.fecha_inscripcion) : new Date(),
     cicloEscolar: data.ciclo_escolar || '',
+    grado: data.grado || '',
     estado: data.estado || 'pendiente',
     metodoPago: data.metodo_pago || 'efectivo',
     notas: data.notas || '',

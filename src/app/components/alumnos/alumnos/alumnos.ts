@@ -3,6 +3,8 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, NavigationEnd } from '@angular/router';
 import { Subscription, filter } from 'rxjs';
+import { PaginacionComponent } from '../../paginacion/paginacion';
+import { paginar } from '../../../utils/paginacion';
 import { AlumnosService } from '../../../services/alumnos';
 import { BecasService } from '../../../services/becas';
 import { ProfesoresService } from '../../../services/profesores';
@@ -14,7 +16,7 @@ import { Usuario } from '../../../models/usuario.model';
 @Component({
   selector: 'app-alumnos',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, PaginacionComponent],
   templateUrl: './alumnos.html',
   styleUrl: './alumnos.scss',
 })
@@ -31,6 +33,7 @@ export class Alumnos implements OnInit, OnDestroy {
   alumnos: Alumno[] = [];
   becas: Beca[] = [];
   usuariosEstudiantes: Usuario[] = [];
+  pagina = 1;
   filtroNombre = '';
   filtroEmail = '';
   showModal = false;
@@ -67,6 +70,7 @@ export class Alumnos implements OnInit, OnDestroy {
   }
 
   loadAlumnos(): void {
+    this.pagina = 1;
     this.alumnosService.loadAll().subscribe({
       next: (data) => {
         this.alumnos = data;
@@ -124,6 +128,7 @@ export class Alumnos implements OnInit, OnDestroy {
   }
 
   aplicarFiltros(): void {
+    this.pagina = 1;
     let resultado = this.alumnosService.getAll();
 
     if (this.filtroNombre) {
@@ -146,6 +151,7 @@ export class Alumnos implements OnInit, OnDestroy {
   }
 
   limpiarFiltros(): void {
+    this.pagina = 1;
     this.filtroNombre = '';
     this.filtroEmail = '';
     this.alumnos = this.alumnosService.getAll();
@@ -166,6 +172,10 @@ export class Alumnos implements OnInit, OnDestroy {
       usuarioId: undefined,
       becaId: undefined,
     };
+  }
+
+  get alumnosPagina(): Alumno[] {
+    return paginar(this.alumnos, this.pagina);
   }
 
   openCreateModal(): void {

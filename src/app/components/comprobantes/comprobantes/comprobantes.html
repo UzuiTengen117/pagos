@@ -57,7 +57,7 @@
         </tr>
       </thead>
       <tbody>
-        @for (c of comprobantes; track c.id) {
+        @for (c of comprobantesPagina; track c.id) {
           <tr>
             <td data-label="Folio"><span class="folio">{{ c.folio }}</span></td>
             <td data-label="Alumno">{{ c.alumnoNombre }}</td>
@@ -101,6 +101,7 @@
         }
       </tbody>
     </table>
+    <app-paginacion [total]="comprobantes.length" [pagina]="pagina" (cambiarPagina)="pagina = $event"></app-paginacion>
   </div>
 </div>
 

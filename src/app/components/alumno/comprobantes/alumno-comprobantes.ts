@@ -3,23 +3,34 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Subscription } from 'rxjs';
 import { DomSanitizer } from '@angular/platform-browser';
+import { PaginacionComponent } from '../../paginacion/paginacion';
+import { paginar } from '../../../utils/paginacion';
 import { AuthService } from '../../../services/auth';
 import { ComprobantesService } from '../../../services/comprobantes';
 import { AlumnosService } from '../../../services/alumnos';
 import { RefreshService } from '../../../services/refresh';
+import { ReembolsosService } from '../../../services/reembolsos';
+import { NotificationService } from '../../../services/notification';
 import { Comprobante } from '../../../models/comprobante.model';
+import { SolicitudReembolso } from '../../../models/reembolso.model';
+
+const DIAS_LIMITE = 7;
 
 @Component({
   selector: 'app-alumno-comprobantes',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, PaginacionComponent],
   templateUrl: './alumno-comprobantes.html',
   styleUrl: './alumno-comprobantes.scss',
 })
 export class AlumnoComprobantes implements OnInit, OnDestroy {
+  readonly DIAS_LIMITE = DIAS_LIMITE;
+
   private authService = inject(AuthService);
   private comprobantesService = inject(ComprobantesService);
   private alumnosService = inject(AlumnosService);
+  private reembolsosService = inject(ReembolsosService);
+  private notificationService = inject(NotificationService);
   private refreshService = inject(RefreshService);
   private sanitizer = inject(DomSanitizer);
   private refreshSub?: Subscription;
@@ -29,6 +40,12 @@ export class AlumnoComprobantes implements OnInit, OnDestroy {
   comprobantePreview: Comprobante | null = null;
   filtroFechaInicio = '';
   filtroFechaFin = '';
+  pagina = 1;
+  showReembolsoModal = false;
+  reembolsoComprobante: Comprobante | null = null;
+  reembolsoMotivo = '';
+  reembolsoMonto: number | null = null;
+  enviandoReembolso = false;
 
   ngOnInit(): void {
     this.loadData();
@@ -42,13 +59,14 @@ export class AlumnoComprobantes implements OnInit, OnDestroy {
   private loadData(): void {
     this.comprobantesService.loadAll().subscribe();
     this.alumnosService.loadAll().subscribe();
+    this.reembolsosService.loadAll().subscribe();
   }
 
   get misComprobantes(): Comprobante[] {
     const usuario = this.currentUser();
     if (!usuario) return [];
     const alumno = this.alumnosService.getAll().find(
-      a => a.username === usuario.username || a.email === usuario.email
+      a => a.usuarioId === usuario.id
     );
     if (!alumno) return [];
     let comprobantes = this.comprobantesService.getAll().filter(
@@ -67,9 +85,66 @@ export class AlumnoComprobantes implements OnInit, OnDestroy {
     return comprobantes;
   }
 
+  get misComprobantesPagina(): Comprobante[] {
+    return paginar(this.misComprobantes, this.pagina);
+  }
+
   limpiarFiltros(): void {
     this.filtroFechaInicio = '';
     this.filtroFechaFin = '';
+    this.pagina = 1;
+  }
+
+  solicitudDe(comprobante: Comprobante): SolicitudReembolso | undefined {
+    return this.reembolsosService.getAll().find(s => s.comprobanteId === comprobante.id);
+  }
+
+  diasDesdeEmision(comprobante: Comprobante): number {
+    return (Date.now() - new Date(comprobante.fechaEmision).getTime()) / (24 * 60 * 60 * 1000);
+  }
+
+  puedeSolicitar(comprobante: Comprobante): boolean {
+    return !this.solicitudDe(comprobante) && this.diasDesdeEmision(comprobante) <= DIAS_LIMITE;
+  }
+
+  abrirSolicitud(comprobante: Comprobante): void {
+    this.reembolsoComprobante = comprobante;
+    this.reembolsoMotivo = '';
+    this.reembolsoMonto = null;
+    this.showReembolsoModal = true;
+  }
+
+  cerrarSolicitud(): void {
+    this.showReembolsoModal = false;
+    this.reembolsoComprobante = null;
+    this.reembolsoMotivo = '';
+    this.reembolsoMonto = null;
+  }
+
+  enviarSolicitud(): void {
+    if (!this.reembolsoComprobante || !this.reembolsoMotivo.trim()) {
+      this.notificationService.warning('Escribe un motivo para la solicitud');
+      return;
+    }
+    this.enviandoReembolso = true;
+    const comprobante = this.reembolsoComprobante;
+    this.reembolsosService.create({
+      comprobante_id: comprobante.id,
+      pago_id: comprobante.pagoId || undefined,
+      monto: this.reembolsoMonto ?? undefined,
+      motivo: this.reembolsoMotivo.trim(),
+    }).subscribe({
+      next: () => {
+        this.enviandoReembolso = false;
+        this.cerrarSolicitud();
+        this.notificationService.success('Solicitud de reembolso enviada');
+      },
+      error: (err) => {
+        this.enviandoReembolso = false;
+        const detalle = err?.error?.message || err?.error || '';
+        this.notificationService.error(detalle ? `No se pudo enviar la solicitud: ${detalle}` : 'No se pudo enviar la solicitud');
+      }
+    });
   }
 
   openPreview(comprobante: Comprobante): void {

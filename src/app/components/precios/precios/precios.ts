@@ -3,6 +3,8 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, NavigationEnd } from '@angular/router';
 import { Subscription, filter } from 'rxjs';
+import { PaginacionComponent } from '../../paginacion/paginacion';
+import { paginar } from '../../../utils/paginacion';
 import { PreciosService } from '../../../services/precios';
 import { RefreshService } from '../../../services/refresh';
 import { Precio } from '../../../models/precio.model';
@@ -10,7 +12,7 @@ import { Precio } from '../../../models/precio.model';
 @Component({
   selector: 'app-precios',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, PaginacionComponent],
   templateUrl: './precios.html',
   styleUrl: './precios.scss',
 })
@@ -23,6 +25,7 @@ export class Precios implements OnInit, OnDestroy {
   private refreshSub?: Subscription;
 
   precios: Precio[] = [];
+  pagina = 1;
   showModal = false;
   showDeleteModal = false;
   isEditing = false;
@@ -46,6 +49,7 @@ export class Precios implements OnInit, OnDestroy {
   }
 
   loadPrecios(): void {
+    this.pagina = 1;
     this.preciosService.loadAll().subscribe({
       next: (data) => {
         this.precios = data;
@@ -64,6 +68,10 @@ export class Precios implements OnInit, OnDestroy {
       monto: 0,
       tipo: 'mensualidad',
     };
+  }
+
+  get preciosPagina(): Precio[] {
+    return paginar(this.precios, this.pagina);
   }
 
   openCreateModal(): void {

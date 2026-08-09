@@ -71,7 +71,7 @@
         </tr>
       </thead>
       <tbody>
-        @for (pago of pagos; track pago.id) {
+        @for (pago of pagosPagina; track pago.id) {
           <tr>
             <td data-label="ID">{{ pago.id }}</td>
             <td data-label="Alumno">{{ pago.alumnoNombre }}</td>
@@ -144,6 +144,7 @@
         }
       </tbody>
     </table>
+    <app-paginacion [total]="pagos.length" [pagina]="pagina" (cambiarPagina)="pagina = $event"></app-paginacion>
   </div>
 </div>
 

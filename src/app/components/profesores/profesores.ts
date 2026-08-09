@@ -3,18 +3,23 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, NavigationEnd } from '@angular/router';
 import { Subscription, filter } from 'rxjs';
+import { PaginacionComponent } from '../paginacion/paginacion';
+import { paginar } from '../../utils/paginacion';
 import { ProfesoresService } from '../../services/profesores';
 import { AlumnosService } from '../../services/alumnos';
 import { BecasService } from '../../services/becas';
 import { RefreshService } from '../../services/refresh';
+import { PermisosService } from '../../services/permisos';
+import { NotificationService } from '../../services/notification';
 import { Usuario, RolUsuario } from '../../models/usuario.model';
 import { Alumno } from '../../models/alumno.model';
 import { Beca } from '../../models/beca.model';
+import { ModulosPermisos, PermisoSeleccion } from '../../models/permiso.model';
 
 @Component({
   selector: 'app-profesores',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, PaginacionComponent],
   templateUrl: './profesores.html',
   styleUrl: './profesores.scss',
 })
@@ -23,6 +28,8 @@ export class Profesores implements OnInit, OnDestroy {
   private alumnosService = inject(AlumnosService);
   private becasService = inject(BecasService);
   private refreshService = inject(RefreshService);
+  private permisosService = inject(PermisosService);
+  private notificationService = inject(NotificationService);
   private router = inject(Router);
   private cdr = inject(ChangeDetectorRef);
   private routerSub?: Subscription;
@@ -30,6 +37,7 @@ export class Profesores implements OnInit, OnDestroy {
 
   allUsuarios: Usuario[] = [];
   usuarios: Usuario[] = [];
+  pagina = 1;
   alumnosDisponibles: Alumno[] = [];
   estudiantesExistentes: Usuario[] = [];
   becas: Beca[] = [];
@@ -41,6 +49,11 @@ export class Profesores implements OnInit, OnDestroy {
   usuarioToDelete: Usuario | null = null;
   usuarioRol: Usuario | null = null;
   nuevoRol: RolUsuario = 'profesor';
+
+  modulosPermisos: ModulosPermisos | null = null;
+  permisosUsuario: string[] = [];
+  cargandoPermisos = false;
+  private usuarioEnEdicion: Usuario | null = null;
 
   selectedAlumnoId: number | null = null;
   selectedBecaId: number | null = null;
@@ -65,6 +78,7 @@ export class Profesores implements OnInit, OnDestroy {
     this.profesoresService.getAll().subscribe({
       next: (usuarios) => {
         this.allUsuarios = usuarios;
+        this.pagina = 1;
         this.aplicarFiltro();
         this.cdr.detectChanges();
       },
@@ -77,11 +91,16 @@ export class Profesores implements OnInit, OnDestroy {
   }
 
   aplicarFiltro(): void {
+    this.pagina = 1;
     if (this.filtroRol === 'todos') {
       this.usuarios = [...this.allUsuarios];
     } else {
       this.usuarios = this.allUsuarios.filter(u => u.rol === this.filtroRol);
     }
+  }
+
+  get usuariosPagina(): Usuario[] {
+    return paginar(this.usuarios, this.pagina);
   }
 
   getEmptyForm(): Partial<Usuario> {
@@ -98,6 +117,9 @@ export class Profesores implements OnInit, OnDestroy {
   }
 
   onRolChange(): void {
+    if (!this.isEditing) {
+      this.cargarDefaultsParaRol(this.formData.rol || 'profesor');
+    }
     if (this.formData.rol === 'estudiante') {
       this.loadAlumnosDisponibles();
       this.cargarEstudiantesExistentes();
@@ -158,6 +180,9 @@ export class Profesores implements OnInit, OnDestroy {
     this.alumnosDisponibles = [];
     this.estudiantesExistentes = [];
     this.becas = [];
+    this.permisosUsuario = [];
+    this.cargarModulosPermisos();
+    this.cargarDefaultsParaRol(this.formData.rol || 'profesor');
     this.showModal = true;
   }
 
@@ -170,6 +195,10 @@ export class Profesores implements OnInit, OnDestroy {
     this.alumnosDisponibles = [];
     this.estudiantesExistentes = [];
     this.becas = [];
+    this.usuarioEnEdicion = usuario;
+    this.permisosUsuario = [];
+    this.cargarModulosPermisos();
+    this.cargarPermisosUsuario(usuario.id);
     if (usuario.rol === 'estudiante') {
       this.loadAlumnosDisponibles();
       this.cargarEstudiantesExistentes();
@@ -186,6 +215,111 @@ export class Profesores implements OnInit, OnDestroy {
     this.alumnosDisponibles = [];
     this.estudiantesExistentes = [];
     this.becas = [];
+    this.usuarioEnEdicion = null;
+    this.permisosUsuario = [];
+  }
+
+  private cargarModulosPermisos(): void {
+    if (this.modulosPermisos) return;
+    this.permisosService.getModulos().subscribe({
+      next: (modulos) => {
+        this.modulosPermisos = modulos;
+        this.cdr.detectChanges();
+      },
+      error: () => {
+        this.modulosPermisos = null;
+        this.cdr.detectChanges();
+      }
+    });
+  }
+
+  private cargarPermisosUsuario(id: number): void {
+    this.cargandoPermisos = true;
+    this.permisosService.getPermisosUsuario(id).subscribe({
+      next: (res) => {
+        this.permisosUsuario = res.permisos;
+        this.cargandoPermisos = false;
+        this.cdr.detectChanges();
+      },
+      error: () => {
+        this.permisosUsuario = [];
+        this.cargandoPermisos = false;
+        this.cdr.detectChanges();
+      }
+    });
+  }
+
+  private cargarDefaultsParaRol(rol: string): void {
+    this.cargandoPermisos = true;
+    const backendRol = rol === 'administrador' ? 'admin' : rol;
+    this.permisosService.getDefaults(backendRol).subscribe({
+      next: (res) => {
+        this.permisosUsuario = res.permisos;
+        this.cargandoPermisos = false;
+        this.cdr.detectChanges();
+      },
+      error: () => {
+        this.permisosUsuario = [];
+        this.cargandoPermisos = false;
+        this.cdr.detectChanges();
+      }
+    });
+  }
+
+  esPermisoActivo(modulo: string, accion: string, sub?: string): boolean {
+    const clave = sub ? `${modulo}:${accion}:${sub}` : `${modulo}:${accion}`;
+    return this.permisosUsuario.includes(clave);
+  }
+
+  togglePermiso(modulo: string, accion: string, sub?: string): void {
+    const clave = sub ? `${modulo}:${accion}:${sub}` : `${modulo}:${accion}`;
+    if (this.permisosUsuario.includes(clave)) {
+      this.permisosUsuario = this.permisosUsuario.filter(p => p !== clave);
+    } else {
+      this.permisosUsuario = [...this.permisosUsuario, clave];
+    }
+  }
+
+  esBloqueada(modulo: string, accion: string, sub: string): boolean {
+    if (this.formData.rol === 'administrador') return false;
+    const cfg = this.modulosPermisos?.[modulo];
+    return Boolean(cfg?.bloqueadas?.includes(`${accion}:${sub}`));
+  }
+
+  get mostrarPermisos(): boolean {
+    return this.formData.rol !== 'estudiante';
+  }
+
+  private construirSeleccionPermisos(): PermisoSeleccion[] {
+    if (!this.modulosPermisos) return [];
+    const seleccion: PermisoSeleccion[] = [];
+    for (const [modulo, cfg] of Object.entries(this.modulosPermisos)) {
+      if (cfg.subcategorias) {
+        for (const [sub, subCfg] of Object.entries(cfg.subcategorias)) {
+          for (const accion of Object.keys(subCfg.acciones)) {
+            if (this.permisosUsuario.includes(`${modulo}:${accion}:${sub}`)) {
+              seleccion.push({ modulo, accion: `${accion}:${sub}` });
+            }
+          }
+        }
+      } else {
+        for (const accion of Object.keys(cfg.acciones || {})) {
+          if (this.permisosUsuario.includes(`${modulo}:${accion}`)) {
+            seleccion.push({ modulo, accion });
+          }
+        }
+      }
+    }
+    return seleccion;
+  }
+
+  private guardarPermisos(usuarioId: number, seleccion?: PermisoSeleccion[]): void {
+    const lista = seleccion ?? this.construirSeleccionPermisos();
+    if (!this.modulosPermisos) return;
+    this.permisosService.updatePermisos(usuarioId, lista).subscribe({
+      next: () => this.notificationService.success('Permisos actualizados correctamente'),
+      error: () => this.notificationService.error('No se pudieron guardar los permisos')
+    });
   }
 
   openDeleteModal(usuario: Usuario): void {
@@ -210,13 +344,19 @@ export class Profesores implements OnInit, OnDestroy {
   }
 
   saveUsuario(): void {
+    const seleccion = this.construirSeleccionPermisos();
+    const sinPermisos = this.formData.rol === 'estudiante';
     if (this.isEditing && this.formData.id) {
       this.profesoresService.update(this.formData as Usuario, this.formPassword || undefined).subscribe({
         next: (res) => {
           if (this.formData.rol === 'estudiante' && this.selectedAlumnoId) {
             this.vincularAlumno(res.id || this.formData.id);
           } else {
+            const usuarioId = this.usuarioEnEdicion?.id;
             this.closeModal();
+            if (usuarioId && !sinPermisos) {
+              this.guardarPermisos(usuarioId, seleccion);
+            }
             this.loadAllUsuarios();
           }
         },
@@ -228,10 +368,17 @@ export class Profesores implements OnInit, OnDestroy {
     } else {
       this.profesoresService.create(this.formData, this.formPassword || undefined).subscribe({
         next: (res) => {
+          const nuevoId = res.usuario?.id || res.id;
           if (this.formData.rol === 'estudiante' && this.selectedAlumnoId) {
-            this.vincularAlumno(res.usuario?.id || res.id);
+            if (!sinPermisos) {
+              this.guardarPermisos(nuevoId, seleccion);
+            }
+            this.vincularAlumno(nuevoId);
           } else {
             this.closeModal();
+            if (!sinPermisos) {
+              this.guardarPermisos(nuevoId, seleccion);
+            }
             this.loadAllUsuarios();
           }
         },

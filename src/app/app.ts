@@ -30,6 +30,7 @@ export class App {
     '/comprobantes': 'Comprobantes de Pago',
     '/alumnos': 'Registro de Alumnos',
     '/profesores': 'Registro de Usuarios',
+    '/reembolsos': 'Solicitudes de Reembolso',
     '/precios': 'Precios',
     '/becas': 'Becas',
     '/alumno/home': 'Mi Resumen',

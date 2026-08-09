@@ -3,6 +3,8 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Subscription } from 'rxjs';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
+import { PaginacionComponent } from '../../paginacion/paginacion';
+import { paginar } from '../../../utils/paginacion';
 import { ComprobantesService } from '../../../services/comprobantes';
 import { AlumnosService } from '../../../services/alumnos';
 import { PagosService } from '../../../services/pagos';
@@ -14,7 +16,7 @@ import { Pago } from '../../../models/pago.model';
 @Component({
   selector: 'app-comprobantes',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, PaginacionComponent],
   templateUrl: './comprobantes.html',
   styleUrl: './comprobantes.scss',
 })
@@ -31,6 +33,7 @@ export class Comprobantes implements OnInit, OnDestroy {
   alumnos: Alumno[] = [];
   pagos: Pago[] = [];
   pagosAlumno: Pago[] = [];
+  pagina = 1;
   filtroNombre = '';
   filtroFechaInicio = '';
   filtroFechaFin = '';
@@ -134,7 +137,12 @@ export class Comprobantes implements OnInit, OnDestroy {
     this.cdr.detectChanges();
   }
 
+  get comprobantesPagina(): Comprobante[] {
+    return paginar(this.comprobantes, this.pagina);
+  }
+
   aplicarFiltros(): void {
+    this.pagina = 1;
     let resultado = this.comprobantesService.getAll();
 
     if (this.filtroNombre) {
@@ -158,6 +166,7 @@ export class Comprobantes implements OnInit, OnDestroy {
   }
 
   limpiarFiltros(): void {
+    this.pagina = 1;
     this.filtroNombre = '';
     this.filtroFechaInicio = '';
     this.filtroFechaFin = '';
@@ -390,6 +399,7 @@ export class Comprobantes implements OnInit, OnDestroy {
   }
 
   private recargarComprobantes(): void {
+    this.pagina = 1;
     this.comprobantesService.loadAll().subscribe({
       next: (data) => {
         this.comprobantes = data;

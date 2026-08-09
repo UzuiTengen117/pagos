@@ -28,7 +28,7 @@
         </tr>
       </thead>
       <tbody>
-        @for (precio of precios; track precio.id) {
+        @for (precio of preciosPagina; track precio.id) {
           <tr>
             <td data-label="ID">{{ precio.id }}</td>
             <td data-label="Concepto">{{ precio.concepto }}</td>
@@ -58,6 +58,7 @@
         }
       </tbody>
     </table>
+    <app-paginacion [total]="precios.length" [pagina]="pagina" (cambiarPagina)="pagina = $event"></app-paginacion>
   </div>
 </div>
 

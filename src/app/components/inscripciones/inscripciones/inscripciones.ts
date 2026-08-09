@@ -3,6 +3,8 @@ import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Subscription } from 'rxjs';
+import { PaginacionComponent } from '../../paginacion/paginacion';
+import { paginar } from '../../../utils/paginacion';
 import { InscripcionesService } from '../../../services/inscripciones';
 import { ComprobantesService } from '../../../services/comprobantes';
 import { AlumnosService } from '../../../services/alumnos';
@@ -16,7 +18,7 @@ import * as XLSX from 'xlsx';
 @Component({
   selector: 'app-inscripciones',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, PaginacionComponent],
   templateUrl: './inscripciones.html',
   styleUrl: './inscripciones.scss',
 })
@@ -33,6 +35,7 @@ export class Inscripciones implements OnInit, OnDestroy {
   inscripciones: Inscripcion[] = [];
   alumnos: Alumno[] = [];
   precios: Precio[] = [];
+  pagina = 1;
   datosInicialesCargados = false;
   alumnosCargados = false;
   preciosCargados = false;
@@ -59,7 +62,7 @@ export class Inscripciones implements OnInit, OnDestroy {
     becaPorcentaje: number;
     concepto: string;
     cicloEscolar: string;
-    estado: 'pagado' | 'pendiente' | 'vencido';
+    estado: 'pagado' | 'pendiente' | 'vencido' | 'activa';
     metodoPago: string;
     notas: string;
   } = this.getEmptyForm();
@@ -193,7 +196,12 @@ export class Inscripciones implements OnInit, OnDestroy {
     this.formData.monto = monto;
   }
 
+  get inscripcionesPagina(): Inscripcion[] {
+    return paginar(this.inscripciones, this.pagina);
+  }
+
   aplicarFiltros(): void {
+    this.pagina = 1;
     let resultado = this.inscripcionesService.getAll();
 
     if (this.filtroNombre) {
@@ -217,6 +225,7 @@ export class Inscripciones implements OnInit, OnDestroy {
   }
 
   limpiarFiltros(): void {
+    this.pagina = 1;
     this.filtroNombre = '';
     this.filtroFechaInicio = '';
     this.filtroFechaFin = '';
@@ -383,6 +392,7 @@ export class Inscripciones implements OnInit, OnDestroy {
   }
 
   private recargarInscripciones(): void {
+    this.pagina = 1;
     this.inscripcionesService.loadAll().subscribe({
       next: (data) => {
         this.inscripciones = data;

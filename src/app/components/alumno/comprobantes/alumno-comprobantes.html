@@ -30,11 +30,12 @@
           <th>Fecha</th>
           <th>Método Pago</th>
           <th>Estado</th>
+          <th>Reembolso</th>
           <th>Acciones</th>
         </tr>
       </thead>
       <tbody>
-        @for (c of misComprobantes; track c.id) {
+        @for (c of misComprobantesPagina; track c.id) {
           <tr>
             <td data-label="Folio"><span class="folio">{{ c.folio }}</span></td>
             <td data-label="Concepto">{{ c.concepto }}</td>
@@ -42,6 +43,23 @@
             <td data-label="Fecha">{{ c.fechaEmision | date:'dd/MM/yyyy' }}</td>
             <td data-label="Método Pago"><span class="badge badge-metodo">{{ c.metodoPago | titlecase }}</span></td>
             <td data-label="Estado"><span class="status-badge" [class]="'status-' + c.estado">{{ c.estado | titlecase }}</span></td>
+            <td data-label="Reembolso">
+              @if (solicitudDe(c); as solicitud) {
+                <span class="status-badge" [class]="'status-' + solicitud.estado">{{ solicitud.estado | titlecase }}</span>
+                @if (solicitud.estado === 'rechazada' && solicitud.motivoRechazo) {
+                  <div class="reembolso-msg msg-rechazada" [title]="solicitud.motivoRechazo">{{ solicitud.motivoRechazo }}</div>
+                }
+                @if (solicitud.estado === 'aprobada' && solicitud.motivoAprobacion) {
+                  <div class="reembolso-msg msg-aprobada" [title]="solicitud.motivoAprobacion">{{ solicitud.motivoAprobacion }}</div>
+                }
+              } @else {
+                @if (puedeSolicitar(c)) {
+                  <button class="btn btn-reembolso" (click)="abrirSolicitud(c)">Solicitar Reembolso</button>
+                } @else {
+                  <span class="text-muted">Fuera de plazo</span>
+                }
+              }
+            </td>
             <td class="actions" data-label="Acciones">
               <button class="btn-icon btn-view" (click)="openPreview(c)" title="Ver Comprobante">
                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -57,11 +75,12 @@
           </tr>
         } @empty {
           <tr>
-            <td colspan="7" class="empty-state">No tienes comprobantes</td>
+            <td colspan="8" class="empty-state">No tienes comprobantes</td>
           </tr>
         }
       </tbody>
     </table>
+    <app-paginacion [total]="misComprobantes.length" [pagina]="pagina" (cambiarPagina)="pagina = $event"></app-paginacion>
   </div>
 </div>
 
@@ -118,6 +137,44 @@
             <p>Generado el {{ comprobantePreview.fechaEmision | date:'fullDate' }}</p>
           </div>
         </div>
+      </div>
+    </div>
+  </div>
+}
+
+@if (showReembolsoModal && reembolsoComprobante) {
+  <div class="modal-overlay" (click)="cerrarSolicitud()">
+    <div class="modal" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h3>Solicitar Reembolso</h3>
+        <button class="btn-close" (click)="cerrarSolicitud()">
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+          </svg>
+        </button>
+      </div>
+      <div class="modal-body">
+        <div class="reembolso-info">
+          <div class="info-item"><label>Folio</label><span>{{ reembolsoComprobante.folio }}</span></div>
+          <div class="info-item"><label>Concepto</label><span>{{ reembolsoComprobante.concepto }}</span></div>
+          <div class="info-item"><label>Monto</label><span>${{ reembolsoComprobante.monto | number }}</span></div>
+          <div class="info-item"><label>Fecha de Emisión</label><span>{{ reembolsoComprobante.fechaEmision | date:'dd/MM/yyyy' }}</span></div>
+        </div>
+        <div class="form-group">
+          <label>Motivo de la solicitud</label>
+          <textarea [(ngModel)]="reembolsoMotivo" rows="4" placeholder="Describe el motivo del reembolso"></textarea>
+        </div>
+        <div class="form-group">
+          <label>Monto a reembolsar (opcional, por defecto el monto del comprobante)</label>
+          <input type="number" [(ngModel)]="reembolsoMonto" placeholder="0.00" min="0" />
+        </div>
+        <p class="text-muted">La solicitud debe realizarse dentro de los {{ DIAS_LIMITE }} días posteriores al pago.</p>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" (click)="cerrarSolicitud()">Cancelar</button>
+        <button class="btn btn-primary" (click)="enviarSolicitud()" [disabled]="enviandoReembolso">
+          {{ enviandoReembolso ? 'Enviando...' : 'Enviar Solicitud' }}
+        </button>
       </div>
     </div>
   </div>

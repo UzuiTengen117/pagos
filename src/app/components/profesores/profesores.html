@@ -34,7 +34,7 @@
         </tr>
       </thead>
       <tbody>
-        @for (usuario of usuarios; track usuario.id) {
+        @for (usuario of usuariosPagina; track usuario.id) {
           <tr>
             <td data-label="ID">{{ usuario.id }}</td>
             <td data-label="Nombre">{{ usuario.nombre }}</td>
@@ -70,6 +70,7 @@
         }
       </tbody>
     </table>
+    <app-paginacion [total]="usuarios.length" [pagina]="pagina" (cambiarPagina)="pagina = $event"></app-paginacion>
   </div>
 </div>
 
@@ -148,6 +149,70 @@
               </div>
             </div>
           }
+        }
+        @if (mostrarPermisos) {
+          <div class="permisos-section">
+            <div class="permisos-header">
+              <h4>Permisos</h4>
+              <span class="permisos-hint">Define qué acciones puede realizar este usuario. Los candados solo pueden asignarse a administradores.</span>
+            </div>
+          @if (cargandoPermisos) {
+            <p class="permisos-loading">Cargando permisos...</p>
+          } @else if (modulosPermisos) {
+            <div class="permisos-grid">
+              @for (modulo of modulosPermisos | keyvalue; track modulo.key) {
+                @if (modulo.value.subcategorias) {
+                  <div class="permiso-modulo">
+                    <div class="permiso-modulo-label">{{ modulo.value.label }}</div>
+                    @for (sub of modulo.value.subcategorias | keyvalue; track sub.key) {
+                      <div class="permiso-subcategoria">
+                        <div class="permiso-subcategoria-label">{{ sub.value.label }}</div>
+                        <div class="permiso-acciones">
+                          @for (accion of sub.value.acciones | keyvalue; track accion.key) {
+                            @if (esBloqueada(modulo.key, accion.key, sub.key)) {
+                              <label class="permiso-check permiso-bloqueada" title="Solo administradores">
+                                <input type="checkbox" disabled />
+                                <span>{{ accion.value }}</span>
+                                <svg class="permiso-lock" xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                  <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+                                </svg>
+                              </label>
+                            } @else {
+                              <label class="permiso-check">
+                                <input
+                                  type="checkbox"
+                                  [checked]="esPermisoActivo(modulo.key, accion.key, sub.key)"
+                                  (change)="togglePermiso(modulo.key, accion.key, sub.key)"
+                                />
+                                <span>{{ accion.value }}</span>
+                              </label>
+                            }
+                          }
+                        </div>
+                      </div>
+                    }
+                  </div>
+                } @else {
+                  <div class="permiso-modulo">
+                    <div class="permiso-modulo-label">{{ modulo.value.label }}</div>
+                    <div class="permiso-acciones">
+                      @for (accion of modulo.value.acciones | keyvalue; track accion.key) {
+                        <label class="permiso-check">
+                          <input
+                            type="checkbox"
+                            [checked]="esPermisoActivo(modulo.key, accion.key)"
+                            (change)="togglePermiso(modulo.key, accion.key)"
+                          />
+                          <span>{{ accion.value }}</span>
+                        </label>
+                      }
+                    </div>
+                  </div>
+                }
+              }
+            </div>
+          }
+        </div>
         }
       </div>
       <div class="modal-footer">

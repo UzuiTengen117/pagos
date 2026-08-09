@@ -3,6 +3,8 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, NavigationEnd } from '@angular/router';
 import { Subscription, filter } from 'rxjs';
+import { PaginacionComponent } from '../../paginacion/paginacion';
+import { paginar } from '../../../utils/paginacion';
 import { BecasService } from '../../../services/becas';
 import { RefreshService } from '../../../services/refresh';
 import { Beca } from '../../../models/beca.model';
@@ -10,7 +12,7 @@ import { Beca } from '../../../models/beca.model';
 @Component({
   selector: 'app-becas',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, PaginacionComponent],
   templateUrl: './becas.html',
   styleUrl: './becas.scss',
 })
@@ -23,6 +25,7 @@ export class Becas implements OnInit, OnDestroy {
   private refreshSub?: Subscription;
 
   becas: Beca[] = [];
+  pagina = 1;
   showModal = false;
   showDeleteModal = false;
   isEditing = false;
@@ -44,6 +47,7 @@ export class Becas implements OnInit, OnDestroy {
   }
 
   loadBecas(): void {
+    this.pagina = 1;
     this.becasService.loadAll().subscribe({
       next: (data) => {
         this.becas = data;
@@ -63,6 +67,10 @@ export class Becas implements OnInit, OnDestroy {
       descripcion: '',
       activa: true,
     };
+  }
+
+  get becasPagina(): Beca[] {
+    return paginar(this.becas, this.pagina);
   }
 
   openCreateModal(): void {

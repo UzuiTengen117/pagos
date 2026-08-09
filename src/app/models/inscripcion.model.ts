@@ -8,7 +8,8 @@ export interface Inscripcion {
   precioId: number;
   fechaInscripcion: Date;
   cicloEscolar: string;
-  estado: 'pagado' | 'pendiente' | 'vencido';
+  grado?: string;
+  estado: 'pagado' | 'pendiente' | 'vencido' | 'activa';
   metodoPago: string;
   notas: string;
 }
