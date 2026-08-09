@@ -229,8 +229,12 @@
   border-radius: 16px;
   width: 100%;
   max-width: 560px;
+  max-height: 90vh;
+  overflow-y: auto;
   box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
   animation: slideUp 0.3s ease;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
 
   &.modal-sm {
     max-width: 440px;
@@ -476,6 +480,29 @@
 
     .permiso-lock {
       color: var(--text-muted);
+    }
+  }
+}
+
+@media (max-width: 768px) {
+  .permisos-grid {
+    max-height: none;
+  }
+
+  .permiso-subcategoria {
+    padding-left: 0.4rem;
+  }
+
+  .permiso-acciones {
+    gap: 0.4rem 0.85rem;
+  }
+
+  .permiso-check {
+    font-size: 0.8rem;
+
+    input[type="checkbox"] {
+      width: 18px;
+      height: 18px;
     }
   }
 }
