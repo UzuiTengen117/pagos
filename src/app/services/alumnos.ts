@@ -61,7 +61,10 @@ export class AlumnosService {
 
   delete(id: number): Observable<any> {
     return this.http.delete<any>(`${this.apiUrl}/alumnos/eliminar/${id}`).pipe(
-      tap(() => this.refreshService.refresh())
+      tap(() => {
+        this.alumnos.set(this.alumnos().filter(a => a.id !== id));
+        this.refreshService.refresh();
+      })
     );
   }
 }

@@ -38,6 +38,7 @@ export class Alumnos implements OnInit, OnDestroy {
   pagina = 1;
   filtroNombre = '';
   filtroEmail = '';
+  filtroSede = '';
   showModal = false;
   showDeleteModal = false;
   isEditing = false;
@@ -149,6 +150,10 @@ export class Alumnos implements OnInit, OnDestroy {
       );
     }
 
+    if (this.filtroSede) {
+      resultado = resultado.filter(a => a.sede === this.filtroSede);
+    }
+
     this.alumnos = resultado;
   }
 
@@ -156,6 +161,7 @@ export class Alumnos implements OnInit, OnDestroy {
     this.pagina = 1;
     this.filtroNombre = '';
     this.filtroEmail = '';
+    this.filtroSede = '';
     this.alumnos = this.alumnosService.getAll();
   }
 
@@ -224,9 +230,9 @@ export class Alumnos implements OnInit, OnDestroy {
           this.closeModal();
           this.loadAlumnos();
         },
-        error: () => {
-          this.closeModal();
-          this.loadAlumnos();
+        error: (err) => {
+          const mensaje = err?.error?.message || 'No se pudo guardar el alumno';
+          this.notificationService.error(mensaje);
         }
       });
     } else {
@@ -235,9 +241,9 @@ export class Alumnos implements OnInit, OnDestroy {
           this.closeModal();
           this.loadAlumnos();
         },
-        error: () => {
-          this.closeModal();
-          this.loadAlumnos();
+        error: (err) => {
+          const mensaje = err?.error?.message || 'No se pudo guardar el alumno';
+          this.notificationService.error(mensaje);
         }
       });
     }
@@ -245,9 +251,12 @@ export class Alumnos implements OnInit, OnDestroy {
 
   deleteAlumno(): void {
     if (this.alumnoToDelete) {
-      this.alumnosService.delete(this.alumnoToDelete.id).subscribe({
+      const idEliminado = this.alumnoToDelete.id;
+      this.alumnosService.delete(idEliminado).subscribe({
         next: () => {
           this.closeDeleteModal();
+          this.alumnos = this.alumnos.filter(a => a.id !== idEliminado);
+          this.cdr.detectChanges();
           this.loadAlumnos();
         },
         error: () => {

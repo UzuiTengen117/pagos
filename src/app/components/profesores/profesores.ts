@@ -422,9 +422,9 @@ export class Profesores implements OnInit, OnDestroy {
         this.closeModal();
         this.loadAllUsuarios();
       },
-      error: () => {
-        this.closeModal();
-        this.loadAllUsuarios();
+      error: (err) => {
+        const mensaje = err?.error?.message || 'No se pudo vincular el alumno';
+        this.notificationService.error(mensaje);
       }
     });
   }

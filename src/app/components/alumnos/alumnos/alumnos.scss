@@ -40,6 +40,24 @@
       color: #374151;
     }
 
+    select {
+      border: 2px solid #e5e7eb;
+      border-radius: 8px;
+      padding: 0.65rem 0.75rem;
+      background: #f9fafb;
+      font-size: 0.9rem;
+      color: #374151;
+      outline: none;
+      cursor: pointer;
+      transition: border-color 0.2s, background 0.2s;
+      width: 100%;
+
+      &:focus {
+        border-color: #4f46e5;
+        background: white;
+      }
+    }
+
     .input-wrapper {
       display: flex;
       align-items: center;
