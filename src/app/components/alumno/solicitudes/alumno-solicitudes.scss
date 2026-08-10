@@ -97,3 +97,79 @@
   &.msg-aprobada { color: #166534; }
   &.msg-rechazada { color: #991b1b; }
 }
+
+:host-context([data-theme="dark"]) {
+  .page-header h2 {
+    color: var(--text-page-title);
+  }
+
+  .table-card {
+    background: var(--bg-card);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+    border: 1px solid var(--border-primary);
+  }
+
+  .data-table {
+    thead {
+      background: var(--bg-input);
+
+      th {
+        color: var(--text-secondary);
+        border-bottom-color: var(--border-table-header);
+      }
+    }
+
+    tbody {
+      tr {
+        border-bottom-color: var(--border-table-row);
+
+        &:hover {
+          background: var(--bg-card-hover);
+        }
+      }
+
+      td {
+        color: var(--text-primary);
+      }
+    }
+
+    .monto {
+      color: var(--success);
+    }
+
+    .empty-state {
+      color: var(--text-muted);
+    }
+  }
+
+  .status-badge {
+    &.status-pendiente {
+      background: var(--warning-bg);
+      color: var(--warning);
+    }
+
+    &.status-aprobada {
+      background: var(--status-activo-bg);
+      color: var(--status-activo-color);
+    }
+
+    &.status-rechazada {
+      background: var(--status-cancelado-bg);
+      color: var(--status-cancelado-color);
+    }
+  }
+
+  .text-muted {
+    color: var(--text-muted);
+  }
+
+  .revisor-msg {
+    &.msg-aprobada {
+      color: var(--success-text);
+    }
+
+    &.msg-rechazada {
+      color: var(--danger);
+    }
+  }
+}

@@ -145,3 +145,100 @@
   &.status-pendiente { background: #fef9c3; color: #854d0e; }
   &.status-vencido { background: #fee2e2; color: #991b1b; }
 }
+
+:host-context([data-theme="dark"]) {
+  .page-header h2 {
+    color: var(--text-page-title);
+  }
+
+  .filters-bar,
+  .table-card {
+    background: var(--bg-card);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+  }
+
+  .table-card {
+    border: 1px solid var(--border-primary);
+  }
+
+  .filters-bar .filter-group label {
+    color: var(--text-label);
+  }
+
+  .filters-bar input[type="date"] {
+    background: var(--bg-input);
+    border-color: var(--border-input);
+    color: var(--text-primary);
+
+    &:focus {
+      background: var(--bg-input-focus);
+      border-color: var(--border-input-focus);
+    }
+  }
+
+  .btn-secondary {
+    background: var(--bg-input);
+    color: var(--text-label);
+    border-color: var(--border-input);
+
+    &:hover {
+      background: var(--border-primary);
+    }
+  }
+
+  .section-title {
+    color: var(--text-page-title);
+    border-bottom-color: var(--border-secondary);
+  }
+
+  .data-table {
+    thead {
+      background: var(--bg-input);
+
+      th {
+        color: var(--text-secondary);
+        border-bottom-color: var(--border-table-header);
+      }
+    }
+
+    tbody {
+      tr {
+        border-bottom-color: var(--border-table-row);
+
+        &:hover {
+          background: var(--bg-card-hover);
+        }
+      }
+
+      td {
+        color: var(--text-primary);
+      }
+    }
+
+    .monto {
+      color: var(--success);
+    }
+
+    .empty-state {
+      color: var(--text-muted);
+    }
+  }
+
+  .status-badge {
+    &.status-activa,
+    &.status-pagado {
+      background: var(--status-activo-bg);
+      color: var(--status-activo-color);
+    }
+
+    &.status-pendiente {
+      background: var(--warning-bg);
+      color: var(--warning);
+    }
+
+    &.status-vencido {
+      background: var(--status-cancelado-bg);
+      color: var(--status-cancelado-color);
+    }
+  }
+}

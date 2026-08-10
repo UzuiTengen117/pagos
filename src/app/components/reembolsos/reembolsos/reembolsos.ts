@@ -32,6 +32,8 @@ export class Reembolsos implements OnInit, OnDestroy {
   cargandoPendientes = false;
   cargandoHistorial = false;
   tabActivo: 'pendientes' | 'historial' = 'pendientes';
+  filtroFechaInicio = '';
+  filtroFechaFin = '';
 
   tieneAprobar = false;
   tieneRechazar = false;
@@ -114,12 +116,41 @@ export class Reembolsos implements OnInit, OnDestroy {
     this.tabActivo = tab;
   }
 
+  get pendientesFiltradas(): SolicitudReembolso[] {
+    return this.filtrarPorFechas(this.pendientes);
+  }
+
+  get historialFiltradas(): SolicitudReembolso[] {
+    return this.filtrarPorFechas(this.historial);
+  }
+
+  private filtrarPorFechas(lista: SolicitudReembolso[]): SolicitudReembolso[] {
+    if (!this.filtroFechaInicio || !this.filtroFechaFin) return lista;
+    const inicio = new Date(this.filtroFechaInicio + 'T00:00:00');
+    const fin = new Date(this.filtroFechaFin + 'T23:59:59');
+    return lista.filter(s => {
+      const fecha = new Date(s.createdAt);
+      return fecha >= inicio && fecha <= fin;
+    });
+  }
+
+  aplicarFiltros(): void {
+    this.paginaPendientes = 1;
+    this.paginaHistorial = 1;
+  }
+
+  limpiarFiltros(): void {
+    this.filtroFechaInicio = '';
+    this.filtroFechaFin = '';
+    this.aplicarFiltros();
+  }
+
   get pendientesPagina(): SolicitudReembolso[] {
-    return paginar(this.pendientes, this.paginaPendientes);
+    return paginar(this.pendientesFiltradas, this.paginaPendientes);
   }
 
   get historialPagina(): SolicitudReembolso[] {
-    return paginar(this.historial, this.paginaHistorial);
+    return paginar(this.historialFiltradas, this.paginaHistorial);
   }
 
   abrirAprobacion(solicitud: SolicitudReembolso): void {

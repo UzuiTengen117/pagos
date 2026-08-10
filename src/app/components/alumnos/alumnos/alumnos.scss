@@ -378,3 +378,215 @@
   font-style: italic;
   margin-top: 0.3rem;
 }
+
+:host-context([data-theme="dark"]) {
+  .page-header h2 {
+    color: var(--text-page-title);
+  }
+
+  .filters-bar {
+    background: var(--bg-card);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+
+    .filter-group {
+      label {
+        color: var(--text-label);
+      }
+
+      select {
+        background: var(--bg-input);
+        border-color: var(--border-input);
+        color: var(--text-primary);
+
+        &:focus {
+          border-color: var(--border-input-focus);
+          background: var(--bg-input-focus);
+        }
+      }
+
+      .input-wrapper {
+        background: var(--bg-input);
+        border-color: var(--border-input);
+
+        &:focus-within {
+          border-color: var(--border-input-focus);
+          background: var(--bg-input-focus);
+        }
+
+        svg {
+          color: var(--text-muted);
+        }
+
+        input {
+          color: var(--text-primary);
+
+          &::placeholder {
+            color: var(--text-muted);
+          }
+        }
+      }
+    }
+  }
+
+  .btn {
+    &.btn-primary {
+      background: var(--primary);
+      color: var(--text-on-primary);
+
+      &:hover {
+        background: var(--primary-hover);
+      }
+    }
+
+    &.btn-secondary {
+      background: var(--bg-input);
+      color: var(--text-label);
+      border-color: var(--border-input);
+
+      &:hover {
+        background: var(--border-primary);
+      }
+    }
+
+    &.btn-danger {
+      background: var(--danger);
+      color: var(--text-on-primary);
+
+      &:hover {
+        background: var(--danger-hover);
+      }
+    }
+  }
+
+  .table-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border-primary);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+  }
+
+  .data-table {
+    thead {
+      background: var(--bg-input);
+
+      th {
+        color: var(--text-secondary);
+        border-bottom-color: var(--border-table-header);
+      }
+    }
+
+    tbody {
+      tr {
+        border-bottom-color: var(--border-table-row);
+
+        &:hover {
+          background: var(--bg-card-hover);
+        }
+      }
+
+      td {
+        color: var(--text-primary);
+      }
+    }
+
+    .empty-state {
+      color: var(--text-muted);
+    }
+  }
+
+  .btn-icon {
+    &.btn-edit {
+      background: var(--info-bg);
+      color: var(--info);
+
+      &:hover {
+        background: var(--info-light);
+      }
+    }
+
+    &.btn-delete {
+      background: var(--danger-bg);
+      color: var(--danger);
+
+      &:hover {
+        background: var(--danger-light);
+      }
+    }
+  }
+
+  .badge {
+    &.badge-beca {
+      background: var(--success-bg);
+      color: var(--success-text);
+    }
+
+    &.badge-sede {
+      background: var(--warning-bg);
+      color: var(--warning);
+    }
+
+    &.badge-none {
+      background: var(--bg-input);
+      color: var(--text-muted);
+    }
+  }
+
+  .username-badge {
+    background: var(--info-bg);
+    color: var(--info);
+  }
+
+  .modal-overlay {
+    background: var(--bg-overlay);
+  }
+
+  .modal {
+    background: var(--bg-card);
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+  }
+
+  .modal-header {
+    border-bottom-color: var(--border-modal);
+
+    h3 {
+      color: var(--text-page-title);
+    }
+  }
+
+  .btn-close {
+    color: var(--text-muted);
+
+    &:hover {
+      background: var(--bg-input);
+      color: var(--text-label);
+    }
+  }
+
+  .modal-footer {
+    border-top-color: var(--border-modal);
+  }
+
+  .form-group {
+    label {
+      color: var(--text-label);
+    }
+
+    input, select {
+      background: var(--bg-input);
+      border-color: var(--border-input);
+      color: var(--text-primary);
+
+      &:focus {
+        border-color: var(--border-input-focus);
+        background: var(--bg-input-focus);
+      }
+    }
+  }
+
+  .warning-text {
+    color: var(--text-muted);
+  }
+
+  .text-muted {
+    color: var(--text-muted);
+  }
+}

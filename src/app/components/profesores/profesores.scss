@@ -506,3 +506,224 @@
     }
   }
 }
+
+:host-context([data-theme="dark"]) {
+  .page-header h2 {
+    color: var(--text-page-title);
+  }
+
+  .filters-bar {
+    background: var(--bg-card);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+
+    .filter-group {
+      label {
+        color: var(--text-label);
+      }
+
+      select {
+        background: var(--bg-input);
+        border-color: var(--border-input);
+        color: var(--text-primary);
+
+        &:focus {
+          border-color: var(--border-input-focus);
+          background: var(--bg-input-focus);
+        }
+      }
+    }
+  }
+
+  .btn {
+    &.btn-primary {
+      background: var(--primary);
+      color: var(--text-on-primary);
+
+      &:hover {
+        background: var(--primary-hover);
+      }
+    }
+
+    &.btn-secondary {
+      background: var(--bg-input);
+      color: var(--text-label);
+      border-color: var(--border-input);
+
+      &:hover {
+        background: var(--border-primary);
+      }
+    }
+
+    &.btn-danger {
+      background: var(--danger);
+      color: var(--text-on-primary);
+
+      &:hover {
+        background: var(--danger-hover);
+      }
+    }
+  }
+
+  .table-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border-primary);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+  }
+
+  .data-table {
+    thead {
+      background: var(--bg-input);
+
+      th {
+        color: var(--text-secondary);
+        border-bottom-color: var(--border-table-header);
+      }
+    }
+
+    tbody {
+      tr {
+        border-bottom-color: var(--border-table-row);
+
+        &:hover {
+          background: var(--bg-card-hover);
+        }
+      }
+
+      td {
+        color: var(--text-primary);
+      }
+    }
+
+    .empty-state {
+      color: var(--text-muted);
+    }
+  }
+
+  .btn-icon {
+    &.btn-edit {
+      background: var(--info-bg);
+      color: var(--info);
+
+      &:hover {
+        background: var(--info-light);
+      }
+    }
+
+    &.btn-role {
+      background: var(--purple-bg);
+      color: var(--purple);
+
+      &:hover {
+        background: var(--purple-light);
+      }
+    }
+
+    &.btn-delete {
+      background: var(--danger-bg);
+      color: var(--danger);
+
+      &:hover {
+        background: var(--danger-light);
+      }
+    }
+  }
+
+  .badge {
+    &.badge-administrador {
+      background: var(--danger-bg);
+      color: var(--danger);
+    }
+
+    &.badge-profesor {
+      background: var(--info-bg);
+      color: var(--info);
+    }
+
+    &.badge-estudiante {
+      background: var(--success-bg);
+      color: var(--success-text);
+    }
+  }
+
+  .modal-overlay {
+    background: var(--bg-overlay);
+  }
+
+  .modal {
+    background: var(--bg-card);
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+  }
+
+  .modal-header {
+    border-bottom-color: var(--border-modal);
+
+    h3 {
+      color: var(--text-page-title);
+    }
+  }
+
+  .btn-close {
+    color: var(--text-muted);
+
+    &:hover {
+      background: var(--bg-input);
+      color: var(--text-label);
+    }
+  }
+
+  .modal-footer {
+    border-top-color: var(--border-modal);
+  }
+
+  .form-group {
+    label {
+      color: var(--text-label);
+    }
+
+    input, select {
+      background: var(--bg-input);
+      border-color: var(--border-input);
+      color: var(--text-primary);
+
+      &:focus {
+        border-color: var(--border-input-focus);
+        background: var(--bg-input-focus);
+      }
+    }
+  }
+
+  .warning-text {
+    color: var(--text-muted);
+  }
+
+  .estudiantes-lista {
+    background: var(--bg-input);
+    border-color: var(--border-input);
+  }
+
+  .estudiante-item {
+    border-bottom-color: var(--border-input);
+
+    &:hover {
+      background: var(--bg-card-hover);
+    }
+
+    .estudiante-info {
+      strong {
+        color: var(--text-page-title);
+      }
+
+      span {
+        color: var(--text-secondary);
+      }
+    }
+  }
+
+  .text-muted {
+    color: var(--text-muted);
+  }
+
+  .permisos-section {
+    border-top-color: var(--border-primary);
+  }
+}

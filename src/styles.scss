@@ -104,6 +104,8 @@
 }
 
 [data-theme="dark"] {
+  color-scheme: dark;
+
   --bg-body: #0f172a;
   --bg-page: #0f172a;
   --bg-card: #1e293b;
@@ -437,6 +439,42 @@ html[data-theme="dark"] {
   .filters-bar .input-wrapper svg,
   .filters-bar .input-wrapper input::placeholder {
     color: var(--text-muted) !important;
+  }
+
+  .filters-bar select,
+  select {
+    background: var(--bg-input) !important;
+    border-color: var(--border-input) !important;
+    color: var(--text-primary) !important;
+    color-scheme: dark;
+
+    &:focus {
+      border-color: var(--border-input-focus) !important;
+      background: var(--bg-input-focus) !important;
+    }
+
+    option {
+      background: var(--bg-input) !important;
+      color: var(--text-primary) !important;
+    }
+  }
+
+  .tabs-bar {
+    background: var(--bg-card) !important;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2) !important;
+
+    .tab-btn {
+      color: var(--text-secondary) !important;
+
+      &:hover {
+        background: var(--bg-card-hover) !important;
+      }
+
+      &.active {
+        background: var(--primary) !important;
+        color: var(--text-on-primary) !important;
+      }
+    }
   }
 
   .btn-secondary {

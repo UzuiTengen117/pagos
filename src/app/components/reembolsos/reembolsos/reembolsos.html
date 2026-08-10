@@ -12,6 +12,25 @@
     </button>
   </div>
 
+  <div class="filters-bar">
+    <div class="filter-group">
+      <label>Fecha inicio</label>
+      <input type="date" [(ngModel)]="filtroFechaInicio" (change)="aplicarFiltros()" />
+    </div>
+
+    <div class="filter-group">
+      <label>Fecha fin</label>
+      <input type="date" [(ngModel)]="filtroFechaFin" (change)="aplicarFiltros()" />
+    </div>
+
+    <button class="btn btn-secondary" (click)="limpiarFiltros()">
+      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <polyline points="1,4 1,10 7,10"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/>
+      </svg>
+      Limpiar
+    </button>
+  </div>
+
   @if (tabActivo === 'pendientes') {
     <div class="table-card">
       @if (cargandoPendientes) {
@@ -79,7 +98,7 @@
             }
           </tbody>
         </table>
-        <app-paginacion [total]="pendientes.length" [pagina]="paginaPendientes" (cambiarPagina)="paginaPendientes = $event"></app-paginacion>
+        <app-paginacion [total]="pendientesFiltradas.length" [pagina]="paginaPendientes" (cambiarPagina)="paginaPendientes = $event"></app-paginacion>
       }
     </div>
   }
@@ -145,7 +164,7 @@
             }
           </tbody>
         </table>
-        <app-paginacion [total]="historial.length" [pagina]="paginaHistorial" (cambiarPagina)="paginaHistorial = $event"></app-paginacion>
+        <app-paginacion [total]="historialFiltradas.length" [pagina]="paginaHistorial" (cambiarPagina)="paginaHistorial = $event"></app-paginacion>
       }
     </div>
   }

@@ -5,12 +5,12 @@
   gap: 1rem;
   flex-wrap: wrap;
   padding: 1rem 1.25rem;
-  border-top: 1px solid #f1f5f9;
-  background: white;
+  border-top: 1px solid var(--border-table-row);
+  background: var(--bg-card);
 
   .paginacion-info {
     font-size: 0.8rem;
-    color: #64748b;
+    color: var(--text-secondary);
   }
 
   .paginacion-botones {
@@ -25,9 +25,9 @@
     height: 34px;
     padding: 0 0.5rem;
     border-radius: 8px;
-    border: 1px solid #e2e8f0;
-    background: white;
-    color: #475569;
+    border: 1px solid var(--border-secondary);
+    background: var(--bg-card);
+    color: var(--text-secondary);
     font-size: 0.85rem;
     font-weight: 600;
     cursor: pointer;
@@ -37,9 +37,9 @@
     transition: all 0.15s;
 
     &:hover:not(:disabled):not(.active) {
-      background: #eef2ff;
-      border-color: #c7d2fe;
-      color: #4f46e5;
+      background: var(--primary-light);
+      border-color: var(--primary-lighter);
+      color: var(--primary);
     }
 
     &:disabled {
@@ -48,14 +48,14 @@
     }
 
     &.active {
-      background: #4f46e5;
-      border-color: #4f46e5;
-      color: white;
+      background: var(--primary);
+      border-color: var(--primary);
+      color: var(--text-on-primary);
     }
   }
 
   .pag-ellipsis {
-    color: #94a3b8;
+    color: var(--text-muted);
     padding: 0 0.25rem;
     font-size: 0.85rem;
   }

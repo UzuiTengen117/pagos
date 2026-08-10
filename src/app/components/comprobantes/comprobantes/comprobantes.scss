@@ -355,3 +355,248 @@
 .delete-icon { text-align: center; margin-bottom: 1rem; }
 .warning-text { color: #9ca3af; font-size: 0.85rem; }
 .edit-info { color: #374151; font-size: 0.9rem; margin-bottom: 1rem; }
+
+:host-context([data-theme="dark"]) {
+  .page-header h2 {
+    color: var(--text-page-title);
+  }
+
+  .filters-bar,
+  .table-card {
+    background: var(--bg-card);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+  }
+
+  .table-card {
+    border: 1px solid var(--border-primary);
+  }
+
+  .filters-bar .filter-group label,
+  .form-group label {
+    color: var(--text-label);
+  }
+
+  .filters-bar .input-wrapper,
+  .filters-bar input[type="date"],
+  .form-group input,
+  .form-group select,
+  .form-group textarea {
+    background: var(--bg-input);
+    border-color: var(--border-input);
+    color: var(--text-primary);
+  }
+
+  .filters-bar .input-wrapper:focus-within,
+  .filters-bar input[type="date"]:focus,
+  .form-group input:focus,
+  .form-group select:focus,
+  .form-group textarea:focus {
+    background: var(--bg-input-focus);
+    border-color: var(--border-input-focus);
+  }
+
+  .filters-bar .input-wrapper svg,
+  .filters-bar .input-wrapper input::placeholder {
+    color: var(--text-muted);
+  }
+
+  .filters-bar .input-wrapper input {
+    color: var(--text-primary);
+  }
+
+  .btn-primary {
+    background: var(--primary);
+    color: var(--text-on-primary);
+
+    &:hover {
+      background: var(--primary-hover);
+    }
+  }
+
+  .btn-secondary {
+    background: var(--bg-input);
+    color: var(--text-label);
+    border-color: var(--border-input);
+
+    &:hover {
+      background: var(--border-primary);
+    }
+  }
+
+  .btn-danger {
+    background: var(--danger);
+    color: var(--text-on-primary);
+
+    &:hover {
+      background: var(--danger-hover);
+    }
+  }
+
+  .btn-print-sm {
+    background: var(--success);
+    color: var(--text-on-primary);
+
+    &:hover {
+      filter: brightness(0.85);
+    }
+  }
+
+  .data-table {
+    thead {
+      background: var(--bg-input);
+
+      th {
+        color: var(--text-secondary);
+        border-bottom-color: var(--border-table-header);
+      }
+    }
+
+    tbody {
+      tr {
+        border-bottom-color: var(--border-table-row);
+
+        &:hover {
+          background: var(--bg-card-hover);
+        }
+      }
+
+      td {
+        color: var(--text-primary);
+      }
+    }
+
+    .monto {
+      color: var(--success);
+    }
+
+    .empty-state {
+      color: var(--text-muted);
+    }
+  }
+
+  .folio {
+    background: var(--info-bg);
+    color: var(--info);
+  }
+
+  .badge-metodo {
+    background: var(--purple-bg);
+    color: var(--purple);
+  }
+
+  .status-badge {
+    &.status-activo {
+      background: var(--status-activo-bg);
+      color: var(--status-activo-color);
+    }
+
+    &.status-cancelado {
+      background: var(--status-cancelado-bg);
+      color: var(--status-cancelado-color);
+    }
+  }
+
+  .btn-icon {
+    &.btn-view { background: var(--info-bg); color: var(--info); &:hover { background: var(--info-light); } }
+    &.btn-print { background: var(--green-bg); color: var(--green); &:hover { background: var(--green-light); } }
+    &.btn-edit { background: var(--purple-bg); color: var(--purple); &:hover { background: var(--purple-light); } }
+    &.btn-cancel { background: var(--warning-bg); color: var(--warning); &:hover { background: var(--warning-light); } }
+    &.btn-delete { background: var(--danger-bg); color: var(--danger); &:hover { background: var(--danger-light); } }
+  }
+
+  .modal-overlay {
+    background: var(--bg-overlay);
+  }
+
+  .modal {
+    background: var(--bg-card);
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+  }
+
+  .modal-header {
+    border-bottom-color: var(--border-modal);
+
+    h3 {
+      color: var(--text-page-title);
+    }
+  }
+
+  .btn-close {
+    color: var(--text-muted);
+
+    &:hover {
+      background: var(--bg-input);
+      color: var(--text-label);
+    }
+  }
+
+  .modal-footer {
+    border-top-color: var(--border-modal);
+  }
+
+  .comprobante-print {
+    border-color: var(--primary);
+
+    .comp-header {
+      background: var(--welcome-gradient);
+      color: var(--text-on-primary);
+    }
+
+    .comp-folio {
+      background: var(--bg-input);
+      border-bottom-color: var(--border-secondary);
+
+      strong {
+        color: var(--primary);
+      }
+    }
+
+    .info-item {
+      label {
+        color: var(--text-secondary);
+      }
+
+      span {
+        color: var(--text-primary);
+      }
+    }
+
+    .monto-box {
+      background: var(--success-bg);
+      border-color: var(--success-border);
+
+      .label {
+        color: var(--success-text);
+      }
+
+      .amount {
+        color: var(--success-text);
+      }
+    }
+
+    .observaciones {
+      background: var(--bg-input);
+
+      label {
+        color: var(--text-secondary);
+      }
+
+      p {
+        color: var(--text-primary);
+      }
+    }
+
+    .comp-footer {
+      border-top-color: var(--border-secondary);
+      color: var(--text-secondary);
+    }
+  }
+
+  .warning-text {
+    color: var(--text-muted);
+  }
+
+  .edit-info {
+    color: var(--text-label);
+  }
+}

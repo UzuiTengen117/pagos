@@ -55,6 +55,69 @@
   overflow: hidden;
 }
 
+.filters-bar {
+  display: flex;
+  gap: 1rem;
+  align-items: flex-end;
+  flex-wrap: wrap;
+  margin-bottom: 1.5rem;
+  background: white;
+  padding: 1.25rem;
+  border-radius: 14px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+
+  .filter-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+    flex: 1;
+    min-width: 180px;
+
+    label {
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: #374151;
+    }
+
+    input[type="date"] {
+      border: 2px solid #e5e7eb;
+      border-radius: 8px;
+      padding: 0.65rem 0.75rem;
+      font-size: 0.9rem;
+      background: #f9fafb;
+      outline: none;
+
+      &:focus {
+        border-color: #4f46e5;
+        background: white;
+      }
+    }
+  }
+
+  .btn {
+    padding: 0.65rem 1rem;
+    border-radius: 8px;
+    font-weight: 600;
+    font-size: 0.85rem;
+    cursor: pointer;
+    border: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    transition: all 0.2s;
+
+    &.btn-secondary {
+      background: #f3f4f6;
+      color: #374151;
+      border: 2px solid #e5e7eb;
+
+      &:hover {
+        background: #e5e7eb;
+      }
+    }
+  }
+}
+
 .data-table {
   width: 100%;
   border-collapse: collapse;
@@ -328,4 +391,69 @@
 .warning-text {
   color: #9ca3af;
   font-size: 0.85rem;
+}
+
+:host-context([data-theme="dark"]) {
+  .tabs-bar {
+    background: var(--bg-card);
+
+    .tab-btn {
+      color: var(--text-secondary);
+
+      &:hover {
+        background: var(--bg-card-hover);
+      }
+
+      &.active {
+        background: var(--primary);
+        color: var(--text-on-primary);
+      }
+    }
+  }
+
+  .status-badge {
+    &.status-pendiente {
+      background: var(--warning-bg);
+      color: var(--warning);
+    }
+
+    &.status-aprobada {
+      background: var(--success-bg);
+      color: var(--success-text);
+    }
+
+    &.status-rechazada {
+      background: var(--danger-bg);
+      color: var(--danger);
+    }
+  }
+
+  .btn-icon {
+    &.btn-aprobar {
+      background: var(--success-bg);
+      color: var(--success);
+
+      &:hover {
+        background: var(--green-light);
+      }
+    }
+
+    &.btn-rechazar {
+      background: var(--danger-bg);
+      color: var(--danger);
+
+      &:hover {
+        background: var(--danger-light);
+      }
+    }
+
+    &.btn-reabrir {
+      background: var(--purple-bg);
+      color: var(--purple);
+
+      &:hover {
+        background: var(--purple-light);
+      }
+    }
+  }
 }

@@ -369,3 +369,255 @@
     p { margin-bottom: 0.25rem; }
   }
 }
+
+:host-context([data-theme="dark"]) {
+  .page-header h2 {
+    color: var(--text-page-title);
+  }
+
+  .filters-bar,
+  .table-card {
+    background: var(--bg-card);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+  }
+
+  .table-card {
+    border: 1px solid var(--border-primary);
+  }
+
+  .filters-bar .filter-group label,
+  .form-group label {
+    color: var(--text-label);
+  }
+
+  .filters-bar input[type="date"],
+  .form-group input,
+  .form-group textarea {
+    background: var(--bg-input);
+    border-color: var(--border-input);
+    color: var(--text-primary);
+
+    &:focus {
+      background: var(--bg-input-focus);
+      border-color: var(--border-input-focus);
+    }
+  }
+
+  .btn-secondary {
+    background: var(--bg-input);
+    color: var(--text-label);
+    border-color: var(--border-input);
+
+    &:hover {
+      background: var(--border-primary);
+    }
+  }
+
+  .btn-primary {
+    background: var(--primary);
+    color: var(--text-on-primary);
+
+    &:hover {
+      background: var(--primary-hover);
+    }
+  }
+
+  .btn-print-sm {
+    background: var(--success);
+    color: var(--text-on-primary);
+
+    &:hover {
+      filter: brightness(0.85);
+    }
+  }
+
+  .btn-reembolso {
+    background: var(--purple-bg);
+    color: var(--purple);
+    border-color: var(--purple-light);
+
+    &:hover {
+      background: var(--purple-light);
+    }
+  }
+
+  .data-table {
+    thead {
+      background: var(--bg-input);
+
+      th {
+        color: var(--text-secondary);
+        border-bottom-color: var(--border-table-header);
+      }
+    }
+
+    tbody {
+      tr {
+        border-bottom-color: var(--border-table-row);
+
+        &:hover {
+          background: var(--bg-card-hover);
+        }
+      }
+
+      td {
+        color: var(--text-primary);
+      }
+    }
+
+    .monto {
+      color: var(--success);
+    }
+
+    .empty-state {
+      color: var(--text-muted);
+    }
+  }
+
+  .folio {
+    background: var(--info-bg);
+    color: var(--info);
+  }
+
+  .badge-metodo {
+    background: var(--purple-bg);
+    color: var(--purple);
+  }
+
+  .status-badge {
+    &.status-activo,
+    &.status-aprobada {
+      background: var(--status-activo-bg);
+      color: var(--status-activo-color);
+    }
+
+    &.status-cancelado,
+    &.status-rechazada {
+      background: var(--status-cancelado-bg);
+      color: var(--status-cancelado-color);
+    }
+
+    &.status-pendiente {
+      background: var(--warning-bg);
+      color: var(--warning);
+    }
+  }
+
+  .btn-icon {
+    &.btn-view { background: var(--info-bg); color: var(--info); &:hover { background: var(--info-light); } }
+    &.btn-print { background: var(--green-bg); color: var(--green); &:hover { background: var(--green-light); } }
+  }
+
+  .modal-overlay {
+    background: var(--bg-overlay);
+  }
+
+  .modal {
+    background: var(--bg-card);
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+  }
+
+  .modal-header {
+    border-bottom-color: var(--border-modal);
+
+    h3 {
+      color: var(--text-page-title);
+    }
+  }
+
+  .btn-close {
+    color: var(--text-muted);
+
+    &:hover {
+      background: var(--bg-input);
+      color: var(--text-label);
+    }
+  }
+
+  .modal-footer {
+    border-top-color: var(--border-modal);
+  }
+
+  .reembolso-info {
+    background: var(--bg-input);
+
+    .info-item {
+      label {
+        color: var(--text-secondary);
+      }
+
+      span {
+        color: var(--text-primary);
+      }
+    }
+  }
+
+  .reembolso-msg {
+    &.msg-aprobada {
+      color: var(--success-text);
+    }
+
+    &.msg-rechazada {
+      color: var(--danger);
+    }
+  }
+
+  .text-muted {
+    color: var(--text-muted);
+  }
+
+  .comprobante-print {
+    border-color: var(--primary);
+
+    .comp-header {
+      background: var(--welcome-gradient);
+      color: var(--text-on-primary);
+    }
+
+    .comp-folio {
+      background: var(--bg-input);
+      border-bottom-color: var(--border-secondary);
+
+      strong {
+        color: var(--primary);
+      }
+    }
+
+    .info-item {
+      label {
+        color: var(--text-secondary);
+      }
+
+      span {
+        color: var(--text-primary);
+      }
+    }
+
+    .monto-box {
+      background: var(--success-bg);
+      border-color: var(--success-border);
+
+      .label,
+      .amount {
+        color: var(--success-text);
+      }
+    }
+
+    .observaciones {
+      background: var(--bg-input);
+
+      label {
+        color: var(--text-secondary);
+      }
+
+      p {
+        color: var(--text-primary);
+      }
+    }
+
+    .comp-footer {
+      border-top-color: var(--border-secondary);
+      color: var(--text-secondary);
+    }
+  }
+}
