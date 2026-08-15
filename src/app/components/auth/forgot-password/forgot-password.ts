@@ -1,4 +1,4 @@
-import { Component, inject } from '@angular/core';
+import { Component, inject, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
@@ -16,6 +16,7 @@ import { of } from 'rxjs';
 export class ForgotPassword {
   private authService = inject(AuthService);
   private router = inject(Router);
+  private cdr = inject(ChangeDetectorRef);
 
   step: 1 | 2 = 1;
   username = '';
@@ -39,13 +40,18 @@ export class ForgotPassword {
       catchError((error) => {
         this.loading = false;
         this.errorMsg = error?.error?.message || 'No se pudo verificar el usuario.';
+        this.cdr.detectChanges();
         return of(null);
       })
     ).subscribe({
       next: (res) => {
         this.loading = false;
-        if (!res) return;
+        if (!res) {
+          this.cdr.detectChanges();
+          return;
+        }
         this.step = 2;
+        this.cdr.detectChanges();
       },
     });
   }
@@ -67,13 +73,18 @@ export class ForgotPassword {
       catchError((error) => {
         this.loading = false;
         this.errorMsg = error?.error?.message || 'No se pudo restablecer la contraseña.';
+        this.cdr.detectChanges();
         return of(null);
       })
     ).subscribe({
       next: (res) => {
         this.loading = false;
-        if (!res) return;
+        if (!res) {
+          this.cdr.detectChanges();
+          return;
+        }
         this.successMsg = 'Contraseña restablecida. Ya puedes iniciar sesión.';
+        this.cdr.detectChanges();
         setTimeout(() => this.router.navigate(['/login']), 2000);
       },
     });
