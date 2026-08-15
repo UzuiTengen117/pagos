@@ -1,5 +1,12 @@
 import { Component, inject, signal } from '@angular/core';
-import { RouterOutlet, Router, NavigationEnd } from '@angular/router';
+import {
+  RouterOutlet,
+  Router,
+  NavigationEnd,
+  NavigationStart,
+  NavigationCancel,
+  NavigationError,
+} from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { filter } from 'rxjs/operators';
 import { Sidebar } from './components/layout/sidebar/sidebar';
@@ -21,7 +28,6 @@ export class App {
   sidebarOpen = signal(false);
   showLayout = signal(false);
   pageTitle = signal('Inicio');
-  isLoading = this.loadingService.isLoading;
 
   private pageTitles: { [key: string]: string } = {
     '/home': 'Inicio',
@@ -40,19 +46,31 @@ export class App {
 
   constructor(private router: Router) {
     this.router.events
-      .pipe(filter(event => event instanceof NavigationEnd))
+      .pipe(filter((event) => event instanceof NavigationStart))
+      .subscribe(() => this.loadingService.show());
+
+    this.router.events
+      .pipe(filter((event) => event instanceof NavigationEnd))
       .subscribe((event) => {
         const navEnd = event as NavigationEnd;
-        const isAuth = ['/login', '/forgot-password'].includes(navEnd.urlAfterRedirects || navEnd.url);
+        const isAuth = ['/login', '/forgot-password'].includes(
+          navEnd.urlAfterRedirects || navEnd.url,
+        );
         this.showLayout.set(!isAuth);
         this.pageTitle.set(this.pageTitles[navEnd.urlAfterRedirects || navEnd.url] || 'Inicio');
         this.sidebarOpen.set(false);
         this.loadingService.hide();
       });
+
+    this.router.events
+      .pipe(
+        filter((event) => event instanceof NavigationCancel || event instanceof NavigationError),
+      )
+      .subscribe(() => this.loadingService.hide());
   }
 
   toggleSidebar(): void {
-    this.sidebarOpen.update(v => !v);
+    this.sidebarOpen.update((v) => !v);
   }
 
   closeSidebar(): void {

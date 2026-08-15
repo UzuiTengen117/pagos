@@ -1,7 +1,79 @@
-<div class="loader-overlay">
-  <div class="container">
-    <div class="box">
-      <div class="cube"></div>
+@if (visible()) {
+  <div
+    class="loader-overlay"
+    role="status"
+    aria-label="Cargando"
+    aria-live="polite"
+    [class.fade-out]="fadingOut()"
+  >
+    <div class="loader-scene">
+      <svg class="brush-circle" viewBox="0 0 220 220" aria-hidden="true" focusable="false">
+        <path
+          class="brush-ring brush-ring--base"
+          d="M 108 10 C 150 8, 198 48, 203 100 C 207 152, 165 203, 110 206 C 58 209, 8 165, 6 108 C 4 55, 48 8, 108 10"
+        />
+        <path
+          class="brush-ring brush-ring--thick"
+          d="M 108 10 C 150 8, 198 48, 203 100 C 207 152, 165 203, 110 206 C 58 209, 8 165, 6 108 C 4 55, 48 8, 108 10"
+        />
+        <path
+          class="brush-ring brush-ring--thin"
+          d="M 108 10 C 150 8, 198 48, 203 100 C 207 152, 165 203, 110 206 C 58 209, 8 165, 6 108 C 4 55, 48 8, 108 10"
+        />
+        <path class="brush-tail" d="M 108 10 C 120 15, 126 22, 122 30" />
+      </svg>
+
+      <svg
+        class="brush-circle brush-circle--inner"
+        viewBox="0 0 220 220"
+        aria-hidden="true"
+        focusable="false"
+      >
+        <path
+          class="brush-ring brush-ring--inner-base"
+          d="M 108 32 C 148 30, 184 62, 188 104 C 192 146, 152 186, 110 188 C 70 190, 30 154, 28 108 C 26 62, 64 30, 108 32"
+        />
+        <path
+          class="brush-ring brush-ring--inner-thin"
+          d="M 108 32 C 148 30, 184 62, 188 104 C 192 146, 152 186, 110 188 C 70 190, 30 154, 28 108 C 26 62, 64 30, 108 32"
+        />
+      </svg>
+
+      <div class="ink-particles" aria-hidden="true">
+        <span class="ink-particle"></span>
+        <span class="ink-particle"></span>
+        <span class="ink-particle"></span>
+        <span class="ink-particle"></span>
+        <span class="ink-particle"></span>
+        <span class="ink-particle"></span>
+        <span class="ink-particle"></span>
+        <span class="ink-particle"></span>
+      </div>
+
+      <div class="figure figure--kick">
+        <img [src]="kickSrc" alt="Silueta de una patada alta" draggable="false" />
+      </div>
+
+      <div class="figure figure--stance">
+        <img [src]="stanceSrc" alt="" aria-hidden="true" draggable="false" />
+      </div>
+
+      <span class="figure-shadow" aria-hidden="true"></span>
+    </div>
+
+    <div class="loader-caption">
+      <p class="loading-text" aria-hidden="true">CARGANDO<span class="dots"></span></p>
+      <div
+        class="progress-track"
+        role="progressbar"
+        aria-label="Progreso de carga"
+        [attr.aria-valuenow]="progress() | number: '1.0-0'"
+        aria-valuemin="0"
+        aria-valuemax="100"
+      >
+        <div class="progress-fill" [style.transform]="'scaleX(' + progress() / 100 + ')'"></div>
+      </div>
+      <span class="progress-percent" aria-hidden="true">{{ progress() | number: '1.0-0' }}%</span>
     </div>
   </div>
-</div>
+}
