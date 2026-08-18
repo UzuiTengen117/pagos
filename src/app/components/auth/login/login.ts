@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { AuthService } from '../../../services/auth';
+import { NotificationService } from '../../../services/notification';
 import { timeout, catchError } from 'rxjs/operators';
 import { of } from 'rxjs';
 
@@ -17,6 +18,7 @@ export class Login {
   private authService = inject(AuthService);
   private router = inject(Router);
   private cdr = inject(ChangeDetectorRef);
+  private notificationService = inject(NotificationService);
 
   username = '';
   password = '';
@@ -41,7 +43,7 @@ export class Login {
       timeout(5000),
       catchError((error) => {
         this.loading = false;
-        this.errorMsg = error?.error?.message || 'Usuario o contraseña incorrectos';
+        this.notificationService.error('Credenciales incorrectas');
         return of(null);
       })
     ).subscribe({
@@ -57,7 +59,7 @@ export class Login {
       },
       error: () => {
         this.loading = false;
-        this.errorMsg = 'Usuario o contraseña incorrectos';
+        this.notificationService.error('Credenciales incorrectas');
       }
     });
   }
