@@ -73,7 +73,7 @@ export class AuthService {
       try {
         const user = JSON.parse(saved);
         this.currentUser.set(user);
-        this.registerActiveSession(user.username);
+        this.registerActiveSession(user.username, token);
         this.startInactivityTimer();
       } catch {
         this.clearSession();
@@ -95,18 +95,18 @@ export class AuthService {
     };
   }
 
-  private getActiveSessions(): Record<string, { tabId: string; timestamp: number }> {
+  private getActiveSessions(): Record<string, { tabId: string; timestamp: number; token?: string }> {
     const data = localStorage.getItem(this.ACTIVE_SESSIONS_KEY);
     return data ? JSON.parse(data) : {};
   }
 
-  private saveActiveSessions(sessions: Record<string, { tabId: string; timestamp: number }>): void {
+  private saveActiveSessions(sessions: Record<string, { tabId: string; timestamp: number; token?: string }>): void {
     localStorage.setItem(this.ACTIVE_SESSIONS_KEY, JSON.stringify(sessions));
   }
 
-  private registerActiveSession(username: string): void {
+  private registerActiveSession(username: string, token?: string): void {
     const sessions = this.getActiveSessions();
-    sessions[username] = { tabId: this.tabId, timestamp: Date.now() };
+    sessions[username] = { tabId: this.tabId, timestamp: Date.now(), token };
     this.saveActiveSessions(sessions);
   }
 
@@ -140,6 +140,9 @@ export class AuthService {
       const sessions = this.getActiveSessions();
       const existingSession = sessions[info.username];
       if (existingSession) {
+        if (existingSession.token) {
+          this.releaseBackendSession(existingSession.token);
+        }
         this.broadcastChannel?.postMessage({
           type: 'FORCE_LOGOUT',
           tabId: existingSession.tabId
@@ -153,9 +156,7 @@ export class AuthService {
     this.duplicateSessionInfo.set(null);
     this.pendingLoginRequest.set(null);
     if (request) {
-      setTimeout(() => {
-        this.duplicateLoginConfirmed.next(request);
-      }, 500);
+      this.duplicateLoginConfirmed.next(request);
     }
   }
 
@@ -217,7 +218,7 @@ export class AuthService {
         this.currentUser.set(user);
         sessionStorage.setItem(this.tabKey('currentUser'), JSON.stringify(user));
         sessionStorage.setItem(this.tabKey('auth_token'), response.token);
-        this.registerActiveSession(user.username);
+        this.registerActiveSession(user.username, response.token);
         this.startInactivityTimer();
       })
     );
