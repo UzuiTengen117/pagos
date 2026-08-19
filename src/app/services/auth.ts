@@ -1,7 +1,8 @@
 import { Injectable, signal, computed, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
-import { Observable, Subject, tap } from 'rxjs';
+import { Observable, Subject, of, tap, switchMap } from 'rxjs';
+import { catchError } from 'rxjs/operators';
 import { Usuario, LoginRequest, RolUsuario } from '../models/usuario.model';
 import { environment } from '../../environments/environment';
 import { mapUsuarioFromBackend, mapUsuarioToBackend, mapRol, mapRolToFrontend } from '../utils/mappers';
@@ -87,7 +88,7 @@ export class AuthService {
       if (event.data.type === 'FORCE_LOGOUT') {
         const token = this.getToken();
         if (token) {
-          this.releaseBackendSession(token);
+          this.releaseBackendSession(token).subscribe();
         }
         this.clearSession();
         this.router.navigate(['/login']);
@@ -139,30 +140,36 @@ export class AuthService {
     this.showDuplicateSessionModal.set(true);
   }
 
-  confirmDuplicateLogin(): void {
+  confirmDuplicateLogin(): Observable<LoginRequest | null> {
     const info = this.duplicateSessionInfo();
+    const request = this.pendingLoginRequest();
+    this.showDuplicateSessionModal.set(false);
+    this.duplicateSessionInfo.set(null);
+    this.pendingLoginRequest.set(null);
+
     if (info) {
       const sessions = this.getActiveSessions();
       const existingSession = sessions[info.username];
       if (existingSession) {
-        if (existingSession.token) {
-          this.releaseBackendSession(existingSession.token);
-        }
         this.broadcastChannel?.postMessage({
           type: 'FORCE_LOGOUT',
           tabId: existingSession.tabId
         });
         delete sessions[info.username];
         this.saveActiveSessions(sessions);
+        if (existingSession.token) {
+          return this.releaseBackendSession(existingSession.token).pipe(
+            tap(() => {
+              if (request) this.duplicateLoginConfirmed.next(request);
+            })
+          );
+        }
       }
     }
-    const request = this.pendingLoginRequest();
-    this.showDuplicateSessionModal.set(false);
-    this.duplicateSessionInfo.set(null);
-    this.pendingLoginRequest.set(null);
     if (request) {
       this.duplicateLoginConfirmed.next(request);
     }
+    return of(request);
   }
 
   cancelDuplicateLogin(): void {
@@ -175,10 +182,10 @@ export class AuthService {
     return this.duplicateLoginConfirmed.asObservable();
   }
 
-  private releaseBackendSession(token: string): void {
-    this.http.post(`${this.apiUrl}/usuarios/logout`, {}, {
+  private releaseBackendSession(token: string): Observable<any> {
+    return this.http.post(`${this.apiUrl}/usuarios/logout`, {}, {
       headers: { Authorization: `Bearer ${token}` },
-    }).subscribe({ error: () => {} });
+    }).pipe(catchError(() => of(null)));
   }
 
   private startInactivityTimer(): void {
@@ -245,7 +252,7 @@ export class AuthService {
     this.stopInactivityTimer();
     const token = this.getToken();
     if (token) {
-      this.releaseBackendSession(token);
+      this.releaseBackendSession(token).subscribe();
     }
     this.clearSession();
     this.router.navigate(['/login']);

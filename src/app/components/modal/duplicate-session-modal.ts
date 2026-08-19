@@ -127,7 +127,7 @@ export class DuplicateSessionModal {
   authService = inject(AuthService);
 
   onConfirm(): void {
-    this.authService.confirmDuplicateLogin();
+    this.authService.confirmDuplicateLogin().subscribe();
   }
 
   onCancel(): void {
