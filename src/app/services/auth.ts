@@ -41,7 +41,7 @@ export class AuthService {
   private readonly ACTIVE_SESSIONS_KEY = 'active_user_sessions';
   private inactivityTimer: ReturnType<typeof setTimeout> | null = null;
   private lastResetTime = 0;
-  private activityEvents = ['mousemove', 'mousedown', 'keydown', 'touchstart', 'scroll'];
+  private activityEvents = ['mousedown', 'keydown', 'touchstart', 'scroll'];
 
   private tabId: string;
   private broadcastChannel: BroadcastChannel | null = null;
@@ -193,6 +193,7 @@ export class AuthService {
     this.lastResetTime = Date.now();
     sessionStorage.setItem(this.tabKey(this.AUTH_LAST_ACTIVITY_KEY), String(this.lastResetTime));
     this.activityEvents.forEach(event => document.addEventListener(event, this.resetInactivityTimer));
+    window.addEventListener('beforeunload', this.handleBeforeUnload);
     this.setInactivityTimeout();
   }
 
@@ -202,6 +203,7 @@ export class AuthService {
       this.inactivityTimer = null;
     }
     this.activityEvents.forEach(event => document.removeEventListener(event, this.resetInactivityTimer));
+    window.removeEventListener('beforeunload', this.handleBeforeUnload);
   }
 
   private setInactivityTimeout(): void {
@@ -221,6 +223,23 @@ export class AuthService {
     this.lastResetTime = now;
     sessionStorage.setItem(this.tabKey(this.AUTH_LAST_ACTIVITY_KEY), String(now));
     this.setInactivityTimeout();
+  };
+
+  private handleBeforeUnload = (): void => {
+    const token = this.getToken();
+    if (token) {
+      fetch(`${this.apiUrl}/usuarios/logout`, {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${token}` },
+        keepalive: true,
+      });
+    }
+    const user = this.currentUser();
+    if (user) {
+      const sessions = this.getActiveSessions();
+      delete sessions[user.username];
+      this.saveActiveSessions(sessions);
+    }
   };
 
   login(request: LoginRequest): Observable<any> {
