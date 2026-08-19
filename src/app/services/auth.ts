@@ -1,7 +1,7 @@
 import { Injectable, signal, computed, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
-import { Observable, tap } from 'rxjs';
+import { Observable, Subject, tap } from 'rxjs';
 import { Usuario, LoginRequest, RolUsuario } from '../models/usuario.model';
 import { environment } from '../../environments/environment';
 import { mapUsuarioFromBackend, mapUsuarioToBackend, mapRol, mapRolToFrontend } from '../utils/mappers';
@@ -15,6 +15,11 @@ export interface ChangePasswordRequest {
   newPassword: string;
 }
 
+export interface DuplicateSessionInfo {
+  username: string;
+  timestamp: number;
+}
+
 @Injectable({ providedIn: 'root' })
 export class AuthService {
   private http = inject(HttpClient);
@@ -24,14 +29,21 @@ export class AuthService {
   currentUser = signal<Usuario | null>(null);
   isLoggedIn = computed(() => this.currentUser() !== null);
 
+  showDuplicateSessionModal = signal<boolean>(false);
+  duplicateSessionInfo = signal<DuplicateSessionInfo | null>(null);
+  private pendingLoginRequest = signal<LoginRequest | null>(null);
+  private duplicateLoginConfirmed = new Subject<LoginRequest>();
+
   private readonly INACTIVITY_LIMIT_MS = 3 * 60 * 1000;
   private readonly AUTH_LAST_ACTIVITY_KEY = 'auth_last_activity';
   private readonly TAB_ID_KEY = 'auth_tab_id';
+  private readonly ACTIVE_SESSIONS_KEY = 'active_user_sessions';
   private inactivityTimer: ReturnType<typeof setTimeout> | null = null;
   private lastResetTime = 0;
   private activityEvents = ['mousemove', 'mousedown', 'keydown', 'touchstart', 'scroll'];
 
   private tabId: string;
+  private broadcastChannel: BroadcastChannel | null = null;
 
   private static generateUUID(): string {
     return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => {
@@ -46,24 +58,115 @@ export class AuthService {
   }
 
   getToken(): string | null {
-    return localStorage.getItem(this.tabKey('auth_token'));
+    return sessionStorage.getItem(this.tabKey('auth_token'));
   }
 
   constructor() {
     this.tabId = sessionStorage.getItem(this.TAB_ID_KEY) || AuthService.generateUUID();
     sessionStorage.setItem(this.TAB_ID_KEY, this.tabId);
 
-    const saved = localStorage.getItem(this.tabKey('currentUser'));
-    const token = localStorage.getItem(this.tabKey('auth_token'));
+    this.initBroadcastChannel();
+
+    const saved = sessionStorage.getItem(this.tabKey('currentUser'));
+    const token = sessionStorage.getItem(this.tabKey('auth_token'));
     if (saved && token) {
       try {
         const user = JSON.parse(saved);
         this.currentUser.set(user);
+        this.registerActiveSession(user.username);
         this.startInactivityTimer();
       } catch {
         this.clearSession();
       }
     }
+  }
+
+  private initBroadcastChannel(): void {
+    this.broadcastChannel = new BroadcastChannel('auth_channel');
+    this.broadcastChannel.onmessage = (event) => {
+      if (event.data.type === 'FORCE_LOGOUT') {
+        const token = this.getToken();
+        if (token) {
+          this.releaseBackendSession(token);
+        }
+        this.clearSession();
+        this.router.navigate(['/login']);
+      }
+    };
+  }
+
+  private getActiveSessions(): Record<string, { tabId: string; timestamp: number }> {
+    const data = localStorage.getItem(this.ACTIVE_SESSIONS_KEY);
+    return data ? JSON.parse(data) : {};
+  }
+
+  private saveActiveSessions(sessions: Record<string, { tabId: string; timestamp: number }>): void {
+    localStorage.setItem(this.ACTIVE_SESSIONS_KEY, JSON.stringify(sessions));
+  }
+
+  private registerActiveSession(username: string): void {
+    const sessions = this.getActiveSessions();
+    sessions[username] = { tabId: this.tabId, timestamp: Date.now() };
+    this.saveActiveSessions(sessions);
+  }
+
+  private removeActiveSession(username: string): void {
+    const sessions = this.getActiveSessions();
+    delete sessions[username];
+    this.saveActiveSessions(sessions);
+  }
+
+  checkDuplicateSession(username: string): boolean {
+    const sessions = this.getActiveSessions();
+    const existingSession = sessions[username];
+    if (existingSession && existingSession.tabId !== this.tabId) {
+      return true;
+    }
+    return false;
+  }
+
+  requestLogin(request: LoginRequest): void {
+    this.pendingLoginRequest.set(request);
+    this.duplicateSessionInfo.set({
+      username: request.username,
+      timestamp: Date.now()
+    });
+    this.showDuplicateSessionModal.set(true);
+  }
+
+  confirmDuplicateLogin(): void {
+    const info = this.duplicateSessionInfo();
+    if (info) {
+      const sessions = this.getActiveSessions();
+      const existingSession = sessions[info.username];
+      if (existingSession) {
+        this.broadcastChannel?.postMessage({
+          type: 'FORCE_LOGOUT',
+          tabId: existingSession.tabId
+        });
+        delete sessions[info.username];
+        this.saveActiveSessions(sessions);
+      }
+    }
+    const request = this.pendingLoginRequest();
+    this.showDuplicateSessionModal.set(false);
+    this.duplicateSessionInfo.set(null);
+    this.pendingLoginRequest.set(null);
+    if (request) {
+      setTimeout(() => {
+        this.duplicateLoginConfirmed.next(request);
+      }, 500);
+    }
+  }
+
+  cancelDuplicateLogin(): void {
+    this.showDuplicateSessionModal.set(false);
+    this.duplicateSessionInfo.set(null);
+    this.pendingLoginRequest.set(null);
+  }
+
+  onDuplicateLoginConfirmed(): Observable<LoginRequest> {
+    return this.duplicateLoginConfirmed.asObservable();
   }
 
   private releaseBackendSession(token: string): void {
@@ -75,7 +178,7 @@ export class AuthService {
   private startInactivityTimer(): void {
     this.stopInactivityTimer();
     this.lastResetTime = Date.now();
-    localStorage.setItem(this.tabKey(this.AUTH_LAST_ACTIVITY_KEY), String(this.lastResetTime));
+    sessionStorage.setItem(this.tabKey(this.AUTH_LAST_ACTIVITY_KEY), String(this.lastResetTime));
     this.activityEvents.forEach(event => document.addEventListener(event, this.resetInactivityTimer));
     this.setInactivityTimeout();
   }
@@ -103,7 +206,7 @@ export class AuthService {
       return;
     }
     this.lastResetTime = now;
-    localStorage.setItem(this.tabKey(this.AUTH_LAST_ACTIVITY_KEY), String(now));
+    sessionStorage.setItem(this.tabKey(this.AUTH_LAST_ACTIVITY_KEY), String(now));
     this.setInactivityTimeout();
   };
 
@@ -112,8 +215,9 @@ export class AuthService {
       tap(response => {
         const user = mapUsuarioFromBackend(response.usuario);
         this.currentUser.set(user);
-        localStorage.setItem(this.tabKey('currentUser'), JSON.stringify(user));
-        localStorage.setItem(this.tabKey('auth_token'), response.token);
+        sessionStorage.setItem(this.tabKey('currentUser'), JSON.stringify(user));
+        sessionStorage.setItem(this.tabKey('auth_token'), response.token);
+        this.registerActiveSession(user.username);
         this.startInactivityTimer();
       })
     );
@@ -121,10 +225,14 @@ export class AuthService {
 
   clearSession(): void {
     this.stopInactivityTimer();
+    const user = this.currentUser();
+    if (user) {
+      this.removeActiveSession(user.username);
+    }
     this.currentUser.set(null);
-    localStorage.removeItem(this.tabKey('currentUser'));
-    localStorage.removeItem(this.tabKey('auth_token'));
-    localStorage.removeItem(this.tabKey(this.AUTH_LAST_ACTIVITY_KEY));
+    sessionStorage.removeItem(this.tabKey('currentUser'));
+    sessionStorage.removeItem(this.tabKey('auth_token'));
+    sessionStorage.removeItem(this.tabKey(this.AUTH_LAST_ACTIVITY_KEY));
   }
 
   logout(): void {
@@ -189,7 +297,7 @@ export class AuthService {
         if (user) {
           const updated = { ...user, foto: response.url };
           this.currentUser.set(updated);
-          localStorage.setItem(this.tabKey('currentUser'), JSON.stringify(updated));
+          sessionStorage.setItem(this.tabKey('currentUser'), JSON.stringify(updated));
         }
       })
     );
@@ -212,7 +320,7 @@ export class AuthService {
       tap(() => {
         const updated = { ...user, foto: '' };
         this.currentUser.set(updated);
-        localStorage.setItem(this.tabKey('currentUser'), JSON.stringify(updated));
+        sessionStorage.setItem(this.tabKey('currentUser'), JSON.stringify(updated));
       })
     );
   }
@@ -227,7 +335,7 @@ export class AuthService {
         if (current && current.id === usuario.id) {
           const updated = { ...current, ...usuario };
           this.currentUser.set(updated);
-          localStorage.setItem(this.tabKey('currentUser'), JSON.stringify(updated));
+          sessionStorage.setItem(this.tabKey('currentUser'), JSON.stringify(updated));
         }
       })
     );

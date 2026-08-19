@@ -1,21 +1,22 @@
-import { Component, inject, ChangeDetectorRef } from '@angular/core';
+import { Component, inject, ChangeDetectorRef, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { AuthService } from '../../../services/auth';
 import { NotificationService } from '../../../services/notification';
+import { DuplicateSessionModal } from '../../modal/duplicate-session-modal';
 import { timeout, catchError } from 'rxjs/operators';
-import { of } from 'rxjs';
+import { of, Subscription } from 'rxjs';
 import { HttpErrorResponse } from '@angular/common/http';
 
 @Component({
   selector: 'app-login',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterLink],
+  imports: [CommonModule, FormsModule, RouterLink, DuplicateSessionModal],
   templateUrl: './login.html',
   styleUrl: './login.scss',
 })
-export class Login {
+export class Login implements OnInit, OnDestroy {
   private authService = inject(AuthService);
   private router = inject(Router);
   private cdr = inject(ChangeDetectorRef);
@@ -29,6 +30,17 @@ export class Login {
   showPassword = false;
   cooldownSeconds = 0;
   private cooldownTimer: ReturnType<typeof setInterval> | null = null;
+  private duplicateSub: Subscription | null = null;
+
+  ngOnInit(): void {
+    this.duplicateSub = this.authService.onDuplicateLoginConfirmed().subscribe(request => {
+      this.doLogin(request.username, request.password);
+    });
+  }
+
+  ngOnDestroy(): void {
+    this.duplicateSub?.unsubscribe();
+  }
 
   onSubmit(): void {
     this.errorMsg = '';
@@ -45,9 +57,19 @@ export class Login {
       return;
     }
 
-    this.loading = true;
+    if (this.authService.checkDuplicateSession(usernameClean)) {
+      this.authService.requestLogin({ username: usernameClean, password: this.password });
+      return;
+    }
 
-    this.authService.login({ username: usernameClean, password: this.password }).pipe(
+    this.doLogin(usernameClean, this.password);
+  }
+
+  private doLogin(username: string, password: string): void {
+    this.loading = true;
+    this.errorMsg = '';
+
+    this.authService.login({ username, password }).pipe(
       timeout(5000),
       catchError((error) => {
         this.loading = false;
