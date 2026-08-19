@@ -143,7 +143,77 @@
   &.status-activa { background: #dcfce7; color: #166534; }
   &.status-pagado { background: #dcfce7; color: #166534; }
   &.status-pendiente { background: #fef9c3; color: #854d0e; }
-  &.status-vencido { background: #fee2e2; color: #991b1b; }
+  &.status-vencido { background: #fee2e2; color: #991b1b;   }
+}
+
+@media (max-width: 768px) {
+  .page-container {
+    padding: 1rem;
+  }
+
+  .page-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.75rem;
+
+    h2 {
+      font-size: 1.1rem;
+    }
+  }
+
+  .filters-bar {
+    flex-direction: column;
+    padding: 1rem;
+
+    .filter-group {
+      min-width: 100%;
+    }
+  }
+
+  .data-table {
+    thead {
+      display: none;
+    }
+
+    tbody tr {
+      display: block;
+      background: var(--bg-modal-table-row, white);
+      border-radius: 12px;
+      padding: 0.75rem 1rem;
+      margin-bottom: 0.75rem;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+      border: 1px solid var(--border-table-row, #f1f5f9);
+
+      td {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 0.4rem 0 !important;
+        border: none;
+        font-size: 0.82rem;
+
+        &::before {
+          content: attr(data-label);
+          font-weight: 600;
+          color: var(--text-secondary, #64748b);
+          font-size: 0.75rem;
+          text-transform: uppercase;
+          margin-right: 1rem;
+          flex-shrink: 0;
+        }
+
+        &.empty-state {
+          display: block;
+          text-align: center;
+          font-style: italic;
+
+          &::before {
+            content: none;
+          }
+        }
+      }
+    }
+  }
 }
 
 :host-context([data-theme="dark"]) {

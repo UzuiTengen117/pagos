@@ -26,13 +26,35 @@ export class AuthService {
 
   private readonly INACTIVITY_LIMIT_MS = 3 * 60 * 1000;
   private readonly AUTH_LAST_ACTIVITY_KEY = 'auth_last_activity';
+  private readonly TAB_ID_KEY = 'auth_tab_id';
   private inactivityTimer: ReturnType<typeof setTimeout> | null = null;
   private lastResetTime = 0;
   private activityEvents = ['mousemove', 'mousedown', 'keydown', 'touchstart', 'scroll'];
 
+  private tabId: string;
+
+  private static generateUUID(): string {
+    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => {
+      const r = (Math.random() * 16) | 0;
+      const v = c === 'x' ? r : (r & 0x3) | 0x8;
+      return v.toString(16);
+    });
+  }
+
+  private tabKey(key: string): string {
+    return `${this.tabId}_${key}`;
+  }
+
+  getToken(): string | null {
+    return localStorage.getItem(this.tabKey('auth_token'));
+  }
+
   constructor() {
-    const saved = localStorage.getItem('currentUser');
-    const token = localStorage.getItem('auth_token');
+    this.tabId = sessionStorage.getItem(this.TAB_ID_KEY) || AuthService.generateUUID();
+    sessionStorage.setItem(this.TAB_ID_KEY, this.tabId);
+
+    const saved = localStorage.getItem(this.tabKey('currentUser'));
+    const token = localStorage.getItem(this.tabKey('auth_token'));
     if (saved && token) {
       try {
         const user = JSON.parse(saved);
@@ -53,7 +75,7 @@ export class AuthService {
   private startInactivityTimer(): void {
     this.stopInactivityTimer();
     this.lastResetTime = Date.now();
-    localStorage.setItem(this.AUTH_LAST_ACTIVITY_KEY, String(this.lastResetTime));
+    localStorage.setItem(this.tabKey(this.AUTH_LAST_ACTIVITY_KEY), String(this.lastResetTime));
     this.activityEvents.forEach(event => document.addEventListener(event, this.resetInactivityTimer));
     this.setInactivityTimeout();
   }
@@ -81,7 +103,7 @@ export class AuthService {
       return;
     }
     this.lastResetTime = now;
-    localStorage.setItem(this.AUTH_LAST_ACTIVITY_KEY, String(now));
+    localStorage.setItem(this.tabKey(this.AUTH_LAST_ACTIVITY_KEY), String(now));
     this.setInactivityTimeout();
   };
 
@@ -90,8 +112,8 @@ export class AuthService {
       tap(response => {
         const user = mapUsuarioFromBackend(response.usuario);
         this.currentUser.set(user);
-        localStorage.setItem('currentUser', JSON.stringify(user));
-        localStorage.setItem('auth_token', response.token);
+        localStorage.setItem(this.tabKey('currentUser'), JSON.stringify(user));
+        localStorage.setItem(this.tabKey('auth_token'), response.token);
         this.startInactivityTimer();
       })
     );
@@ -100,14 +122,14 @@ export class AuthService {
   clearSession(): void {
     this.stopInactivityTimer();
     this.currentUser.set(null);
-    localStorage.removeItem('currentUser');
-    localStorage.removeItem('auth_token');
-    localStorage.removeItem(this.AUTH_LAST_ACTIVITY_KEY);
+    localStorage.removeItem(this.tabKey('currentUser'));
+    localStorage.removeItem(this.tabKey('auth_token'));
+    localStorage.removeItem(this.tabKey(this.AUTH_LAST_ACTIVITY_KEY));
   }
 
   logout(): void {
     this.stopInactivityTimer();
-    const token = localStorage.getItem('auth_token');
+    const token = this.getToken();
     if (token) {
       this.releaseBackendSession(token);
     }
@@ -167,7 +189,7 @@ export class AuthService {
         if (user) {
           const updated = { ...user, foto: response.url };
           this.currentUser.set(updated);
-          localStorage.setItem('currentUser', JSON.stringify(updated));
+          localStorage.setItem(this.tabKey('currentUser'), JSON.stringify(updated));
         }
       })
     );
@@ -190,7 +212,7 @@ export class AuthService {
       tap(() => {
         const updated = { ...user, foto: '' };
         this.currentUser.set(updated);
-        localStorage.setItem('currentUser', JSON.stringify(updated));
+        localStorage.setItem(this.tabKey('currentUser'), JSON.stringify(updated));
       })
     );
   }
@@ -205,7 +227,7 @@ export class AuthService {
         if (current && current.id === usuario.id) {
           const updated = { ...current, ...usuario };
           this.currentUser.set(updated);
-          localStorage.setItem('currentUser', JSON.stringify(updated));
+          localStorage.setItem(this.tabKey('currentUser'), JSON.stringify(updated));
         }
       })
     );

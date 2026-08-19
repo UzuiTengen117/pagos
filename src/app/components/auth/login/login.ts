@@ -26,6 +26,7 @@ export class Login {
   errorMsg = '';
   loading = false;
   cooldown = false;
+  showPassword = false;
   cooldownSeconds = 0;
   private cooldownTimer: ReturnType<typeof setInterval> | null = null;
 

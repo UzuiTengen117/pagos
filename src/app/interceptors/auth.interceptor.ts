@@ -13,7 +13,7 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
     return next(req.clone({ headers: req.headers.delete('X-Skip-Auth') }));
   }
 
-  const token = localStorage.getItem('auth_token');
+  const token = authService.getToken();
 
   if (token) {
     const cloned = req.clone({

@@ -15,7 +15,9 @@
       <select [(ngModel)]="filtroRol" (change)="onFiltroRolChange()">
         <option value="todos">Todos</option>
         <option value="profesor">Profesores</option>
-        <option value="administrador">Administradores</option>
+        @if (esAdmin) {
+          <option value="administrador">Administradores</option>
+        }
         <option value="estudiante">Estudiantes</option>
       </select>
     </div>

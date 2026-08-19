@@ -289,6 +289,110 @@
   font-size: 0.85rem;
 }
 
+@media (max-width: 768px) {
+  .page-container {
+    padding: 1rem;
+  }
+
+  .page-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.75rem;
+
+    h2 {
+      font-size: 1.1rem;
+    }
+  }
+
+  .data-table {
+    thead {
+      display: none;
+    }
+
+    tbody tr {
+      display: block;
+      background: var(--bg-modal-table-row, white);
+      border-radius: 12px;
+      padding: 0.75rem 1rem;
+      margin-bottom: 0.75rem;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+      border: 1px solid var(--border-table-row, #f1f5f9);
+
+      td {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 0.4rem 0 !important;
+        border: none;
+        font-size: 0.82rem;
+
+        &::before {
+          content: attr(data-label);
+          font-weight: 600;
+          color: var(--text-secondary, #64748b);
+          font-size: 0.75rem;
+          text-transform: uppercase;
+          margin-right: 1rem;
+          flex-shrink: 0;
+        }
+
+        &.actions {
+          padding-top: 0.6rem !important;
+          margin-top: 0.4rem;
+          border-top: 1px solid var(--border-table-actions, #f1f5f9);
+          justify-content: flex-end;
+          gap: 0.5rem;
+
+          &::before {
+            content: none;
+          }
+        }
+
+        &.empty-state {
+          display: block;
+          text-align: center;
+          font-style: italic;
+
+          &::before {
+            content: none;
+          }
+        }
+      }
+    }
+  }
+
+  .modal {
+    margin: 0.5rem;
+    max-height: 85vh;
+  }
+
+  .modal-header {
+    padding: 1rem;
+
+    h3 {
+      font-size: 1rem;
+    }
+  }
+
+  .modal-body {
+    padding: 1rem;
+  }
+
+  .modal-footer {
+    padding: 0.75rem 1rem;
+    flex-wrap: wrap;
+
+    .btn {
+      flex: 1;
+      justify-content: center;
+    }
+  }
+
+  .form-row.two-col {
+    grid-template-columns: 1fr;
+  }
+}
+
 :host-context([data-theme="dark"]) {
   .page-header h2 {
     color: var(--text-page-title);

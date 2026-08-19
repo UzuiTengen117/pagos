@@ -97,6 +97,9 @@ export class Profesores implements OnInit, OnDestroy {
   }
 
   aplicarFiltro(): void {
+    if (this.filtroRol === 'administrador' && !this.esAdmin) {
+      this.filtroRol = 'todos';
+    }
     this.pagina = 1;
     if (this.filtroRol === 'todos') {
       this.usuarios = [...this.allUsuarios];

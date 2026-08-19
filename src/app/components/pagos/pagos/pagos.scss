@@ -573,6 +573,138 @@
   }
 }
 
+@media (max-width: 768px) {
+  .page-container {
+    padding: 1rem;
+  }
+
+  .page-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.75rem;
+
+    h2 {
+      font-size: 1.1rem;
+    }
+  }
+
+  .header-actions {
+    width: 100%;
+    flex-wrap: wrap;
+
+    .btn {
+      flex: 1;
+      justify-content: center;
+      min-width: 0;
+    }
+  }
+
+  .filters-bar {
+    flex-direction: column;
+    padding: 1rem;
+
+    .filter-group {
+      min-width: 100%;
+    }
+  }
+
+  .data-table {
+    thead {
+      display: none;
+    }
+
+    tbody tr {
+      display: block;
+      background: var(--bg-modal-table-row, white);
+      border-radius: 12px;
+      padding: 0.75rem 1rem;
+      margin-bottom: 0.75rem;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+      border: 1px solid var(--border-table-row, #f1f5f9);
+
+      td {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 0.4rem 0 !important;
+        border: none;
+        font-size: 0.82rem;
+
+        &::before {
+          content: attr(data-label);
+          font-weight: 600;
+          color: var(--text-secondary, #64748b);
+          font-size: 0.75rem;
+          text-transform: uppercase;
+          margin-right: 1rem;
+          flex-shrink: 0;
+        }
+
+        &.actions {
+          padding-top: 0.6rem !important;
+          margin-top: 0.4rem;
+          border-top: 1px solid var(--border-table-actions, #f1f5f9);
+          justify-content: flex-end;
+          gap: 0.5rem;
+
+          &::before {
+            content: none;
+          }
+        }
+
+        &.monto {
+          font-weight: 600;
+        }
+
+        &.empty-state {
+          display: block;
+          text-align: center;
+          font-style: italic;
+
+          &::before {
+            content: none;
+          }
+        }
+      }
+    }
+  }
+
+  .modal {
+    margin: 0.5rem;
+    max-height: 85vh;
+  }
+
+  .modal-header {
+    padding: 1rem;
+
+    h3 {
+      font-size: 1rem;
+    }
+  }
+
+  .modal-body {
+    padding: 1rem;
+  }
+
+  .modal-footer {
+    padding: 0.75rem 1rem;
+    flex-wrap: wrap;
+
+    .btn {
+      flex: 1;
+      justify-content: center;
+    }
+  }
+
+  .form-row.three-col {
+    flex-direction: column;
+  }
+
+  .dropdown-multi {
+    width: 100%;
+  }
+}
+
 .modal-footer {
   display: flex;
   justify-content: flex-end;
