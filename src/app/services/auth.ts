@@ -120,6 +120,11 @@ export class AuthService {
     const sessions = this.getActiveSessions();
     const existingSession = sessions[username];
     if (existingSession && existingSession.tabId !== this.tabId) {
+      if (Date.now() - existingSession.timestamp > this.INACTIVITY_LIMIT_MS) {
+        delete sessions[username];
+        this.saveActiveSessions(sessions);
+        return false;
+      }
       return true;
     }
     return false;
