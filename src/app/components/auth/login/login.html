@@ -36,9 +36,11 @@
         </div>
       </div>
 
-      <button type="submit" class="btn btn-primary btn-full" [disabled]="loading">
+      <button type="submit" class="btn btn-primary btn-full" [disabled]="loading || cooldown">
         @if (loading) {
           <span class="spinner"></span> Ingresando...
+        } @else if (cooldown) {
+          Espera {{ cooldownSeconds }}s...
         } @else {
           Ingresar al Sistema
         }
