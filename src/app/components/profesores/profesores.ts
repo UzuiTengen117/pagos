@@ -115,6 +115,8 @@ export class Profesores implements OnInit, OnDestroy {
   getEmptyForm(): Partial<Usuario> {
     return {
       nombre: '',
+      primerApellido: '',
+      segundoApellido: '',
       username: '',
       email: '',
       rol: 'profesor',
@@ -358,6 +360,32 @@ export class Profesores implements OnInit, OnDestroy {
   }
 
   saveUsuario(): void {
+    // Validate required fields
+    if (!this.formData.nombre?.trim()) {
+      this.notificationService.error('El nombre es obligatorio');
+      return;
+    }
+    if (!this.formData.primerApellido?.trim()) {
+      this.notificationService.error('El primer apellido es obligatorio');
+      return;
+    }
+    if (!this.formData.username?.trim()) {
+      this.notificationService.error('El nombre de usuario es obligatorio');
+      return;
+    }
+    if (!this.formData.email?.trim()) {
+      this.notificationService.error('El email es obligatorio');
+      return;
+    }
+    if (!this.isEditing && !this.formPassword?.trim()) {
+      this.notificationService.error('La contraseña es obligatoria');
+      return;
+    }
+    if (this.formData.rol === 'estudiante' && !this.selectedAlumnoId) {
+      this.notificationService.error('Debe seleccionar un alumno existente');
+      return;
+    }
+
     const seleccion = this.construirSeleccionPermisos();
     const sinPermisos = this.formData.rol === 'estudiante';
     if (this.isEditing && this.formData.id) {
@@ -372,10 +400,12 @@ export class Profesores implements OnInit, OnDestroy {
               this.guardarPermisos(usuarioId, seleccion);
             }
             this.loadAllUsuarios();
+            this.notificationService.success('Usuario actualizado correctamente');
           }
         },
-        error: () => {
-          this.closeModal();
+        error: (err) => {
+          const mensaje = err?.error?.message || 'No se pudo actualizar el usuario';
+          this.notificationService.error(mensaje);
           this.loadAllUsuarios();
         }
       });
@@ -394,10 +424,12 @@ export class Profesores implements OnInit, OnDestroy {
               this.guardarPermisos(nuevoId, seleccion);
             }
             this.loadAllUsuarios();
+            this.notificationService.success('Usuario creado correctamente');
           }
         },
-        error: () => {
-          this.closeModal();
+        error: (err) => {
+          const mensaje = err?.error?.message || 'No se pudo crear el usuario';
+          this.notificationService.error(mensaje);
           this.loadAllUsuarios();
         }
       });
@@ -424,6 +456,7 @@ export class Profesores implements OnInit, OnDestroy {
       next: () => {
         this.closeModal();
         this.loadAllUsuarios();
+        this.notificationService.success('Alumno vinculado correctamente');
       },
       error: (err) => {
         const mensaje = err?.error?.message || 'No se pudo vincular el alumno';
@@ -438,8 +471,11 @@ export class Profesores implements OnInit, OnDestroy {
         next: () => {
           this.closeDeleteModal();
           this.loadAllUsuarios();
+          this.notificationService.success('Usuario eliminado correctamente');
         },
-        error: () => {
+        error: (err) => {
+          const mensaje = err?.error?.message || 'No se pudo eliminar el usuario';
+          this.notificationService.error(mensaje);
           this.closeDeleteModal();
           this.loadAllUsuarios();
         }
@@ -453,8 +489,11 @@ export class Profesores implements OnInit, OnDestroy {
         next: () => {
           this.closeRolModal();
           this.loadAllUsuarios();
+          this.notificationService.success('Rol cambiado correctamente');
         },
-        error: () => {
+        error: (err) => {
+          const mensaje = err?.error?.message || 'No se pudo cambiar el rol';
+          this.notificationService.error(mensaje);
           this.closeRolModal();
           this.loadAllUsuarios();
         }

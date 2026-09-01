@@ -4,7 +4,7 @@ import { Observable, map, tap } from 'rxjs';
 import { Usuario, RolUsuario } from '../models/usuario.model';
 import { RefreshService } from './refresh';
 import { environment } from '../../environments/environment';
-import { mapUsuarioFromBackend, mapRolToFrontend } from '../utils/mappers';
+import { mapUsuarioFromBackend, mapRolToFrontend, mapUsuarioToBackend } from '../utils/mappers';
 
 @Injectable({ providedIn: 'root' })
 export class ProfesoresService {
@@ -37,12 +37,7 @@ export class ProfesoresService {
   }
 
   create(usuario: any, password?: string): Observable<any> {
-    const body: any = {
-      nombre: usuario.nombre,
-      username: usuario.username,
-      email: usuario.email,
-      rol: mapRolToFrontend(usuario.rol),
-    };
+    const body = mapUsuarioToBackend(usuario);
     if (password) {
       body.password = password;
     }
@@ -52,12 +47,7 @@ export class ProfesoresService {
   }
 
   update(usuario: Usuario, password?: string): Observable<any> {
-    const body: any = {
-      nombre: usuario.nombre,
-      username: usuario.username,
-      email: usuario.email,
-      rol: mapRolToFrontend(usuario.rol),
-    };
+    const body = mapUsuarioToBackend(usuario);
     if (password) {
       body.password = password;
     }
