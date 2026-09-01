@@ -6,15 +6,11 @@ import { Subscription, filter } from 'rxjs';
 import { PaginacionComponent } from '../paginacion/paginacion';
 import { paginar } from '../../utils/paginacion';
 import { ProfesoresService } from '../../services/profesores';
-import { AlumnosService } from '../../services/alumnos';
-import { BecasService } from '../../services/becas';
 import { RefreshService } from '../../services/refresh';
 import { PermisosService } from '../../services/permisos';
 import { AuthService } from '../../services/auth';
 import { NotificationService } from '../../services/notification';
 import { Usuario, RolUsuario } from '../../models/usuario.model';
-import { Alumno } from '../../models/alumno.model';
-import { Beca } from '../../models/beca.model';
 import { ModulosPermisos, PermisoSeleccion } from '../../models/permiso.model';
 
 @Component({
@@ -26,8 +22,6 @@ import { ModulosPermisos, PermisoSeleccion } from '../../models/permiso.model';
 })
 export class Profesores implements OnInit, OnDestroy {
   private profesoresService = inject(ProfesoresService);
-  private alumnosService = inject(AlumnosService);
-  private becasService = inject(BecasService);
   private refreshService = inject(RefreshService);
   private permisosService = inject(PermisosService);
   private authService = inject(AuthService);
@@ -40,9 +34,6 @@ export class Profesores implements OnInit, OnDestroy {
   allUsuarios: Usuario[] = [];
   usuarios: Usuario[] = [];
   pagina = 1;
-  alumnosDisponibles: Alumno[] = [];
-  estudiantesExistentes: Usuario[] = [];
-  becas: Beca[] = [];
   filtroRol: RolUsuario | 'todos' = 'todos';
   showModal = false;
   showDeleteModal = false;
@@ -61,8 +52,6 @@ export class Profesores implements OnInit, OnDestroy {
     return this.authService.currentUser()?.rol === 'administrador';
   }
 
-  selectedAlumnoId: number | null = null;
-  selectedBecaId: number | null = null;
   formPassword = '';
 
   formData: Partial<Usuario> = this.getEmptyForm();
@@ -131,66 +120,11 @@ export class Profesores implements OnInit, OnDestroy {
     if (!this.isEditing) {
       this.cargarDefaultsParaRol(this.formData.rol || 'profesor');
     }
-    if (this.formData.rol === 'estudiante') {
-      this.loadAlumnosDisponibles();
-      this.cargarEstudiantesExistentes();
-      this.loadBecas();
-    } else {
-      this.alumnosDisponibles = [];
-      this.estudiantesExistentes = [];
-      this.becas = [];
-      this.selectedAlumnoId = null;
-      this.selectedBecaId = null;
-    }
-  }
-
-  loadAlumnosDisponibles(): void {
-    this.alumnosService.getDisponibles().subscribe({
-      next: (data) => {
-        this.alumnosDisponibles = data;
-        this.cdr.detectChanges();
-      },
-      error: () => {
-        this.alumnosDisponibles = [];
-        this.cdr.detectChanges();
-      }
-    });
-  }
-
-  loadBecas(): void {
-    this.becasService.loadAll().subscribe({
-      next: (data) => {
-        this.becas = data.filter(b => b.activa);
-        this.cdr.detectChanges();
-      },
-      error: () => {
-        this.becas = [];
-        this.cdr.detectChanges();
-      }
-    });
-  }
-
-  cargarEstudiantesExistentes(): void {
-    this.profesoresService.getAll().subscribe({
-      next: (usuarios) => {
-        this.estudiantesExistentes = usuarios.filter(u => u.rol === 'estudiante');
-        this.cdr.detectChanges();
-      },
-      error: () => {
-        this.estudiantesExistentes = [];
-        this.cdr.detectChanges();
-      }
-    });
   }
 
   openCreateModal(): void {
     this.formData = this.getEmptyForm();
     this.isEditing = false;
-    this.selectedAlumnoId = null;
-    this.selectedBecaId = null;
-    this.alumnosDisponibles = [];
-    this.estudiantesExistentes = [];
-    this.becas = [];
     this.permisosUsuario = [];
     if (this.esAdmin) {
       this.cargarModulosPermisos();
@@ -203,21 +137,11 @@ export class Profesores implements OnInit, OnDestroy {
     this.formData = { ...usuario };
     this.formPassword = '';
     this.isEditing = true;
-    this.selectedAlumnoId = null;
-    this.selectedBecaId = null;
-    this.alumnosDisponibles = [];
-    this.estudiantesExistentes = [];
-    this.becas = [];
     this.usuarioEnEdicion = usuario;
     this.permisosUsuario = [];
     if (this.esAdmin) {
       this.cargarModulosPermisos();
       this.cargarPermisosUsuario(usuario.id);
-    }
-    if (usuario.rol === 'estudiante') {
-      this.loadAlumnosDisponibles();
-      this.cargarEstudiantesExistentes();
-      this.loadBecas();
     }
     this.showModal = true;
   }
@@ -225,11 +149,6 @@ export class Profesores implements OnInit, OnDestroy {
   closeModal(): void {
     this.showModal = false;
     this.formData = this.getEmptyForm();
-    this.selectedAlumnoId = null;
-    this.selectedBecaId = null;
-    this.alumnosDisponibles = [];
-    this.estudiantesExistentes = [];
-    this.becas = [];
     this.usuarioEnEdicion = null;
     this.permisosUsuario = [];
   }
@@ -382,11 +301,6 @@ export class Profesores implements OnInit, OnDestroy {
       this.notificationService.error('La contraseña es obligatoria');
       return;
     }
-    // Para rol estudiante, debe seleccionar un alumno del catálogo
-    if (this.formData.rol === 'estudiante' && !this.selectedAlumnoId) {
-      this.notificationService.error('Debe seleccionar un alumno existente');
-      return;
-    }
 
     const seleccion = this.construirSeleccionPermisos();
     const sinPermisos = this.formData.rol === 'estudiante';
@@ -394,17 +308,13 @@ export class Profesores implements OnInit, OnDestroy {
       // Actualizar usuario existente
       this.profesoresService.update(this.formData as Usuario, this.formPassword || undefined).subscribe({
         next: (res) => {
-          if (this.formData.rol === 'estudiante' && this.selectedAlumnoId) {
-            this.vincularAlumno(res.id || this.formData.id);
-          } else {
-            const usuarioId = this.usuarioEnEdicion?.id;
-            this.closeModal();
-            if (usuarioId && !sinPermisos) {
-              this.guardarPermisos(usuarioId, seleccion);
-            }
-            this.loadAllUsuarios();
-            this.notificationService.success('Usuario actualizado correctamente');
+          const usuarioId = this.usuarioEnEdicion?.id;
+          this.closeModal();
+          if (usuarioId && !sinPermisos) {
+            this.guardarPermisos(usuarioId, seleccion);
           }
+          this.loadAllUsuarios();
+          this.notificationService.success('Usuario actualizado correctamente');
         },
         error: (err) => {
           // Muestra error del backend o genérico
@@ -417,20 +327,12 @@ export class Profesores implements OnInit, OnDestroy {
       // Crear nuevo usuario
       this.profesoresService.create(this.formData, this.formPassword || undefined).subscribe({
         next: (res) => {
-          const nuevoId = res.usuario?.id || res.id;
-          if (this.formData.rol === 'estudiante' && this.selectedAlumnoId) {
-            if (!sinPermisos) {
-              this.guardarPermisos(nuevoId, seleccion);
-            }
-            this.vincularAlumno(nuevoId);
-          } else {
-            this.closeModal();
-            if (!sinPermisos) {
-              this.guardarPermisos(nuevoId, seleccion);
-            }
-            this.loadAllUsuarios();
-            this.notificationService.success('Usuario creado correctamente');
+          this.closeModal();
+          if (!sinPermisos) {
+            this.guardarPermisos(res.usuario?.id || res.id, seleccion);
           }
+          this.loadAllUsuarios();
+          this.notificationService.success('Usuario creado correctamente');
         },
         error: (err) => {
           // Muestra error del backend o genérico
@@ -440,36 +342,6 @@ export class Profesores implements OnInit, OnDestroy {
         }
       });
     }
-  }
-
-  private vincularAlumno(usuarioId: number): void {
-    // Vincula el alumno seleccionado al usuario recién creados
-    if (!this.selectedAlumnoId || !usuarioId) {
-      this.closeModal();
-      this.loadAllUsuarios();
-      return;
-    }
-    const alumno = this.alumnosDisponibles.find(a => a.id === this.selectedAlumnoId);
-    if (!alumno) {
-      this.closeModal();
-      this.loadAllUsuarios();
-      return;
-    }
-    this.alumnosService.update({
-      ...alumno,
-      usuarioId: usuarioId,
-      becaId: this.selectedBecaId ?? undefined,
-    }).subscribe({
-      next: () => {
-        this.closeModal();
-        this.loadAllUsuarios();
-        this.notificationService.success('Alumno vinculado correctamente');
-      },
-      error: (err) => {
-        const mensaje = err?.error?.message || 'No se pudo vincular el alumno';
-        this.notificationService.error(mensaje);
-      }
-    });
   }
 
   deleteUsuario(): void {
