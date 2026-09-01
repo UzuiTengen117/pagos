@@ -443,7 +443,7 @@ export class Profesores implements OnInit, OnDestroy {
   }
 
   private vincularAlumno(usuarioId: number): void {
-    // Vincula el alumno seleccionado al usuario recién creado
+    // Vincula el alumno seleccionado al usuario recién creados
     if (!this.selectedAlumnoId || !usuarioId) {
       this.closeModal();
       this.loadAllUsuarios();
