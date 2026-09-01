@@ -4,6 +4,7 @@ import { Observable, map, tap } from 'rxjs';
 import { Usuario, RolUsuario } from '../models/usuario.model';
 import { RefreshService } from './refresh';
 import { environment } from '../../environments/environment';
+// mapUsuarioToBackend incluye primer_apellido y segundo_apellido requeridos por el backend
 import { mapUsuarioFromBackend, mapRolToFrontend, mapUsuarioToBackend } from '../utils/mappers';
 
 @Injectable({ providedIn: 'root' })
@@ -37,6 +38,7 @@ export class ProfesoresService {
   }
 
   create(usuario: any, password?: string): Observable<any> {
+    // Usa mapUsuarioToBackend para enviar todos los campos requeridos (incluye primer_apellido, segundo_apellido)
     const body = mapUsuarioToBackend(usuario);
     if (password) {
       body.password = password;
@@ -47,6 +49,7 @@ export class ProfesoresService {
   }
 
   update(usuario: Usuario, password?: string): Observable<any> {
+    // Usa mapUsuarioToBackend para enviar todos los campos requeridos (incluye primer_apellido, segundo_apellido)
     const body = mapUsuarioToBackend(usuario);
     if (password) {
       body.password = password;

@@ -115,8 +115,8 @@ export class Profesores implements OnInit, OnDestroy {
   getEmptyForm(): Partial<Usuario> {
     return {
       nombre: '',
-      primerApellido: '',
-      segundoApellido: '',
+      primerApellido: '',  // requerido por el backend
+      segundoApellido: '', // requerido por el backend
       username: '',
       email: '',
       rol: 'profesor',
@@ -360,7 +360,7 @@ export class Profesores implements OnInit, OnDestroy {
   }
 
   saveUsuario(): void {
-    // Validate required fields
+    // Validación de campos obligatorios antes de enviar al backend
     if (!this.formData.nombre?.trim()) {
       this.notificationService.error('El nombre es obligatorio');
       return;
@@ -377,10 +377,12 @@ export class Profesores implements OnInit, OnDestroy {
       this.notificationService.error('El email es obligatorio');
       return;
     }
+    // Password solo obligatorio al crear (no al editar)
     if (!this.isEditing && !this.formPassword?.trim()) {
       this.notificationService.error('La contraseña es obligatoria');
       return;
     }
+    // Para rol estudiante, debe seleccionar un alumno del catálogo
     if (this.formData.rol === 'estudiante' && !this.selectedAlumnoId) {
       this.notificationService.error('Debe seleccionar un alumno existente');
       return;
@@ -389,6 +391,7 @@ export class Profesores implements OnInit, OnDestroy {
     const seleccion = this.construirSeleccionPermisos();
     const sinPermisos = this.formData.rol === 'estudiante';
     if (this.isEditing && this.formData.id) {
+      // Actualizar usuario existente
       this.profesoresService.update(this.formData as Usuario, this.formPassword || undefined).subscribe({
         next: (res) => {
           if (this.formData.rol === 'estudiante' && this.selectedAlumnoId) {
@@ -404,12 +407,14 @@ export class Profesores implements OnInit, OnDestroy {
           }
         },
         error: (err) => {
+          // Muestra error del backend o genérico
           const mensaje = err?.error?.message || 'No se pudo actualizar el usuario';
           this.notificationService.error(mensaje);
           this.loadAllUsuarios();
         }
       });
     } else {
+      // Crear nuevo usuario
       this.profesoresService.create(this.formData, this.formPassword || undefined).subscribe({
         next: (res) => {
           const nuevoId = res.usuario?.id || res.id;
@@ -428,6 +433,7 @@ export class Profesores implements OnInit, OnDestroy {
           }
         },
         error: (err) => {
+          // Muestra error del backend o genérico
           const mensaje = err?.error?.message || 'No se pudo crear el usuario';
           this.notificationService.error(mensaje);
           this.loadAllUsuarios();
@@ -437,6 +443,7 @@ export class Profesores implements OnInit, OnDestroy {
   }
 
   private vincularAlumno(usuarioId: number): void {
+    // Vincula el alumno seleccionado al usuario recién creado
     if (!this.selectedAlumnoId || !usuarioId) {
       this.closeModal();
       this.loadAllUsuarios();
@@ -466,6 +473,7 @@ export class Profesores implements OnInit, OnDestroy {
   }
 
   deleteUsuario(): void {
+    // Elimina usuario y muestra notificación de éxito/error
     if (this.usuarioToDelete) {
       this.profesoresService.delete(this.usuarioToDelete.id).subscribe({
         next: () => {
@@ -484,6 +492,7 @@ export class Profesores implements OnInit, OnDestroy {
   }
 
   cambiarRol(): void {
+    // Cambia rol de usuario y muestra notificación de éxito/error
     if (this.usuarioRol) {
       this.profesoresService.cambiarRol(this.usuarioRol.id, this.nuevoRol).subscribe({
         next: () => {
