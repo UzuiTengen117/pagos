@@ -130,6 +130,15 @@
   --btn-press: 130ms;
   --btn-hover: 180ms;
   --btn-press-scale: 0.97;
+
+  /* Elevacion de los botones con relleno. Dos capas: una de contacto, otra
+     de difusion. Solo la lleva el relleno -- una variante terciaria apoyada en
+     una tarjeta ya tiene la sombra de la tarjeta, y otra mas solo la separa
+     menos. Al apretar la sombra se aprieta: el boton entra en la superficie. */
+  --btn-shadow:
+    0 1px 2px rgba(15, 23, 42, 0.1),
+    0 2px 8px rgba(15, 23, 42, 0.08);
+  --btn-shadow-press: 0 1px 1px rgba(15, 23, 42, 0.12);
 }
 
 [data-theme="dark"] {
@@ -249,6 +258,14 @@
   --info-text: #60a5fa;
   --purple-text: #c084fc;
   --green-text: #4ade80;;
+
+  /* En oscuro la sombra no puede seguir siendo la misma: sobre un fondo
+     casi negro un rgba(15,23,42,...) no se ve. Aqui la profundidad la da
+     el negro puro. */
+  --btn-shadow:
+    0 1px 2px rgba(0, 0, 0, 0.4),
+    0 2px 8px rgba(0, 0, 0, 0.3);
+  --btn-shadow-press: 0 1px 1px rgba(0, 0, 0, 0.5);
 }
 
 *, *::before, *::after {
@@ -307,7 +324,8 @@ button {
     transform var(--btn-press) var(--ease-out),
     background-color var(--btn-hover) var(--ease-out),
     border-color var(--btn-hover) var(--ease-out),
-    color var(--btn-hover) var(--ease-out);
+    color var(--btn-hover) var(--ease-out),
+    box-shadow var(--btn-press) var(--ease-out);
 }
 
 /* Confirmacion de pulsacion. Sin esto el boton no parece escuchar al usuario:
@@ -326,6 +344,9 @@ button {
   opacity: 0.55;
   cursor: not-allowed;
   transform: none;
+  /* Una sombra atenuada sigue leyendose como "elevado y pulsable". Un boton
+     apagado tiene que verse plano. */
+  box-shadow: none;
 }
 
 /* Variantes de color. Todo pasa por variables, asi que el tema oscuro se
@@ -352,6 +373,36 @@ button {
   background: var(--success);
   color: #fff;
   border-color: var(--success);
+}
+
+/* Solo el relleno se eleva. Una terciaria apoyada en la tarjeta ya recibe la
+   sombra de la tarjeta; darle otra mas la hunde en vez de destacarla. */
+.btn-primary,
+.btn-danger,
+.btn-success {
+  box-shadow: var(--btn-shadow);
+}
+
+/* El relleno se oscurece al apretar. El escalado ya dice "pulsado" en una
+   forma vacia, pero sobre un bloque de color el cambio de estado que se ve
+   es el tono. Vive fuera del bloque de hover a proposito: en tactil no hay
+   hover, y el press es justo donde mas importa que la interfaz responda. */
+.btn-primary:active {
+  background: var(--primary-hover);
+  border-color: var(--primary-hover);
+  box-shadow: var(--btn-shadow-press);
+}
+
+.btn-danger:active {
+  background: var(--danger-hover);
+  border-color: var(--danger-hover);
+  box-shadow: var(--btn-shadow-press);
+}
+
+.btn-success:active {
+  background: var(--success-hover);
+  border-color: var(--success-hover);
+  box-shadow: var(--btn-shadow-press);
 }
 
 .btn-print,
@@ -593,6 +644,13 @@ button {
 
 .btn-close:active {
   transform: scale(var(--btn-press-scale));
+}
+
+/* Este era el unico boton del sistema sin anillo de foco propio: se quedaba
+   con el del navegador, mas fino y de otro color que el de sus hermanos. */
+.btn-close:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
 }
 
 @media (hover: hover) and (pointer: fine) {

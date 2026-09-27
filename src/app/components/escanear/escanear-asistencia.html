@@ -27,7 +27,7 @@
           </select>
         </div>
       </div>
-      <button type="button" class="btn-primary" (click)="abrirSesion()">Abrir clase</button>
+      <button type="button" class="btn btn-primary" (click)="abrirSesion()">Abrir clase</button>
     </div>
   } @else {
     <div class="sesion-header">
@@ -42,7 +42,7 @@
           <span class="stat-label">Presentes</span>
         </div>
       </div>
-      <button type="button" class="btn-danger" (click)="cerrarSesion()">Cerrar clase</button>
+      <button type="button" class="btn btn-danger" (click)="cerrarSesion()">Cerrar clase</button>
     </div>
   }
 
@@ -73,7 +73,7 @@
 
       <button
         type="button"
-        class="btn-secondary"
+        class="btn btn-secondary"
         [disabled]="!sesion()"
         (click)="alternarCamara()">
         {{ camaraActiva() ? 'Apagar cámara' : 'Encender cámara' }}
@@ -90,7 +90,7 @@
             autocomplete="off"
             [disabled]="!sesion()"
             (keyup.enter)="registrarManual()" />
-          <button type="button" class="btn-primary" [disabled]="!sesion()" (click)="registrarManual()">
+          <button type="button" class="btn btn-primary" [disabled]="!sesion()" (click)="registrarManual()">
             Registrar
           </button>
         </div>
