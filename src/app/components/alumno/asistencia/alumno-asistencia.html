@@ -1,0 +1,106 @@
+<div class="page-container">
+  <div class="page-header">
+    <h2>Mi QR de Asistencia</h2>
+    <p class="page-subtitle">Muestra este código al profesor para registrar tu asistencia</p>
+  </div>
+
+  @if (errorQr()) {
+    <div class="alert alert-error">
+      <p>{{ errorQr() }}</p>
+    </div>
+  } @else {
+    <div class="asistencia-grid">
+      <div class="qr-card">
+        <div class="alumno-header">
+          @if (miQr()?.alumno?.foto) {
+            <img [src]="miQr()?.alumno?.foto" alt="Foto del alumno" class="alumno-foto" />
+          } @else {
+            <div class="alumno-avatar">{{ iniciales }}</div>
+          }
+          <div class="alumno-info">
+            <h3>{{ nombreCompleto }}</h3>
+            <p class="alumno-user">@{{ miQr()?.alumno?.username }}</p>
+          </div>
+        </div>
+
+        <div class="datos-alumno">
+          <div class="dato">
+            <span class="dato-label">Nombre</span>
+            <span class="dato-valor">{{ miQr()?.alumno?.nombre }}</span>
+          </div>
+          <div class="dato">
+            <span class="dato-label">Primer Apellido</span>
+            <span class="dato-valor">{{ miQr()?.alumno?.primerApellido }}</span>
+          </div>
+          <div class="dato">
+            <span class="dato-label">Segundo Apellido</span>
+            <span class="dato-valor">{{ miQr()?.alumno?.segundoApellido || '—' }}</span>
+          </div>
+          <div class="dato">
+            <span class="dato-label">Usuario</span>
+            <span class="dato-valor">{{ miQr()?.alumno?.username }}</span>
+          </div>
+          <div class="dato">
+            <span class="dato-label">Grado</span>
+            <span class="dato-valor">{{ miQr()?.alumno?.grado }}</span>
+          </div>
+          <div class="dato">
+            <span class="dato-label">Sede</span>
+            <span class="dato-valor">{{ miQr()?.alumno?.sede }}</span>
+          </div>
+        </div>
+
+        <div class="qr-wrapper">
+          @if (cargando) {
+            <div class="qr-placeholder">Generando código...</div>
+          } @else if (qrDataUrl()) {
+            <img [src]="qrDataUrl()" alt="Código QR de asistencia" class="qr-image" />
+          }
+        </div>
+
+        <div class="qr-footer">
+          <span class="refresh-hint">
+            Se renueva en {{ segundosParaRenovar() }}s
+          </span>
+          <button type="button" class="btn-copy" (click)="copiarToken()">Copiar código</button>
+        </div>
+      </div>
+
+      <div class="historial-card">
+        <h3>Mi historial de asistencias</h3>
+        @if (asistencias.length === 0) {
+          <p class="empty-state">Todavía no tienes asistencias registradas</p>
+        } @else {
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Fecha</th>
+                <th>Grado</th>
+                <th>Sede</th>
+                <th>Estado</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (a of asistenciasPagina; track a.registroId ?? a.id) {
+                <tr>
+                  <td data-label="Fecha">{{ a.fecha | date:'dd/MM/yyyy' }}</td>
+                  <td data-label="Grado">{{ a.grado }}</td>
+                  <td data-label="Sede">{{ a.sede }}</td>
+                  <td data-label="Estado">
+                    <span class="status-badge" [class.status-presente]="a.registroId !== null">
+                      {{ a.registroId !== null ? 'Presente' : 'Sin registro' }}
+                    </span>
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+          <app-paginacion
+            [total]="asistencias.length"
+            [pagina]="pagina"
+            (cambiarPagina)="pagina = $event"></app-paginacion>
+        }
+      </div>
+    </div>
+  }
+</div>

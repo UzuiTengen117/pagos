@@ -6,6 +6,7 @@ import { Precio } from '../models/precio.model';
 import { Comprobante } from '../models/comprobante.model';
 import { Inscripcion } from '../models/inscripcion.model';
 import { SolicitudReembolso } from '../models/reembolso.model';
+import { MiQrAlumno, MiAsistencia, SesionClase, AlumnoEnSesion, ResultadoRegistro } from '../models/asistencia.model';
 
 export function mapRol(backendRol: string): RolUsuario {
   switch (backendRol) {
@@ -269,5 +270,82 @@ export function mapInscripcionToBackend(inscripcion: any): any {
     estado: inscripcion.estado || 'pendiente',
     metodo_pago: inscripcion.metodoPago || 'efectivo',
     notas: inscripcion.notas || '',
+  };
+}
+
+export function mapMiQrAlumnoFromBackend(data: any): MiQrAlumno {
+  return {
+    id: data.id,
+    nombre: data.nombre || '',
+    primerApellido: data.primer_apellido || '',
+    segundoApellido: data.segundo_apellido || '',
+    username: data.username || '',
+    grado: data.grado || '',
+    sede: data.sede || '',
+    email: data.email || '',
+    foto: data.foto || '',
+  };
+}
+
+export function mapMiAsistenciaFromBackend(data: any): MiAsistencia {
+  return {
+    id: data.id,
+    grado: data.grado || '',
+    sede: data.sede || '',
+    fecha: data.fecha,
+    abierta: data.abierta === true,
+    registroId: data.registro_id ?? null,
+    metodo: data.metodo || null,
+    registradoAt: data.registrado_at || null,
+  };
+}
+
+export function mapSesionFromBackend(data: any): SesionClase {
+  return {
+    id: data.id,
+    grado: data.grado || '',
+    sede: data.sede || '',
+    fecha: data.fecha,
+    profesorId: data.profesor_id,
+    abierta: data.abierta === true,
+    createdAt: data.created_at,
+    cerradaAt: data.cerrada_at || null,
+    profesorNombre: data.profesor_nombre || '',
+    profesorApellido: data.profesor_apellido || '',
+    totalAsistencias: data.total_asistencias ?? 0,
+  };
+}
+
+export function mapAlumnoEnSesionFromBackend(data: any): AlumnoEnSesion {
+  return {
+    id: data.id,
+    nombre: data.nombre || '',
+    primerApellido: data.primer_apellido || '',
+    segundoApellido: data.segundo_apellido || '',
+    grado: data.grado || '',
+    sede: data.sede || '',
+    foto: data.foto || '',
+    asistenciaId: data.asistencia_id ?? null,
+    metodo: data.metodo || null,
+    registradoAt: data.registrado_at || null,
+  };
+}
+
+export function mapResultadoRegistroFromBackend(data: any): ResultadoRegistro {
+  const a = data.alumno || {};
+  return {
+    id: data.id,
+    sesionId: data.sesion_id,
+    alumnoId: data.alumno_id,
+    metodo: data.metodo || 'qr',
+    duplicado: data.duplicado === true,
+    alumno: {
+      id: a.id,
+      nombre: a.nombre || '',
+      primer_apellido: a.primer_apellido || '',
+      segundo_apellido: a.segundo_apellido || '',
+      grado: a.grado || '',
+      sede: a.sede || '',
+    },
   };
 }

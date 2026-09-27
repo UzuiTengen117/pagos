@@ -1,0 +1,166 @@
+<div class="page-container">
+  <div class="page-header">
+    <h2>Tomar Asistencia por QR</h2>
+    <p class="page-subtitle">Abre la clase del grupo y escanea el código de cada alumno</p>
+  </div>
+
+  @if (!sesion()) {
+    <div class="abrir-card">
+      <h3>Abrir clase</h3>
+      <div class="form-row">
+        <div class="form-group">
+          <label for="grado">Grado</label>
+          <select id="grado" [(ngModel)]="grado">
+            <option value="">Selecciona un grado</option>
+            @for (g of gradosDisponibles; track g) {
+              <option [value]="g">{{ g }}</option>
+            }
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="sede">Sede</label>
+          <select id="sede" [(ngModel)]="sede">
+            <option value="">Selecciona una sede</option>
+            @for (s of sedes; track s) {
+              <option [value]="s">{{ s }}</option>
+            }
+          </select>
+        </div>
+      </div>
+      <button type="button" class="btn-primary" (click)="abrirSesion()">Abrir clase</button>
+    </div>
+  } @else {
+    <div class="sesion-header">
+      <div class="sesion-info">
+        <span class="sesion-badge">Clase abierta</span>
+        <h3>{{ sesion()?.grado }} · {{ sesion()?.sede }}</h3>
+        <p class="sesion-fecha">{{ sesion()?.fecha | date:'dd/MM/yyyy' }}</p>
+      </div>
+      <div class="sesion-stats">
+        <div class="stat">
+          <span class="stat-value">{{ totalPresentes }}/{{ totalAlumnos }}</span>
+          <span class="stat-label">Presentes</span>
+        </div>
+      </div>
+      <button type="button" class="btn-danger" (click)="cerrarSesion()">Cerrar clase</button>
+    </div>
+  }
+
+  <!-- El <video> queda siempre en el DOM: si estuviera dentro de un @if,
+       el elemento aun no existiria cuando se intenta iniciar la camara. -->
+  <div class="escaner-grid">
+    <div class="camara-card">
+      <div class="video-frame" [class.activo]="camaraActiva()">
+        <video #video playsinline muted class="video"></video>
+        @if (!sesion()) {
+          <div class="video-overlay">
+            <p>Abre una clase para empezar a escanear</p>
+          </div>
+        } @else if (!camaraActiva()) {
+          <div class="video-overlay">
+            <p>Cámara apagada</p>
+          </div>
+        } @else if (procesando()) {
+          <div class="video-overlay">
+            <p>Registrando...</p>
+          </div>
+        }
+      </div>
+
+      @if (errorCamara()) {
+        <p class="error-text">{{ errorCamara() }}</p>
+      }
+
+      <button
+        type="button"
+        class="btn-secondary"
+        [disabled]="!sesion()"
+        (click)="alternarCamara()">
+        {{ camaraActiva() ? 'Apagar cámara' : 'Encender cámara' }}
+      </button>
+
+      <div class="manual-fallback">
+        <label for="codigo">O escribe el código a mano</label>
+        <div class="manual-row">
+          <input
+            id="codigo"
+            type="text"
+            [(ngModel)]="codigoManual"
+            placeholder="AMTKD1..."
+            autocomplete="off"
+            [disabled]="!sesion()"
+            (keyup.enter)="registrarManual()" />
+          <button type="button" class="btn-primary" [disabled]="!sesion()" (click)="registrarManual()">
+            Registrar
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div class="resultados-card">
+      <h3>Últimos registros</h3>
+      @if (ultimosRegistros().length === 0) {
+        <p class="empty-state">Aún no escaneas ningún código</p>
+      } @else {
+        <ul class="resultado-list">
+          @for (r of ultimosRegistros(); track $index) {
+            <li class="resultado" [class.ok]="r.ok" [class.fail]="!r.ok">
+              {{ r.mensaje }}
+            </li>
+          }
+        </ul>
+      }
+    </div>
+  </div>
+
+  @if (sesion()) {
+    <div class="alumnos-card">
+      <h3>Alumnos del grupo</h3>
+      @if (alumnos().length === 0) {
+        <p class="empty-state">No hay alumnos registrados en este grado y sede</p>
+      } @else {
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Alumno</th>
+              <th>Grado</th>
+              <th>Sede</th>
+              <th>Estado</th>
+              <th>Acciones</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (a of alumnos(); track a.id) {
+              <tr [class.presente]="a.asistenciaId !== null">
+                <td data-label="Alumno">
+                  <div class="alumno-cell">
+                    @if (a.foto) {
+                      <img [src]="a.foto" alt="" class="alumno-mini" />
+                    } @else {
+                      <span class="alumno-inicial">{{ a.nombre.charAt(0) }}</span>
+                    }
+                    <span>{{ a.nombre }} {{ a.primerApellido }} {{ a.segundoApellido }}</span>
+                  </div>
+                </td>
+                <td data-label="Grado">{{ a.grado }}</td>
+                <td data-label="Sede">{{ a.sede }}</td>
+                <td data-label="Estado">
+                  <span class="status-badge" [class.status-presente]="a.asistenciaId !== null">
+                    {{ a.asistenciaId !== null ? 'Presente' : 'Pendiente' }}
+                  </span>
+                </td>
+                <td data-label="Acciones">
+                  @if (a.asistenciaId !== null) {
+                    <button type="button" class="btn-link" (click)="eliminarAsistencia(a)">Quitar</button>
+                  } @else {
+                    <button type="button" class="btn-link" (click)="registrarAlumnoManual(a)">Registrar</button>
+                  }
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      }
+    </div>
+  }
+</div>
