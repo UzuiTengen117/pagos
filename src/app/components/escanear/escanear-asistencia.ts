@@ -15,8 +15,15 @@ import { Subscription } from 'rxjs';
 import jsQR from 'jsqr';
 import { AsistenciasService } from '../../services/asistencias';
 import { AlumnosService } from '../../services/alumnos';
+import { AuthService } from '../../services/auth';
 import { NotificationService } from '../../services/notification';
 import { SesionClase, AlumnoEnSesion } from '../../models/asistencia.model';
+
+const GRADOS_CANONICOS = [
+  
+  'Cinta Negra 1er Dan',
+  'Cinta Negra 2do Dan',
+];
 
 // Pausa entre lecturas: la camara delivers ~30 frames por segundo y sin esto
 // el mismo QR se registraria decenas de veces por segundo.
@@ -33,8 +40,13 @@ const SCAN_INTERVAL_MS = 150;
 export class EscanearAsistencia implements OnInit, OnDestroy {
   private asistenciasService = inject(AsistenciasService);
   private alumnosService = inject(AlumnosService);
+  private authService = inject(AuthService);
   private notificationService = inject(NotificationService);
   private cdr = inject(ChangeDetectorRef);
+
+  // La clase siempre la abre el usuario en sesion, asi que su nombre se lee
+  // directo del signal en vez de preguntarlo en un selector.
+  currentUser = this.authService.currentUser;
 
   @ViewChild('video') videoRef?: ElementRef<HTMLVideoElement>;
 
@@ -90,14 +102,10 @@ export class EscanearAsistencia implements OnInit, OnDestroy {
     );
   }
 
-  // Los grados no son una lista fija: se derivan de los alumnos reales,
-  // porque en el sistema el grado es texto libre.
+  // Grados canonicos: lista fija en el orden que quieras que salga en el select.
+  // Se normalizan con .trim() para que no haya problemas de espacios.
   get gradosDisponibles(): string[] {
-    const grados = this.alumnosService
-      .getAll()
-      .map(a => a.grado)
-      .filter(g => !!g);
-    return [...new Set(grados)].sort();
+    return GRADOS_CANONICOS;
   }
 
   abrirSesion(): void {

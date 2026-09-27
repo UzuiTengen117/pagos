@@ -44,8 +44,8 @@ export class Sidebar {
     { label: 'Mis Comprobantes', route: '/alumno/comprobantes', icon: 'alumno-comprobantes', roles: ['estudiante'] },
     { label: 'Mis Solicitudes', route: '/alumno/solicitudes', icon: 'alumno-comprobantes', roles: ['estudiante'] },
     { label: 'Mi QR Asistencia', route: '/alumno/asistencia', icon: 'asistencia', roles: ['estudiante'] },
-    { label: 'Tomar Asistencia', route: '/asistencia/escanear', icon: 'escanear', roles: ['administrador', 'profesor'], permiso: 'asistencias' },
-    { label: 'Reporte de Asistencias', route: '/asistencia/reporte', icon: 'reporte', roles: ['administrador', 'profesor'], permiso: 'asistencias', accion: 'reportar' },
+    { label: 'Tomar Asistencia', route: '/asistencia/escanear', icon: 'escanear', roles: ['administrador', 'profesor'], permiso: 'asistencias', accion: 'ver:tomar_asistencia' },
+    { label: 'Reporte de Asistencias', route: '/asistencia/reporte', icon: 'reporte', roles: ['administrador', 'profesor'], permiso: 'asistencias', accion: 'ver:reporte_asistencias' },
     { label: 'Mi Perfil', route: '/perfil', icon: 'perfil', roles: ['administrador', 'profesor', 'estudiante'] },
   ];
 

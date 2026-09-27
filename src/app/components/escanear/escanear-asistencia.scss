@@ -44,7 +44,7 @@
 
 .form-row {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 1rem;
   margin-bottom: 1.25rem;
 }
@@ -74,6 +74,15 @@
       border-color: var(--border-input-focus);
       background: var(--bg-input-focus);
     }
+  }
+
+  // Campo que el usuario no elige: la clase la abre el de la sesion. El borde
+  // punteado y el fondo apagado lo dicen sin necesitar una etiqueta aparte.
+  input[type='text'].readonly {
+    background: var(--bg-card);
+    color: var(--text-secondary);
+    border-style: dashed;
+    cursor: default;
   }
 }
 

@@ -9,6 +9,16 @@
       <h3>Abrir clase</h3>
       <div class="form-row">
         <div class="form-group">
+          <label for="profesor">Profesor</label>
+          <input
+            id="profesor"
+            type="text"
+            class="readonly"
+            [value]="(currentUser()?.nombre ?? '') + ' ' + (currentUser()?.primerApellido ?? '')"
+            readonly
+            tabindex="-1" />
+        </div>
+        <div class="form-group">
           <label for="grado">Grado</label>
           <select id="grado" [(ngModel)]="grado">
             <option value="">Selecciona un grado</option>

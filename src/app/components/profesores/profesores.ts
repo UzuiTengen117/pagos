@@ -154,7 +154,6 @@ export class Profesores implements OnInit, OnDestroy {
   }
 
   private cargarModulosPermisos(): void {
-    if (this.modulosPermisos) return;
     this.permisosService.getModulos().subscribe({
       next: (modulos) => {
         this.modulosPermisos = modulos;
