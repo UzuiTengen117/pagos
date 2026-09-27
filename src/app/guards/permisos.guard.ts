@@ -23,9 +23,16 @@ export const permisosGuard: CanActivateFn = (route: ActivatedRouteSnapshot) => {
     return true;
   }
 
+  // Con `permisoAccion` se exige esa acción concreta en vez de cualquier acción
+  // del módulo: ver una clase en vivo no debe implicar el historial completo.
+  const accion = route.data['permisoAccion'] as string | undefined;
+  const cumple = accion
+    ? (permisos: string[]) => permisos.includes(`${modulo}:${accion}`)
+    : (permisos: string[]) => permisos.some(p => p.startsWith(`${modulo}:`));
+
   return permisosService.getMisPermisos().pipe(
     map(res => {
-      const ok = res.permisos.some(p => p.startsWith(`${modulo}:`));
+      const ok = cumple(res.permisos);
       if (!ok) {
         const rol = authService.currentUser()?.rol;
         if (rol === 'estudiante') {

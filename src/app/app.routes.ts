@@ -26,5 +26,6 @@ export const routes: Routes = [
   { path: 'alumno/solicitudes', loadComponent: () => import('./components/alumno/solicitudes/alumno-solicitudes').then(m => m.AlumnoSolicitudes), canActivate: [authGuard] },
   { path: 'alumno/asistencia', loadComponent: () => import('./components/alumno/asistencia/alumno-asistencia').then(m => m.AlumnoAsistencia), canActivate: [authGuard] },
   { path: 'asistencia/escanear', loadComponent: () => import('./components/escanear/escanear-asistencia').then(m => m.EscanearAsistencia), canActivate: [authGuard, roleGuard, permisosGuard], data: { roles: ['administrador', 'profesor'], permisoModulo: 'asistencias' } },
+  { path: 'asistencia/reporte', loadComponent: () => import('./components/reporte-asistencias/reporte-asistencias').then(m => m.ReporteAsistencias), canActivate: [authGuard, roleGuard, permisosGuard], data: { roles: ['administrador', 'profesor'], permisoModulo: 'asistencias', permisoAccion: 'reportar' } },
   { path: '**', redirectTo: '/login' },
 ];

@@ -10,6 +10,7 @@ interface MenuItem {
   icon: string;
   roles: string[];
   permiso?: string;
+  accion?: string;
 }
 
 @Component({
@@ -44,6 +45,7 @@ export class Sidebar {
     { label: 'Mis Solicitudes', route: '/alumno/solicitudes', icon: 'alumno-comprobantes', roles: ['estudiante'] },
     { label: 'Mi QR Asistencia', route: '/alumno/asistencia', icon: 'asistencia', roles: ['estudiante'] },
     { label: 'Tomar Asistencia', route: '/asistencia/escanear', icon: 'escanear', roles: ['administrador', 'profesor'], permiso: 'asistencias' },
+    { label: 'Reporte de Asistencias', route: '/asistencia/reporte', icon: 'reporte', roles: ['administrador', 'profesor'], permiso: 'asistencias', accion: 'reportar' },
     { label: 'Mi Perfil', route: '/perfil', icon: 'perfil', roles: ['administrador', 'profesor', 'estudiante'] },
   ];
 
@@ -65,6 +67,9 @@ export class Sidebar {
       if (rol === 'administrador') return true;
       if (!item.permiso) return true;
       if (this.permisos.length === 0) return true;
+      if (item.accion) {
+        return this.permisos.includes(`${item.permiso}:${item.accion}`);
+      }
       return this.permisos.some(p => p.startsWith(`${item.permiso}:`));
     });
   }

@@ -38,6 +38,9 @@ export interface SesionClase {
   profesorNombre?: string;
   profesorApellido?: string;
   totalAsistencias?: number;
+  // No viene del backend: se calcula en el reporte contando los alumnos
+  // registrados hoy en ese grado y sede.
+  totalEsperados?: number;
 }
 
 export interface AlumnoEnSesion {

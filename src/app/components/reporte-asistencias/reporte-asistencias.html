@@ -1,0 +1,187 @@
+<div class="page-container">
+  <div class="page-header">
+    <h2>Reporte de Asistencias</h2>
+  </div>
+
+  @if (error) {
+    <div class="alert alert-error">{{ error }}</div>
+  }
+
+  <div class="filters-bar">
+    <div class="filter-group">
+      <label>Sede</label>
+      <select [(ngModel)]="filtroSede" (change)="aplicarFiltros()">
+        <option value="">Todas las sedes</option>
+        @for (s of sedes; track s) {
+          <option [value]="s">{{ s }}</option>
+        }
+      </select>
+    </div>
+
+    <div class="filter-group">
+      <label>Grado</label>
+      <select [(ngModel)]="filtroGrado" (change)="aplicarFiltros()">
+        <option value="">Todos los grados</option>
+        @for (g of gradosDisponibles; track g) {
+          <option [value]="g">{{ g }}</option>
+        }
+      </select>
+    </div>
+
+    <div class="filter-group">
+      <label>Desde</label>
+      <input type="date" [(ngModel)]="fechaDesde" (change)="aplicarFiltros()" />
+    </div>
+
+    <div class="filter-group">
+      <label>Hasta</label>
+      <input type="date" [(ngModel)]="fechaHasta" (change)="aplicarFiltros()" />
+    </div>
+
+    @if (hayFiltros) {
+      <div class="filter-group">
+        <label>&nbsp;</label>
+        <button type="button" class="btn btn-secondary" (click)="limpiarFiltros()">Limpiar</button>
+      </div>
+    }
+  </div>
+
+  @if (cargando) {
+    <div class="loading">Cargando reporte...</div>
+  } @else if (sesionesFiltradas.length === 0) {
+    <div class="empty-state">
+      @if (hayFiltros) {
+        <p>No hay clases que coincidan con los filtros.</p>
+        <button type="button" class="btn btn-secondary" (click)="limpiarFiltros()">Limpiar filtros</button>
+      } @else {
+        <p>Todavia no hay clases registradas.</p>
+      }
+    </div>
+  } @else {
+    <p class="result-count">{{ total }} {{ total === 1 ? 'clase' : 'clases' }}</p>
+
+    <div class="table-wrapper">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th data-label="Fecha">Fecha</th>
+            <th data-label="Grado">Grado</th>
+            <th data-label="Sede">Sede</th>
+            <th data-label="Profesor">Profesor</th>
+            <th data-label="Asistieron">Asistieron</th>
+            <th data-label="Estado">Estado</th>
+            <th data-label="Acciones">Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (s of sesionesPagina; track s.id) {
+            <tr>
+              <td data-label="Fecha">{{ s.fecha | date: 'dd/MM/yyyy' }}</td>
+              <td data-label="Grado">{{ s.grado }}</td>
+              <td data-label="Sede">{{ s.sede }}</td>
+              <td data-label="Profesor">
+                {{ s.profesorNombre }} {{ s.profesorApellido }}
+              </td>
+              <td data-label="Asistieron">
+                <span class="contador">
+                  {{ s.totalAsistencias ?? 0 }} / {{ totalEsperadosDe(s.grado, s.sede) }}
+                </span>
+              </td>
+              <td data-label="Estado">
+                <span class="status-badge" [class.status-presente]="s.abierta" [class.status-cerrada]="!s.abierta">
+                  {{ s.abierta ? 'Abierta' : 'Cerrada' }}
+                </span>
+              </td>
+              <td data-label="Acciones">
+                <button type="button" class="btn-link" (click)="verDetalle(s)">Ver lista</button>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+
+    @if (total > pageSize) {
+      <app-paginacion
+        [total]="total"
+        [pageSize]="pageSize"
+        [pagina]="pagina"
+        (cambiarPagina)="cambiarPagina($event)"
+      />
+    }
+  }
+</div>
+
+@if (sesionSeleccionada) {
+  <div class="modal-overlay" (click)="cerrarDetalle()">
+    <div class="modal" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h3>
+          {{ sesionSeleccionada.grado }} - {{ sesionSeleccionada.sede }}
+        </h3>
+        <button type="button" class="btn-close" (click)="cerrarDetalle()">&times;</button>
+      </div>
+
+      <div class="modal-body">
+        <p class="detalle-subtitulo">
+          {{ sesionSeleccionada.fecha | date: 'dd/MM/yyyy' }} &middot;
+          {{ sesionSeleccionada.profesorNombre }} {{ sesionSeleccionada.profesorApellido }}
+        </p>
+
+        @if (cargandoDetalle) {
+          <div class="loading">Cargando alumnos...</div>
+        } @else {
+          <p class="result-count">
+            {{ presentesEnDetalle }} de {{ alumnosDetalle.length }} presentes
+          </p>
+          <div class="table-wrapper">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th data-label="Alumno">Alumno</th>
+                  <th data-label="Estado">Estado</th>
+                  <th data-label="Registro">Registro</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (a of alumnosDetalle; track a.id) {
+                  <tr [class.presente]="a.asistenciaId !== null">
+                    <td data-label="Alumno">
+                      <div class="alumno-cell">
+                        @if (a.foto) {
+                          <img [src]="a.foto" alt="" class="alumno-mini" />
+                        } @else {
+                          <span class="alumno-inicial">{{ a.nombre.charAt(0) }}</span>
+                        }
+                        <span>{{ a.nombre }} {{ a.primerApellido }} {{ a.segundoApellido }}</span>
+                      </div>
+                    </td>
+                    <td data-label="Estado">
+                      <span class="status-badge" [class.status-presente]="a.asistenciaId !== null">
+                        {{ a.asistenciaId !== null ? 'Presente' : 'Pendiente' }}
+                      </span>
+                    </td>
+                    <td data-label="Registro">
+                      @if (a.asistenciaId !== null) {
+                        <span class="text-muted">
+                          {{ a.metodo === 'qr' ? 'QR' : 'Manual' }} &middot;
+                          {{ a.registradoAt | date: 'dd/MM/yyyy HH:mm' }}
+                        </span>
+                      } @else {
+                        <span class="text-muted">-</span>
+                      }
+                    </td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        }
+      </div>
+
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" (click)="cerrarDetalle()">Cerrar</button>
+      </div>
+    </div>
+  </div>
+}
