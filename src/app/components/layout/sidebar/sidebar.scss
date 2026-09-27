@@ -50,6 +50,9 @@
     opacity: 0.7;
   }
 
+  /* No puede tomar el .btn-close del sistema: ese color de texto esta
+     pensado para superficies claras y aqui el fondo es oscuro, el boton se
+     volveria invisible. Si toma su movimiento, si su color. */
   .close-btn {
     display: none;
     background: none;
@@ -58,9 +61,18 @@
     cursor: pointer;
     padding: 0.25rem;
     border-radius: 6px;
+    transition:
+      transform var(--btn-press) var(--ease-out),
+      background-color var(--btn-hover) var(--ease-out);
 
-    &:hover {
-      background: var(--sidebar-nav-hover-bg);
+    &:active {
+      transform: scale(var(--btn-press-scale));
+    }
+
+    @media (hover: hover) and (pointer: fine) {
+      &:hover {
+        background: var(--sidebar-nav-hover-bg);
+      }
     }
 
     @media (max-width: 768px) {
@@ -148,12 +160,17 @@
     text-decoration: none;
     border-radius: 10px;
     margin-bottom: 0.25rem;
-    transition: all 0.2s;
     font-weight: 500;
+    transition:
+      background-color var(--btn-hover) var(--ease-out),
+      color var(--btn-hover) var(--ease-out),
+      box-shadow var(--btn-hover) var(--ease-out);
 
-    &:hover {
-      background: var(--sidebar-nav-hover-bg);
-      color: white;
+    @media (hover: hover) and (pointer: fine) {
+      &:hover {
+        background: var(--sidebar-nav-hover-bg);
+        color: white;
+      }
     }
 
     &.active {
@@ -181,10 +198,18 @@
     cursor: pointer;
     font-weight: 500;
     font-size: 0.9rem;
-    transition: all 0.2s;
+    transition:
+      transform var(--btn-press) var(--ease-out),
+      background-color var(--btn-hover) var(--ease-out);
 
-    &:hover {
-      background: rgba(239, 68, 68, 0.2);
+    &:active {
+      transform: scale(var(--btn-press-scale));
+    }
+
+    @media (hover: hover) and (pointer: fine) {
+      &:hover {
+        background: rgba(239, 68, 68, 0.2);
+      }
     }
   }
 }

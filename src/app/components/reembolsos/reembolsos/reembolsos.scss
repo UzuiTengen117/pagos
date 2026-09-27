@@ -35,10 +35,19 @@
     font-size: 0.9rem;
     color: #64748b;
     cursor: pointer;
-    transition: all 0.2s;
+    transition:
+      transform var(--btn-press) var(--ease-out),
+      background-color var(--btn-hover) var(--ease-out),
+      color var(--btn-hover) var(--ease-out);
 
-    &:hover {
-      background: #f1f5f9;
+    &:active {
+      transform: scale(var(--btn-press-scale));
+    }
+
+    @media (hover: hover) and (pointer: fine) {
+      &:hover {
+        background: var(--bg-card-hover);
+      }
     }
 
     &.active {
@@ -94,28 +103,6 @@
     }
   }
 
-  .btn {
-    padding: 0.65rem 1rem;
-    border-radius: 8px;
-    font-weight: 600;
-    font-size: 0.85rem;
-    cursor: pointer;
-    border: none;
-    display: inline-flex;
-    align-items: center;
-    gap: 0.4rem;
-    transition: all 0.2s;
-
-    &.btn-secondary {
-      background: #f3f4f6;
-      color: #374151;
-      border: 2px solid #e5e7eb;
-
-      &:hover {
-        background: #e5e7eb;
-      }
-    }
-  }
 }
 
 .data-table {
@@ -188,63 +175,6 @@
   gap: 0.5rem;
 }
 
-.btn-icon {
-  width: 32px;
-  height: 32px;
-  border: none;
-  border-radius: 8px;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: all 0.2s;
-
-  &.btn-aprobar {
-    background: #f0fdf4;
-    color: #16a34a;
-
-    &:hover {
-      background: #dcfce7;
-    }
-  }
-
-  &.btn-rechazar {
-    background: #fef2f2;
-    color: #ef4444;
-
-    &:hover {
-      background: #fee2e2;
-    }
-  }
-
-  &.btn-reabrir {
-    background: #f5f3ff;
-    color: #8b5cf6;
-
-    &:hover {
-      background: #ede9fe;
-    }
-  }
-
-  &.btn-edit {
-    background: #eff6ff;
-    color: #3b82f6;
-
-    &:hover {
-      background: #dbeafe;
-    }
-  }
-
-  &.btn-delete {
-    background: #fef2f2;
-    color: #ef4444;
-
-    &:hover {
-      background: #fee2e2;
-    }
-  }
-}
-
 .modal-overlay {
   position: fixed;
   top: 0;
@@ -292,20 +222,6 @@
   }
 }
 
-.btn-close {
-  background: none;
-  border: none;
-  color: #9ca3af;
-  cursor: pointer;
-  padding: 0.25rem;
-  border-radius: 6px;
-
-  &:hover {
-    background: #f3f4f6;
-    color: #374151;
-  }
-}
-
 .modal-body {
   padding: 1.5rem;
 }
@@ -343,47 +259,6 @@
     &:focus {
       border-color: #4f46e5;
       background: white;
-    }
-  }
-}
-
-.btn {
-  padding: 0.65rem 1.25rem;
-  border-radius: 8px;
-  font-weight: 600;
-  font-size: 0.85rem;
-  cursor: pointer;
-  border: none;
-  display: inline-flex;
-  align-items: center;
-  gap: 0.4rem;
-  transition: all 0.2s;
-
-  &.btn-primary {
-    background: #4f46e5;
-    color: white;
-
-    &:hover {
-      background: #4338ca;
-    }
-  }
-
-  &.btn-secondary {
-    background: #f3f4f6;
-    color: #374151;
-    border: 2px solid #e5e7eb;
-
-    &:hover {
-      background: #e5e7eb;
-    }
-  }
-
-  &.btn-danger {
-    background: #ef4444;
-    color: white;
-
-    &:hover {
-      background: #dc2626;
     }
   }
 }
@@ -550,32 +425,4 @@
     }
   }
 
-  .btn-icon {
-    &.btn-aprobar {
-      background: var(--success-bg);
-      color: var(--success);
-
-      &:hover {
-        background: var(--green-light);
-      }
-    }
-
-    &.btn-rechazar {
-      background: var(--danger-bg);
-      color: var(--danger);
-
-      &:hover {
-        background: var(--danger-light);
-      }
-    }
-
-    &.btn-reabrir {
-      background: var(--purple-bg);
-      color: var(--purple);
-
-      &:hover {
-        background: var(--purple-light);
-      }
-    }
-  }
 }

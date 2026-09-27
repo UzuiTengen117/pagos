@@ -31,6 +31,7 @@
   --primary-shadow: rgba(79, 70, 229, 0.4);
 
   --success: #059669;
+  --success-hover: #047857;
   --success-bg: #f0fdf4;
   --success-border: #bbf7d0;
   --success-text: #166534;
@@ -53,6 +54,7 @@
   --purple-light: #f3e8ff;
 
   --green: #16a34a;
+  --green-hover: #15803d;
   --green-bg: #f0fdf4;
   --green-light: #dcfce7;
 
@@ -101,6 +103,33 @@
 
   --input-readonly-bg: #f3f4f6;
   --input-readonly-border: #d1d5db;
+
+  --btn-neutral-bg: #f3f4f6;
+  --btn-neutral-hover: #e5e7eb;
+
+  /* Borde de las acciones terciarias. Necesita ~3:1 contra la tarjeta para
+     leerse como control: con el gris de inputs (1.2:1) el borde no se ve y
+     el diseno deja de decir "esto se pulsa". */
+  --btn-ghost-border: #94a3b8;
+
+  /* Los tonos base de cada familia estan pensados para relleno y borde.
+     Puestos como letra sobre su propio tinte no llegan a 4.5:1 (el rojo
+     daba 3.4:1, el azul 3.4:1, el verde 3.2:1, el ambar 3.1:1). Estos son
+     los pasos 700 equivalentes para cuando el color va como texto.
+     Verificados >= 4.5:1 contra su -bg y su -light. */
+  --danger-text: #b91c1c;
+  --warning-text: #b45309;
+  --info-text: #1d4ed8;
+  --purple-text: #7e22ce;
+  --green-text: #15803d;;
+
+  // Curvas y tiempos del sistema de botones. Los easings nativos de CSS son
+  // demasiado debiles; estas curvas se sienten intencionadas.
+  --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+  --ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
+  --btn-press: 130ms;
+  --btn-hover: 180ms;
+  --btn-press-scale: 0.97;
 }
 
 [data-theme="dark"] {
@@ -138,6 +167,7 @@
   --primary-shadow: rgba(99, 102, 241, 0.4);
 
   --success: #34d399;
+  --success-hover: #10b981;
   --success-bg: #064e3b;
   --success-border: #065f46;
   --success-text: #6ee7b7;
@@ -145,7 +175,7 @@
   --danger: #f87171;
   --danger-hover: #ef4444;
   --danger-bg: #450a0a;
-  --danger-light: #7f1d1d;
+  --danger-light: #4a1212;
 
   --warning: #fbbf24;
   --warning-bg: #451a03;
@@ -153,15 +183,16 @@
 
   --info: #60a5fa;
   --info-bg: #1e3a5f;
-  --info-light: #1e40af;
+  --info-light: #172554;
 
   --purple: #c084fc;
   --purple-bg: #3b0764;
-  --purple-light: #581c87;
+  --purple-light: #3b1660;
 
   --green: #4ade80;
+  --green-hover: #22c55e;
   --green-bg: #14532d;
-  --green-light: #166534;
+  --green-light: #12401f;
 
   --scrollbar-thumb: #475569;
   --scrollbar-thumb-hover: #64748b;
@@ -208,6 +239,16 @@
 
   --input-readonly-bg: #1e293b;
   --input-readonly-border: #475569;
+
+  --btn-neutral-bg: #334155;
+  --btn-neutral-hover: #475569;
+
+  --btn-ghost-border: #64748b;
+  --danger-text: #f87171;
+  --warning-text: #fbbf24;
+  --info-text: #60a5fa;
+  --purple-text: #c084fc;
+  --green-text: #4ade80;;
 }
 
 *, *::before, *::after {
@@ -232,6 +273,360 @@ a {
 
 button {
   font-family: inherit;
+}
+
+/* ==========================================================================
+   SISTEMA DE BOTONES
+   Fuente unica para todo el sitio. Un boton nuevo se arma con estas clases y
+   no se vuelve a definir dentro de un componente: los estilos de componente
+   de Angular llevan [_ngcontent-*], que gana en especificidad, asi que un
+   duplicado en un .scss se aplicaria en silencio y volveria a partir el
+   sitio en dos estilos.
+   ========================================================================== */
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  padding: 0.65rem 1.25rem;
+  border: 2px solid transparent;
+  border-radius: 8px;
+  font-family: inherit;
+  font-size: 0.85rem;
+  font-weight: 600;
+  line-height: 1.2;
+  text-align: center;
+  text-decoration: none;
+  white-space: nowrap;
+  flex-shrink: 0;
+  cursor: pointer;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+  transition:
+    transform var(--btn-press) var(--ease-out),
+    background-color var(--btn-hover) var(--ease-out),
+    border-color var(--btn-hover) var(--ease-out),
+    color var(--btn-hover) var(--ease-out);
+}
+
+/* Confirmacion de pulsacion. Sin esto el boton no parece escuchar al usuario:
+   el aguante al apretarlo es lo que hace que una interfaz se sienta viva. */
+.btn:active {
+  transform: scale(var(--btn-press-scale));
+}
+
+.btn:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+
+.btn:disabled,
+.btn[disabled] {
+  opacity: 0.55;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* Variantes de color. Todo pasa por variables, asi que el tema oscuro se
+   resuelve solo y no necesita un bloque de overrides propio. */
+.btn-primary {
+  background: var(--primary);
+  color: var(--text-on-primary);
+  border-color: var(--primary);
+}
+
+.btn-secondary {
+  background: var(--btn-neutral-bg);
+  color: var(--text-primary);
+  border-color: var(--border-input);
+}
+
+.btn-danger {
+  background: var(--danger);
+  color: #fff;
+  border-color: var(--danger);
+}
+
+.btn-success {
+  background: var(--success);
+  color: #fff;
+  border-color: var(--success);
+}
+
+.btn-print,
+.btn-print-sm {
+  background: var(--green-bg);
+  color: var(--green-text);
+  border-color: transparent;
+}
+
+.btn-upload {
+  background: var(--info-bg);
+  color: var(--info-text);
+  border-color: transparent;
+}
+
+/* El hover vive solo en punteros finos. En tactil :hover se dispara al tocar
+   y deja el boton resaltado sin que nadie haya pasado el cursor encima. */
+@media (hover: hover) and (pointer: fine) {
+  .btn-primary:hover {
+    background: var(--primary-hover);
+    border-color: var(--primary-hover);
+  }
+
+  .btn-secondary:hover {
+    background: var(--btn-neutral-hover);
+    border-color: var(--btn-neutral-hover);
+  }
+
+  .btn-danger:hover {
+    background: var(--danger-hover);
+    border-color: var(--danger-hover);
+  }
+
+  .btn-success:hover {
+    background: var(--success-hover);
+    border-color: var(--success-hover);
+  }
+
+  .btn-print:hover,
+  .btn-print-sm:hover {
+    background: var(--green-light);
+  }
+
+  .btn-upload:hover {
+    background: var(--info-light);
+  }
+}
+
+/* Modificadores de tamano */
+.btn-sm {
+  padding: 0.45rem 0.875rem;
+  font-size: 0.82rem;
+}
+
+.btn-lg {
+  padding: 0.875rem 1.5rem;
+  font-size: 1rem;
+}
+
+.btn-full {
+  width: 100%;
+}
+
+/* --- Botones de icono: cuadrados, para acciones de fila --- */
+
+.btn-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  background: var(--bg-card);
+  color: var(--text-secondary);
+  cursor: pointer;
+  flex-shrink: 0;
+  transition:
+    transform var(--btn-press) var(--ease-out),
+    background-color var(--btn-hover) var(--ease-out),
+    color var(--btn-hover) var(--ease-out);
+}
+
+.btn-icon:active {
+  transform: scale(var(--btn-press-scale));
+}
+
+.btn-icon:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+
+.btn-icon:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.btn-icon.btn-edit,
+.btn-icon.btn-role {
+  background: var(--purple-bg);
+  color: var(--purple-text);
+}
+
+.btn-icon.btn-delete {
+  background: var(--danger-bg);
+  color: var(--danger-text);
+}
+
+.btn-icon.btn-view {
+  background: var(--info-bg);
+  color: var(--info-text);
+}
+
+.btn-icon.btn-print {
+  background: var(--green-bg);
+  color: var(--green-text);
+}
+
+.btn-icon.btn-cancel,
+.btn-icon.btn-rechazar,
+.btn-icon.btn-reabrir,
+.btn-icon.btn-reembolso {
+  background: var(--warning-bg);
+  color: var(--warning-text);
+}
+
+.btn-icon.btn-aprobar {
+  background: var(--success-bg);
+  color: var(--success-text);
+}
+
+.btn-icon.btn-copy {
+  background: var(--bg-card-hover);
+  color: var(--text-secondary);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .btn-icon.btn-edit:hover,
+  .btn-icon.btn-role:hover {
+    background: var(--purple-light);
+  }
+
+  .btn-icon.btn-delete:hover {
+    background: var(--danger-light);
+  }
+
+  .btn-icon.btn-view:hover {
+    background: var(--info-light);
+  }
+
+  .btn-icon.btn-print:hover {
+    background: var(--green-light);
+  }
+
+  .btn-icon.btn-cancel:hover,
+  .btn-icon.btn-rechazar:hover,
+  .btn-icon.btn-reabrir:hover,
+  .btn-icon.btn-reembolso:hover {
+    background: var(--warning-light);
+  }
+
+  .btn-icon.btn-copy:hover {
+    background: var(--border-input);
+  }
+}
+
+/* --- Acciones terciarias dentro de una fila: "Ver lista", "Quitar" ---
+   Un texto subrayado en medio de una tabla se lee como cuerpo de texto y
+   el usuario lo pasa por alto, porque no parece pulsable. El borde lo
+   delata como accion y de paso agranda el area de click, que el enlace
+   desnudo deja por debajo de lo comodo en movil. Siguen siendo terciarias:
+   el borde las separa de un .btn primario sin competir con el. */
+.btn-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.3rem 0.6rem;
+  border: 1px solid var(--btn-ghost-border);
+  border-radius: 6px;
+  background: transparent;
+  color: var(--primary);
+  font-family: inherit;
+  font-size: 0.78rem;
+  font-weight: 600;
+  line-height: 1.2;
+  text-decoration: none;
+  white-space: nowrap;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition:
+    transform var(--btn-press) var(--ease-out),
+    background-color var(--btn-hover) var(--ease-out),
+    border-color var(--btn-hover) var(--ease-out),
+    color var(--btn-hover) var(--ease-out);
+}
+
+.btn-link:active {
+  transform: scale(var(--btn-press-scale));
+}
+
+.btn-link:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+
+.btn-link-danger {
+  color: var(--danger-text);
+  border-color: var(--danger);
+}
+
+/* Dos acciones seguidas en la misma celda necesitan aire entre ellas. Se
+   separa con el hermano adyacente y no con un margen fijo en cada boton,
+   para que el hueco no dependa de cual se renderice primero. */
+.btn-link + .btn-link {
+  margin-left: 0.5rem;
+}
+
+/* --- Cerrar modal --- */
+
+.btn-close {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border: none;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+  flex-shrink: 0;
+  transition:
+    transform var(--btn-press) var(--ease-out),
+    background-color var(--btn-hover) var(--ease-out),
+    color var(--btn-hover) var(--ease-out);
+}
+
+.btn-close:active {
+  transform: scale(var(--btn-press-scale));
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .btn-close:hover {
+    background: var(--bg-card-hover);
+    color: var(--text-primary);
+  }
+
+  .btn-link:hover {
+    background: var(--primary-lighter);
+    border-color: var(--primary);
+    color: var(--primary-hover);
+  }
+
+  .btn-link-danger:hover {
+    background: var(--danger-light);
+    border-color: var(--danger-text);
+    color: var(--danger-text);
+  }
+}
+
+/* Con movimiento reducido se conserva el cambio de color, que ayuda a
+   entender el estado, y se quita el desplazamiento. */
+@media (prefers-reduced-motion: reduce) {
+  .btn,
+  .btn-icon,
+  .btn-close,
+  .btn-link {
+    transform: none !important;
+    transition:
+      background-color var(--btn-hover) ease,
+      border-color var(--btn-hover) ease,
+      color var(--btn-hover) ease;
+  }
 }
 
 ::-webkit-scrollbar {
@@ -477,14 +872,6 @@ html[data-theme="dark"] {
     }
   }
 
-  .btn-secondary {
-    background: var(--bg-input) !important;
-    color: var(--text-label) !important;
-    border-color: var(--border-input) !important;
-
-    &:hover { background: var(--border-primary) !important; }
-  }
-
   .table-card { border: 1px solid var(--border-primary) !important; }
 
   .data-table {
@@ -512,14 +899,6 @@ html[data-theme="dark"] {
     &.badge-none { background: var(--bg-input) !important; color: var(--text-muted) !important; }
   }
 
-  .btn-icon {
-    &.btn-view { background: var(--info-bg) !important; color: var(--info) !important; &:hover { background: var(--info-light) !important; } }
-    &.btn-print { background: var(--green-bg) !important; color: var(--green) !important; &:hover { background: var(--green-light) !important; } }
-    &.btn-edit { background: var(--purple-bg) !important; color: var(--purple) !important; &:hover { background: var(--purple-light) !important; } }
-    &.btn-cancel { background: var(--warning-bg) !important; color: var(--warning) !important; &:hover { background: var(--warning-light) !important; } }
-    &.btn-delete { background: var(--danger-bg) !important; color: var(--danger) !important; &:hover { background: var(--danger-light) !important; } }
-  }
-
   .modal-overlay { background: var(--bg-overlay) !important; }
 
   .modal {
@@ -530,11 +909,6 @@ html[data-theme="dark"] {
   .modal-header {
     border-bottom-color: var(--border-modal) !important;
     h3 { color: var(--text-page-title) !important; }
-  }
-
-  .btn-close {
-    color: var(--text-muted) !important;
-    &:hover { background: var(--bg-input) !important; color: var(--text-label) !important; }
   }
 
   .modal-footer { border-top-color: var(--border-modal) !important; }
@@ -548,10 +922,6 @@ html[data-theme="dark"] {
       &:focus { border-color: var(--border-input-focus) !important; background: var(--bg-input-focus) !important; }
     }
   }
-
-  .btn-primary { background: var(--primary) !important; &:hover { background: var(--primary-hover) !important; } }
-  .btn-danger { background: var(--danger) !important; &:hover { background: var(--danger-hover) !important; } }
-  .btn-print-sm { background: var(--success) !important; &:hover { filter: brightness(0.85) !important; } }
 
   .input-readonly { background: var(--input-readonly-bg) !important; color: var(--text-muted) !important; border-color: var(--input-readonly-border) !important; }
 
@@ -643,8 +1013,6 @@ html[data-theme="dark"] {
   .badge-mensualidad { background: var(--info-bg) !important; color: var(--info) !important; }
   .badge-semanal { background: var(--success-bg) !important; color: var(--success-text) !important; }
   .badge-otro { background: var(--purple-bg) !important; color: var(--purple) !important; }
-
-  .btn-role { background: var(--purple-bg) !important; color: var(--purple) !important; &:hover { background: var(--purple-light) !important; } }
 
   .status-pagado { background: var(--status-activo-bg) !important; color: var(--status-activo-color) !important; }
   .status-pendiente { background: var(--warning-bg) !important; color: var(--warning) !important; }

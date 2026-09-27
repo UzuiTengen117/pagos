@@ -93,47 +93,6 @@
   }
 }
 
-.btn {
-  padding: 0.65rem 1.25rem;
-  border-radius: 8px;
-  font-weight: 600;
-  font-size: 0.85rem;
-  cursor: pointer;
-  border: none;
-  display: inline-flex;
-  align-items: center;
-  gap: 0.4rem;
-  transition: all 0.2s;
-
-  &.btn-primary {
-    background: #4f46e5;
-    color: white;
-
-    &:hover {
-      background: #4338ca;
-    }
-  }
-
-  &.btn-secondary {
-    background: #f3f4f6;
-    color: #374151;
-    border: 2px solid #e5e7eb;
-
-    &:hover {
-      background: #e5e7eb;
-    }
-  }
-
-  &.btn-danger {
-    background: #ef4444;
-    color: white;
-
-    &:hover {
-      background: #dc2626;
-    }
-  }
-}
-
 .table-card {
   background: white;
   border-radius: 14px;
@@ -188,36 +147,6 @@
 .actions {
   display: flex;
   gap: 0.5rem;
-}
-
-.btn-icon {
-  width: 32px;
-  height: 32px;
-  border: none;
-  border-radius: 8px;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: all 0.2s;
-
-  &.btn-edit {
-    background: #eff6ff;
-    color: #3b82f6;
-
-    &:hover {
-      background: #dbeafe;
-    }
-  }
-
-  &.btn-delete {
-    background: #fef2f2;
-    color: #ef4444;
-
-    &:hover {
-      background: #fee2e2;
-    }
-  }
 }
 
 .badge {
@@ -296,20 +225,6 @@
     font-weight: 700;
     color: #1e1b4b;
     margin: 0;
-  }
-}
-
-.btn-close {
-  background: none;
-  border: none;
-  color: #9ca3af;
-  cursor: pointer;
-  padding: 0.25rem;
-  border-radius: 6px;
-
-  &:hover {
-    background: #f3f4f6;
-    color: #374151;
   }
 }
 
@@ -546,36 +461,6 @@
     }
   }
 
-  .btn {
-    &.btn-primary {
-      background: var(--primary);
-      color: var(--text-on-primary);
-
-      &:hover {
-        background: var(--primary-hover);
-      }
-    }
-
-    &.btn-secondary {
-      background: var(--bg-input);
-      color: var(--text-label);
-      border-color: var(--border-input);
-
-      &:hover {
-        background: var(--border-primary);
-      }
-    }
-
-    &.btn-danger {
-      background: var(--danger);
-      color: var(--text-on-primary);
-
-      &:hover {
-        background: var(--danger-hover);
-      }
-    }
-  }
-
   .table-card {
     background: var(--bg-card);
     border: 1px solid var(--border-primary);
@@ -608,26 +493,6 @@
 
     .empty-state {
       color: var(--text-muted);
-    }
-  }
-
-  .btn-icon {
-    &.btn-edit {
-      background: var(--info-bg);
-      color: var(--info);
-
-      &:hover {
-        background: var(--info-light);
-      }
-    }
-
-    &.btn-delete {
-      background: var(--danger-bg);
-      color: var(--danger);
-
-      &:hover {
-        background: var(--danger-light);
-      }
     }
   }
 
@@ -667,15 +532,6 @@
 
     h3 {
       color: var(--text-page-title);
-    }
-  }
-
-  .btn-close {
-    color: var(--text-muted);
-
-    &:hover {
-      background: var(--bg-input);
-      color: var(--text-label);
     }
   }
 

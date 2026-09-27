@@ -77,67 +77,6 @@
   }
 }
 
-.btn-primary,
-.btn-secondary,
-.btn-danger {
-  padding: 0.625rem 1.125rem;
-  border: none;
-  border-radius: 8px;
-  font-size: 0.875rem;
-  font-weight: 600;
-  cursor: pointer;
-
-  &:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
-  }
-}
-
-.btn-primary:disabled:hover,
-.btn-secondary:disabled:hover {
-  background: var(--bg-input);
-}
-
-.btn-primary {
-  background: var(--primary);
-  color: var(--text-on-primary);
-
-  &:hover {
-    background: var(--primary-hover);
-  }
-}
-
-.btn-secondary {
-  background: var(--bg-input);
-  color: var(--text-primary);
-  border: 1px solid var(--border-input);
-  margin-top: 0.875rem;
-
-  &:hover {
-    background: var(--bg-card-hover);
-  }
-}
-
-.btn-danger {
-  background: var(--danger);
-  color: var(--text-on-primary);
-
-  &:hover {
-    background: var(--danger-hover);
-  }
-}
-
-.btn-link {
-  background: none;
-  border: none;
-  color: var(--primary);
-  font-size: 0.8rem;
-  font-weight: 600;
-  cursor: pointer;
-  padding: 0;
-  text-decoration: underline;
-}
-
 .sesion-header {
   display: flex;
   align-items: center;

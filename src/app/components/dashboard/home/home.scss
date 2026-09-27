@@ -42,33 +42,6 @@
   }
 }
 
-.download-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.5rem;
-  background: white;
-  color: #4f46e5;
-  border: none;
-  border-radius: 10px;
-  padding: 0.7rem 1.1rem;
-  font-weight: 700;
-  font-size: 0.85rem;
-  cursor: pointer;
-  transition: all 0.2s;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
-  flex-shrink: 0;
-
-  &:hover {
-    background: #eef2ff;
-    transform: translateY(-1px);
-  }
-
-  @media (max-width: 480px) {
-    width: 100%;
-    justify-content: center;
-  }
-}
-
 .stats-grid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
@@ -269,23 +242,6 @@
   }
 }
 
-.btn-close {
-  background: none;
-  border: none;
-  cursor: pointer;
-  color: #94a3b8;
-  padding: 0.25rem;
-  border-radius: 6px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-
-  &:hover {
-    background: #f1f5f9;
-    color: #475569;
-  }
-}
-
 .modal-body {
   padding: 1.5rem;
 
@@ -310,47 +266,6 @@
   gap: 0.75rem;
   padding: 1.25rem 1.5rem;
   border-top: 1px solid #e5e7eb;
-}
-
-.btn {
-  padding: 0.65rem 1rem;
-  border-radius: 8px;
-  font-weight: 600;
-  font-size: 0.85rem;
-  cursor: pointer;
-  border: none;
-  display: inline-flex;
-  align-items: center;
-  gap: 0.4rem;
-  transition: all 0.2s;
-
-  &.btn-secondary {
-    background: #f3f4f6;
-    color: #374151;
-    border: 2px solid #e5e7eb;
-
-    &:hover {
-      background: #e5e7eb;
-    }
-  }
-
-  &.btn-primary {
-    background: #4f46e5;
-    color: white;
-
-    &:hover {
-      background: #4338ca;
-    }
-  }
-
-  &.btn-success {
-    background: #059669;
-    color: white;
-
-    &:hover {
-      background: #047857;
-    }
-  }
 }
 
 .form-group {
@@ -415,16 +330,6 @@
   .welcome-banner {
     background: var(--welcome-gradient);
     color: var(--text-on-primary);
-  }
-
-  .download-btn {
-    background: var(--bg-card);
-    color: var(--primary);
-    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
-
-    &:hover {
-      background: var(--bg-card-hover);
-    }
   }
 
   .stat-card {
@@ -495,51 +400,12 @@
     }
   }
 
-  .btn-close {
-    color: var(--text-muted);
-
-    &:hover {
-      background: var(--bg-input);
-      color: var(--text-label);
-    }
-  }
-
   .modal-body p {
     color: var(--text-secondary);
   }
 
   .modal-footer {
     border-top-color: var(--border-modal);
-  }
-
-  .btn {
-    &.btn-secondary {
-      background: var(--bg-input);
-      color: var(--text-label);
-      border-color: var(--border-input);
-
-      &:hover {
-        background: var(--border-primary);
-      }
-    }
-
-    &.btn-primary {
-      background: var(--primary);
-      color: var(--text-on-primary);
-
-      &:hover {
-        background: var(--primary-hover);
-      }
-    }
-
-    &.btn-success {
-      background: var(--success);
-      color: var(--text-on-primary);
-
-      &:hover {
-        filter: brightness(0.85);
-      }
-    }
   }
 
   .form-group {

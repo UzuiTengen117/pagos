@@ -56,46 +56,6 @@
   }
 }
 
-.btn {
-  padding: 0.65rem 1.25rem;
-  border-radius: 8px;
-  font-weight: 600;
-  font-size: 0.85rem;
-  cursor: pointer;
-  border: none;
-  display: inline-flex;
-  align-items: center;
-  gap: 0.4rem;
-  transition: all 0.2s;
-
-  &.btn-secondary {
-    background: #f3f4f6;
-    color: #374151;
-    border: 2px solid #e5e7eb;
-    &:hover { background: #e5e7eb; }
-  }
-  &.btn-print-sm {
-    background: #059669;
-    color: white;
-    padding: 0.5rem 1rem;
-    &:hover { background: #047857; }
-  }
-  &.btn-primary {
-    background: #4f46e5;
-    color: white;
-    &:hover { background: #4338ca; }
-    &:disabled { opacity: 0.6; cursor: not-allowed; }
-  }
-  &.btn-reembolso {
-    background: #faf5ff;
-    color: #7e22ce;
-    border: 2px solid #e9d5ff;
-    padding: 0.35rem 0.75rem;
-    font-size: 0.8rem;
-    &:hover { background: #f3e8ff; }
-  }
-}
-
 .table-card {
   background: white;
   border-radius: 14px;
@@ -160,21 +120,6 @@
 
 .actions { display: flex; gap: 0.5rem; }
 
-.btn-icon {
-  width: 32px;
-  height: 32px;
-  border: none;
-  border-radius: 8px;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: all 0.2s;
-
-  &.btn-view { background: #eff6ff; color: #3b82f6; &:hover { background: #dbeafe; } }
-  &.btn-print { background: #f0fdf4; color: #16a34a; &:hover { background: #dcfce7; } }
-}
-
 .modal-overlay {
   position: fixed;
   top: 0; left: 0; right: 0; bottom: 0;
@@ -211,16 +156,6 @@
 
   h3 { font-size: 1.1rem; font-weight: 700; color: #1e1b4b; margin: 0; }
   .header-actions { display: flex; align-items: center; gap: 0.75rem; }
-}
-
-.btn-close {
-  background: none;
-  border: none;
-  color: #9ca3af;
-  cursor: pointer;
-  padding: 0.25rem;
-  border-radius: 6px;
-  &:hover { background: #f3f4f6; color: #374151; }
 }
 
 .modal-body { padding: 1.5rem; }
@@ -403,44 +338,6 @@
     }
   }
 
-  .btn-secondary {
-    background: var(--bg-input);
-    color: var(--text-label);
-    border-color: var(--border-input);
-
-    &:hover {
-      background: var(--border-primary);
-    }
-  }
-
-  .btn-primary {
-    background: var(--primary);
-    color: var(--text-on-primary);
-
-    &:hover {
-      background: var(--primary-hover);
-    }
-  }
-
-  .btn-print-sm {
-    background: var(--success);
-    color: var(--text-on-primary);
-
-    &:hover {
-      filter: brightness(0.85);
-    }
-  }
-
-  .btn-reembolso {
-    background: var(--purple-bg);
-    color: var(--purple);
-    border-color: var(--purple-light);
-
-    &:hover {
-      background: var(--purple-light);
-    }
-  }
-
   .data-table {
     thead {
       background: var(--bg-input);
@@ -503,11 +400,6 @@
     }
   }
 
-  .btn-icon {
-    &.btn-view { background: var(--info-bg); color: var(--info); &:hover { background: var(--info-light); } }
-    &.btn-print { background: var(--green-bg); color: var(--green); &:hover { background: var(--green-light); } }
-  }
-
   .modal-overlay {
     background: var(--bg-overlay);
   }
@@ -522,15 +414,6 @@
 
     h3 {
       color: var(--text-page-title);
-    }
-  }
-
-  .btn-close {
-    color: var(--text-muted);
-
-    &:hover {
-      background: var(--bg-input);
-      color: var(--text-label);
     }
   }
 
