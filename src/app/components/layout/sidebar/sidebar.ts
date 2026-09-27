@@ -1,8 +1,9 @@
-import { Component, inject, input, output } from '@angular/core';
+import { Component, inject, input, output, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterLink, RouterLinkActive } from '@angular/router';
+import { RouterLink, RouterLinkActive, Router, NavigationEnd } from '@angular/router';
 import { AuthService } from '../../../services/auth';
 import { PermisosService } from '../../../services/permisos';
+import { Subscription, filter } from 'rxjs';
 
 interface MenuItem {
   label: string;
@@ -20,14 +21,16 @@ interface MenuItem {
   templateUrl: './sidebar.html',
   styleUrl: './sidebar.scss',
 })
-export class Sidebar {
+export class Sidebar implements OnInit, OnDestroy {
   authService = inject(AuthService);
   private permisosService = inject(PermisosService);
+  private router = inject(Router);
   sidebarOpen = input<boolean>(true);
   closeSidebar = output<void>();
 
   currentUser = this.authService.currentUser;
   permisos: string[] = [];
+  private routerSub?: Subscription;
 
   menuItems: MenuItem[] = [
     { label: 'Inicio', route: '/home', icon: 'home', roles: ['administrador', 'profesor'] },
@@ -49,7 +52,18 @@ export class Sidebar {
     { label: 'Mi Perfil', route: '/perfil', icon: 'perfil', roles: ['administrador', 'profesor', 'estudiante'] },
   ];
 
-  constructor() {
+  ngOnInit(): void {
+    this.cargarPermisos();
+    this.routerSub = this.router.events
+      .pipe(filter(e => e instanceof NavigationEnd))
+      .subscribe(() => this.cargarPermisos());
+  }
+
+  ngOnDestroy(): void {
+    this.routerSub?.unsubscribe();
+  }
+
+  private cargarPermisos(): void {
     this.permisosService.getMisPermisos().subscribe({
       next: (res) => {
         this.permisos = res.permisos;
