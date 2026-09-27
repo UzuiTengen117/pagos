@@ -8,6 +8,7 @@ import {
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpErrorResponse } from '@angular/common/http';
+import * as XLSX from 'xlsx';
 import { AsistenciasService } from '../../services/asistencias';
 import { AlumnosService } from '../../services/alumnos';
 import { AuthService } from '../../services/auth';
@@ -199,6 +200,53 @@ export class ReporteAsistencias implements OnInit {
 
   get presentesEnDetalle(): number {
     return this.alumnosDetalle.filter((a) => a.asistenciaId !== null).length;
+  }
+
+  // Excel no acepta ciertos caracteres en nombres de archivo ni de hoja, y el
+  // grado/sede son texto libre en este sistema: hay que sanearlos o el archivo
+  // se descarga corrupto o con el nombre que el navegador decide.
+  private sanea(texto: string): string {
+    return (texto || '')
+      .replace(/[\\/:*?"<>|]/g, '-')
+      .replace(/\s+/g, '_')
+      .slice(0, 40);
+  }
+
+  descargarDetalleExcel(): void {
+    const sesion = this.sesionSeleccionada;
+    if (!sesion || this.alumnosDetalle.length === 0) return;
+
+    const datos = this.alumnosDetalle.map(a => ({
+      'Alumno': `${a.nombre} ${a.primerApellido} ${a.segundoApellido}`.trim(),
+      'Grado': a.grado,
+      'Sede': a.sede,
+      'Asistio': a.asistenciaId !== null ? 'Si' : 'No',
+      'Hora de registro': a.registradoAt
+        ? new Date(a.registradoAt).toLocaleString('es-MX')
+        : '-',
+    }));
+
+    const ws: XLSX.WorkSheet = XLSX.utils.json_to_sheet(datos);
+    const wb: XLSX.WorkBook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'Asistencia');
+
+    ws['!cols'] = [
+      { wch: 34 },
+      { wch: 14 },
+      { wch: 14 },
+      { wch: 10 },
+      { wch: 20 },
+    ];
+
+    const nombre = [
+      'asistencia',
+      this.sanea(sesion.grado),
+      this.sanea(sesion.sede),
+      this.diaDe(sesion.fecha),
+    ].filter(Boolean).join('_');
+
+    XLSX.writeFile(wb, `${nombre}.xlsx`);
+    this.notificationService.success('Lista de asistencia descargada');
   }
 
   abrirConfirmacionEliminar(sesion: SesionClase): void {

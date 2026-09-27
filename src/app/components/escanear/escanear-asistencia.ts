@@ -109,8 +109,8 @@ export class EscanearAsistencia implements OnInit, OnDestroy {
       next: (sesion) => {
         this.sesion.set(sesion);
         this.cargarAlumnos(sesion.id);
-        this.notificationService.success('Clase abierta. Ya puedes escanear QR.');
-        this.iniciarCamara();
+        // La camara NO se enciende sola: el boton la controla durante toda la clase.
+        this.notificationService.success('Clase abierta. Enciende la cámara para escanear.');
         this.cdr.detectChanges();
       },
       error: (e: HttpErrorResponse) => {

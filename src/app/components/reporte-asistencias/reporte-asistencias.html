@@ -160,8 +160,11 @@
                       </div>
                     </td>
                     <td data-label="Estado">
-                      <span class="status-badge" [class.status-presente]="a.asistenciaId !== null">
-                        {{ a.asistenciaId !== null ? 'Presente' : 'Pendiente' }}
+                      <span
+                        class="status-badge"
+                        [class.status-presente]="a.asistenciaId !== null"
+                        [class.status-ausente]="a.asistenciaId === null">
+                        {{ a.asistenciaId !== null ? 'Asistió' : 'No asistió' }}
                       </span>
                     </td>
                     <td data-label="Registro">
@@ -183,6 +186,13 @@
       </div>
 
       <div class="modal-footer">
+        <button
+          type="button"
+          class="btn btn-primary"
+          [disabled]="cargandoDetalle || alumnosDetalle.length === 0"
+          (click)="descargarDetalleExcel()">
+          Descargar lista
+        </button>
         <button type="button" class="btn btn-secondary" (click)="cerrarDetalle()">Cerrar</button>
       </div>
     </div>

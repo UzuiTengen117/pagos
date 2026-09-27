@@ -178,6 +178,39 @@
   color: var(--danger);
 }
 
+.acciones {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  margin-top: 1.25rem;
+}
+
+.camara-btn {
+  min-width: 190px;
+}
+
+.camara-estado {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+
+  &.activa {
+    color: var(--success);
+  }
+
+  &.activa::before {
+    content: '';
+    display: inline-block;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--success);
+    margin-right: 0.375rem;
+    vertical-align: middle;
+  }
+}
+
 .manual-fallback {
   margin-top: 1.25rem;
   padding-top: 1.25rem;

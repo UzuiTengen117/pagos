@@ -286,6 +286,10 @@
     background: var(--success-bg);
     color: var(--success-text);
   }
+  &.status-ausente {
+    background: var(--danger-bg);
+    color: var(--danger-text);
+  }
   &.status-cerrada {
     background: var(--bg-input);
     color: var(--text-muted);

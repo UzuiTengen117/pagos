@@ -27,7 +27,16 @@
           </select>
         </div>
       </div>
-      <button type="button" class="btn btn-primary" (click)="abrirSesion()">Abrir clase</button>
+      <div class="acciones">
+        <button type="button" class="btn btn-primary" (click)="abrirSesion()">Abrir clase</button>
+        <button
+          type="button"
+          class="btn btn-secondary camara-btn"
+          [disabled]="!sesion()"
+          (click)="alternarCamara()">
+          {{ camaraActiva() ? 'Apagar cámara' : 'Encender cámara' }}
+        </button>
+      </div>
     </div>
   } @else {
     <div class="sesion-header">
@@ -42,7 +51,19 @@
           <span class="stat-label">Presentes</span>
         </div>
       </div>
-      <button type="button" class="btn btn-danger" (click)="cerrarSesion()">Cerrar clase</button>
+      <div class="acciones">
+        <button
+          type="button"
+          class="btn btn-secondary camara-btn"
+          [disabled]="!sesion()"
+          (click)="alternarCamara()">
+          {{ camaraActiva() ? 'Apagar cámara' : 'Encender cámara' }}
+        </button>
+        <span class="camara-estado" [class.activa]="camaraActiva()">
+          {{ camaraActiva() ? 'Cámara encendida' : 'Cámara apagada' }}
+        </span>
+        <button type="button" class="btn btn-danger" (click)="cerrarSesion()">Cerrar clase</button>
+      </div>
     </div>
   }
 
@@ -70,14 +91,6 @@
       @if (errorCamara()) {
         <p class="error-text">{{ errorCamara() }}</p>
       }
-
-      <button
-        type="button"
-        class="btn btn-secondary"
-        [disabled]="!sesion()"
-        (click)="alternarCamara()">
-        {{ camaraActiva() ? 'Apagar cámara' : 'Encender cámara' }}
-      </button>
 
       <div class="manual-fallback">
         <label for="codigo">O escribe el código a mano</label>
