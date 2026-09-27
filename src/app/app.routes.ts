@@ -25,7 +25,7 @@ export const routes: Routes = [
   { path: 'alumno/comprobantes', loadComponent: () => import('./components/alumno/comprobantes/alumno-comprobantes').then(m => m.AlumnoComprobantes), canActivate: [authGuard] },
   { path: 'alumno/solicitudes', loadComponent: () => import('./components/alumno/solicitudes/alumno-solicitudes').then(m => m.AlumnoSolicitudes), canActivate: [authGuard] },
   { path: 'alumno/asistencia', loadComponent: () => import('./components/alumno/asistencia/alumno-asistencia').then(m => m.AlumnoAsistencia), canActivate: [authGuard] },
-  { path: 'asistencia/escanear', loadComponent: () => import('./components/escanear/escanear-asistencia').then(m => m.EscanearAsistencia), canActivate: [authGuard, roleGuard, permisosGuard], data: { roles: ['administrador', 'profesor'], permisoModulo: 'asistencias' } },
-  { path: 'asistencia/reporte', loadComponent: () => import('./components/reporte-asistencias/reporte-asistencias').then(m => m.ReporteAsistencias), canActivate: [authGuard, roleGuard, permisosGuard], data: { roles: ['administrador', 'profesor'], permisoModulo: 'asistencias', permisoAccion: 'reportar' } },
+  { path: 'asistencia/escanear', loadComponent: () => import('./components/escanear/escanear-asistencia').then(m => m.EscanearAsistencia), canActivate: [authGuard, roleGuard, permisosGuard], data: { roles: ['administrador', 'profesor'], permisoModulo: 'asistencias', permisoAccion: 'ver:tomar_asistencia' } },
+  { path: 'asistencia/reporte', loadComponent: () => import('./components/reporte-asistencias/reporte-asistencias').then(m => m.ReporteAsistencias), canActivate: [authGuard, roleGuard, permisosGuard], data: { roles: ['administrador', 'profesor'], permisoModulo: 'asistencias', permisoAccion: 'ver:reporte_asistencias' } },
   { path: '**', redirectTo: '/login' },
 ];
