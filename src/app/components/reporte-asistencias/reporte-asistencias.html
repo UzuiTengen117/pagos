@@ -94,6 +94,9 @@
               </td>
               <td data-label="Acciones">
                 <button type="button" class="btn-link" (click)="verDetalle(s)">Ver lista</button>
+                @if (esAdmin) {
+                  <button type="button" class="btn-link btn-link-danger" (click)="abrirConfirmacionEliminar(s)">Eliminar</button>
+                }
               </td>
             </tr>
           }
@@ -181,6 +184,50 @@
 
       <div class="modal-footer">
         <button type="button" class="btn btn-secondary" (click)="cerrarDetalle()">Cerrar</button>
+      </div>
+    </div>
+  </div>
+}
+
+@if (sesionAEliminar) {
+  <div class="modal-overlay" (click)="cerrarConfirmacion()">
+    <div class="modal modal-sm" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h3>Confirmar Eliminacion</h3>
+        <button type="button" class="btn-close" (click)="cerrarConfirmacion()">
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+          </svg>
+        </button>
+      </div>
+
+      <div class="modal-body">
+        <div class="delete-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>
+          </svg>
+        </div>
+        <p>
+          Vas a eliminar la clase de
+          <strong>{{ sesionAEliminar.grado }}</strong> en
+          <strong>{{ sesionAEliminar.sede }}</strong> del
+          <strong>{{ sesionAEliminar.fecha | date: 'dd/MM/yyyy' }}</strong>.
+        </p>
+        <p class="warning-text">
+          Se eliminaran tambien sus
+          <strong>{{ sesionAEliminar.totalAsistencias ?? 0 }}</strong>
+          @(sesionAEliminar.totalAsistencias === 1 ? 'asistencia registrada' : 'asistencias registradas').
+          Esta accion no se puede deshacer.
+        </p>
+      </div>
+
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" (click)="cerrarConfirmacion()" [disabled]="eliminando">
+          Cancelar
+        </button>
+        <button type="button" class="btn btn-danger" (click)="confirmarEliminar()" [disabled]="eliminando">
+          {{ eliminando ? 'Eliminando...' : 'Eliminar' }}
+        </button>
       </div>
     </div>
   </div>

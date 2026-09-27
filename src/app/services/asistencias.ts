@@ -103,6 +103,12 @@ export class AsistenciasService {
     return this.http.delete<any>(`${this.apiUrl}/asistencias/${id}`);
   }
 
+  // Elimina la clase completa del reporte; el backend arrastra sus
+  // asistencias por cascada. Solo administradores.
+  deleteSesion(id: number): Observable<{ message: string; asistencias_eliminadas: number }> {
+    return this.http.delete<any>(`${this.apiUrl}/asistencias/sesiones/${id}`);
+  }
+
   getSedes(): string[] {
     return SEDES;
   }

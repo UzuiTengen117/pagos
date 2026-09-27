@@ -10,6 +10,7 @@ import { FormsModule } from '@angular/forms';
 import { HttpErrorResponse } from '@angular/common/http';
 import { AsistenciasService } from '../../services/asistencias';
 import { AlumnosService } from '../../services/alumnos';
+import { AuthService } from '../../services/auth';
 import { NotificationService } from '../../services/notification';
 import { SesionClase, AlumnoEnSesion } from '../../models/asistencia.model';
 import { Alumno } from '../../models/alumno.model';
@@ -26,6 +27,7 @@ import { paginar, PAGE_SIZE } from '../../utils/paginacion';
 export class ReporteAsistencias implements OnInit {
   private asistenciasService = inject(AsistenciasService);
   private alumnosService = inject(AlumnosService);
+  private authService = inject(AuthService);
   private notificationService = inject(NotificationService);
   private cdr = inject(ChangeDetectorRef);
 
@@ -46,6 +48,15 @@ export class ReporteAsistencias implements OnInit {
   sesionSeleccionada: SesionClase | null = null;
   alumnosDetalle: AlumnoEnSesion[] = [];
   cargandoDetalle = false;
+
+  sesionAEliminar: SesionClase | null = null;
+  eliminando = false;
+
+  // El backend restringe el borrado a administradores, pero el boton tambien
+  // se oculta: asi el profesor no ve un control que le va a fallar.
+  get esAdmin(): boolean {
+    return this.authService.currentUser()?.rol === 'administrador';
+  }
 
   constructor() {
     this.sedes = this.asistenciasService.getSedes();
@@ -188,5 +199,38 @@ export class ReporteAsistencias implements OnInit {
 
   get presentesEnDetalle(): number {
     return this.alumnosDetalle.filter((a) => a.asistenciaId !== null).length;
+  }
+
+  abrirConfirmacionEliminar(sesion: SesionClase): void {
+    this.sesionAEliminar = sesion;
+  }
+
+  cerrarConfirmacion(): void {
+    if (this.eliminando) return;
+    this.sesionAEliminar = null;
+  }
+
+  confirmarEliminar(): void {
+    const sesion = this.sesionAEliminar;
+    if (!sesion || this.eliminando) return;
+
+    this.eliminando = true;
+    this.asistenciasService.deleteSesion(sesion.id).subscribe({
+      next: (res) => {
+        this.eliminando = false;
+        this.sesionAEliminar = null;
+        this.cerrarDetalle();
+        this.pagina = 1;
+        this.cargarSesiones();
+        this.notificationService.success(res.message);
+      },
+      error: (e: HttpErrorResponse) => {
+        this.eliminando = false;
+        this.cdr.detectChanges();
+        this.notificationService.error(
+          e?.error?.message || 'No se pudo eliminar la clase'
+        );
+      },
+    });
   }
 }
