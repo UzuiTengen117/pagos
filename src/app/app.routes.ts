@@ -19,13 +19,16 @@ export const routes: Routes = [
   { path: 'precios', loadComponent: () => import('./components/precios/precios/precios').then(m => m.Precios), canActivate: [authGuard, roleGuard, permisosGuard], data: { roles: ['administrador', 'profesor'], permisoModulo: 'precios' } },
   { path: 'becas', loadComponent: () => import('./components/becas/becas/becas').then(m => m.Becas), canActivate: [authGuard, roleGuard, permisosGuard], data: { roles: ['administrador', 'profesor'], permisoModulo: 'becas' } },
   { path: 'reembolsos', loadComponent: () => import('./components/reembolsos/reembolsos/reembolsos').then(m => m.Reembolsos), canActivate: [authGuard, roleGuard, permisosGuard], data: { roles: ['administrador', 'profesor'], permisoModulo: 'solicitudes_reembolso' } },
+  { path: 'eventos', loadComponent: () => import('./components/eventos/eventos/eventos').then(m => m.Eventos), canActivate: [authGuard, roleGuard, permisosGuard], data: { roles: ['administrador', 'profesor'], permisoModulo: 'eventos' } },
 
   { path: 'alumno/home', loadComponent: () => import('./components/alumno/home/alumno-home').then(m => m.AlumnoHome), canActivate: [authGuard] },
   { path: 'alumno/pagos', loadComponent: () => import('./components/alumno/pagos/alumno-pagos').then(m => m.AlumnoPagos), canActivate: [authGuard] },
   { path: 'alumno/comprobantes', loadComponent: () => import('./components/alumno/comprobantes/alumno-comprobantes').then(m => m.AlumnoComprobantes), canActivate: [authGuard] },
   { path: 'alumno/solicitudes', loadComponent: () => import('./components/alumno/solicitudes/alumno-solicitudes').then(m => m.AlumnoSolicitudes), canActivate: [authGuard] },
   { path: 'alumno/asistencia', loadComponent: () => import('./components/alumno/asistencia/alumno-asistencia').then(m => m.AlumnoAsistencia), canActivate: [authGuard] },
+  { path: 'alumno/eventos', loadComponent: () => import('./components/alumno/eventos/alumno-eventos').then(m => m.AlumnoEventos), canActivate: [authGuard] },
   { path: 'asistencia/escanear', loadComponent: () => import('./components/escanear/escanear-asistencia').then(m => m.EscanearAsistencia), canActivate: [authGuard, roleGuard, permisosGuard], data: { roles: ['administrador', 'profesor'], permisoModulo: 'asistencias', permisoAccion: 'ver:tomar_asistencia' } },
   { path: 'asistencia/reporte', loadComponent: () => import('./components/reporte-asistencias/reporte-asistencias').then(m => m.ReporteAsistencias), canActivate: [authGuard, roleGuard, permisosGuard], data: { roles: ['administrador', 'profesor'], permisoModulo: 'asistencias', permisoAccion: 'ver:reporte_asistencias' } },
+  { path: 'eventos/reporte', loadComponent: () => import('./components/reporte-inscripciones/reporte-inscripciones').then(m => m.ReporteInscripciones), canActivate: [authGuard, roleGuard, permisosGuard], data: { roles: ['administrador', 'profesor'], permisoModulo: 'eventos', permisoAccion: 'ver_inscritos' } },
   { path: '**', redirectTo: '/login' },
 ];

@@ -1,6 +1,6 @@
 import { Injectable, signal, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable, map, tap } from 'rxjs';
+import { Observable, map, tap, of } from 'rxjs';
 import { Alumno } from '../models/alumno.model';
 import { RefreshService } from './refresh';
 import { environment } from '../../environments/environment';
@@ -25,6 +25,24 @@ export class AlumnosService {
 
   getAll(): Alumno[] {
     return this.alumnos();
+  }
+
+  // Ficha del alumno que tiene la sesion iniciada. El backend la resuelve por
+  // el usuario_id del JWT, asi que no viaja ningun id y no se puede pedir la de
+  // otro. Se usa para precargar el formulario de inscripcion a un torneo: pedirle
+  // al alumno que escriba su nombre cada vez es pedirle que lo escriba mal.
+  //
+  // Se cachea en `perfil` para no repetir el GET cada vez que se abre el modal.
+  private perfil = signal<Alumno | null>(null);
+
+  getMiPerfil(): Observable<Alumno> {
+    if (this.perfil()) {
+      return of(this.perfil() as Alumno);
+    }
+    return this.http.get<any>(`${this.apiUrl}/alumnos/mi-perfil`).pipe(
+      map(data => mapAlumnoFromBackend(data)),
+      tap(alumno => this.perfil.set(alumno))
+    );
   }
 
   getDisponibles(): Observable<Alumno[]> {

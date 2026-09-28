@@ -1,0 +1,615 @@
+﻿// -----------------------------------------------------------------------------
+// POR QUE ESTE ARCHIVO TIENE TANTAS REGLAS
+// -----------------------------------------------------------------------------
+// En este proyecto los estilos de pagina NO viven en styles.scss: cada
+// componente carga los suyos. styles.scss solo trae las variables y un puñado de
+// reglas sueltas, y los nombres de clase NO coinciden entre paginas.
+//
+// Concretamente: el global define los badges `status-activo`, `status-pagado`,
+// `status-cancelado`... y el admin de Eventos define en SU scss los suyos
+// `status-programado`, `status-en_curso`, `status-finalizado`,
+// `status-cancelado`. Son dos juegos distintos con el mismo prefijo.
+//
+// Este reporte usa los nombres del admin (que son los del dominio de eventos),
+// asi que tiene que definirlos aqui. Omitirlo no da error de compilacion:
+// Angular escupe el componente pelado y elBuild pasa limpio. Por eso este
+// archivo se nota tanto cuando falta una regla.
+//
+// Se usan las variables de styles.scss en vez de hex sueltos, a diferencia del
+// reporte de asistencias, para que el modo oscuro no requiera editar dos
+// archivos.
+// -----------------------------------------------------------------------------
+
+.page-container {
+  padding: 1.5rem;
+}
+
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+  margin-bottom: 1.5rem;
+
+  h2 {
+    margin: 0;
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: var(--text-page-title);
+  }
+}
+
+.alert {
+  padding: 0.75rem 1rem;
+  border-radius: 8px;
+  margin-bottom: 1rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+.alert-error {
+  background: var(--danger-bg);
+  color: var(--danger-text);
+  // No hay --danger-border en el tema; se usa --danger para el contorno. Es el
+  // mismo color de texto, que es lo que hace el reporte de asistencias.
+  border: 1px solid var(--danger);
+}
+
+// --- Resumen ---
+
+.stats-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.stat-card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  background: var(--bg-card);
+  border: 1px solid var(--border-primary);
+  border-radius: 14px;
+  padding: 1rem 1.25rem;
+}
+
+.stat-label {
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.stat-value {
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  line-height: 1.1;
+  font-variant-numeric: tabular-nums;
+}
+
+// --- Filtros ---
+
+.filters-bar {
+  display: flex;
+  gap: 1rem;
+  align-items: flex-end;
+  flex-wrap: wrap;
+  margin-bottom: 1.5rem;
+  background: var(--bg-card);
+  border: 1px solid var(--border-primary);
+  border-radius: 14px;
+  padding: 1.25rem;
+
+  .filter-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+    flex: 1;
+    min-width: 160px;
+
+    label {
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: var(--text-label);
+    }
+
+    input,
+    select {
+      padding: 0.55rem 0.75rem;
+      border: 1px solid var(--border-input);
+      border-radius: 8px;
+      background: var(--bg-input);
+      color: var(--text-primary);
+      font-size: 0.875rem;
+      font-family: inherit;
+
+      &:focus {
+        outline: none;
+        border-color: var(--border-input-focus);
+        background: var(--bg-input-focus);
+      }
+    }
+  }
+}
+
+// El buscador necesita mas ancho que los select, que se reparten el resto.
+.filter-search {
+  flex: 2 1 220px;
+}
+
+// --- Botones ---
+
+.btn {
+  padding: 0.55rem 1rem;
+  border-radius: 8px;
+  border: 1px solid transparent;
+  font-size: 0.875rem;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+  transition: background var(--btn-hover) ease-out;
+
+  &:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+  }
+}
+
+.btn-primary {
+  background: var(--primary);
+  color: var(--text-on-primary);
+
+  &:hover:not(:disabled) {
+    background: var(--primary-hover);
+  }
+}
+
+.btn-secondary {
+  background: var(--bg-input);
+  color: var(--text-primary);
+  border-color: var(--border-primary);
+
+  &:hover:not(:disabled) {
+    background: var(--bg-card-hover);
+  }
+}
+
+.btn-sm {
+  padding: 0.4rem 0.75rem;
+  font-size: 0.8rem;
+}
+
+// --- Formulario (modal de correccion) ---
+//
+// Mismo caso que los badges: en styles.scss NO hay definicion base de
+// `.form-row`, `.form-group` ni `.field-hint`. Lo que hay ahi son solo
+// sobreescrituras: el colapso a una columna en movil, los colores en dark mode
+// y una regla Scopeada a `.auth-form`. El layout real de un formulario lo
+// declara cada componente, asi que sin esto el editor salia con los campos
+// apilados sin etiqueta ni borde.
+//
+// Las dos columnas se apilan solas en movil por la regla global
+// `.form-row.two-col { grid-template-columns: 1fr !important }`.
+
+.form-row {
+  display: grid;
+  gap: 1rem;
+  margin-bottom: 0;
+
+  &.two-col {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+.form-group {
+  margin-bottom: 1rem;
+
+  label {
+    display: block;
+    font-weight: 600;
+    color: var(--text-label);
+    margin-bottom: 0.4rem;
+    font-size: 0.85rem;
+  }
+
+  input,
+  select,
+  textarea {
+    width: 100%;
+    box-sizing: border-box;
+    padding: 0.65rem 0.75rem;
+    font-size: 0.9rem;
+    font-family: inherit;
+    background: var(--bg-input);
+    color: var(--text-primary);
+    border: 1px solid var(--border-input);
+    border-radius: 8px;
+    outline: none;
+    transition: border-color var(--btn-hover) var(--ease-out);
+
+    &:focus {
+      border-color: var(--border-input-focus);
+      background: var(--bg-input-focus);
+    }
+  }
+}
+
+.field-hint {
+  display: block;
+  margin-top: 0.3rem;
+  font-size: 0.72rem;
+  line-height: 1.4;
+  color: var(--text-muted);
+}
+
+// --- Tabla ---
+
+.table-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-primary);
+  border-radius: 14px;
+  overflow: hidden;
+}
+
+.data-table {
+  width: 100%;
+  border-collapse: collapse;
+
+  th,
+  td {
+    padding: 0.875rem 1rem;
+    text-align: left;
+    font-size: 0.9rem;
+  }
+
+  thead {
+    background: var(--bg-card-hover);
+
+    th {
+      font-weight: 600;
+      color: var(--text-secondary);
+      border-bottom: 2px solid var(--border-table-header);
+      white-space: nowrap;
+    }
+  }
+
+  tbody {
+    tr {
+      border-bottom: 1px solid var(--border-table-row);
+      transition: background 0.15s;
+
+      &:hover {
+        background: var(--bg-card-hover);
+      }
+
+      &:last-child {
+        border-bottom: none;
+      }
+    }
+
+    td {
+      color: var(--text-primary);
+    }
+  }
+
+  // La celda de acciones se alinea a la derecha en escritorio y se estira en
+  // movil, donde la tabla se convierte en tarjetas.
+  .actions {
+    text-align: right;
+    white-space: nowrap;
+  }
+}
+
+.result-count {
+  margin: 0 0 0.75rem;
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+}
+
+// --- Celda del evento ---
+
+.evento-cell {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  min-width: 0;
+}
+
+.evento-nombre {
+  font-weight: 600;
+  color: var(--text-primary);
+  overflow-wrap: anywhere;
+}
+
+.evento-tipo {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
+.contador {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.2rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  font-variant-numeric: tabular-nums;
+}
+
+.contador-separador {
+  color: var(--text-muted);
+  font-weight: 400;
+}
+
+// Aviso de cupo lleno. Va debajo del contador y no dentro porque son datos
+// distintos: 40/40 es un dato, "lleno" es una interpretacion.
+.cupo-lleno {
+  display: block;
+  margin-top: 0.2rem;
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: var(--danger-text);
+}
+
+// --- Badges de estado del evento ---
+// Definidos aqui a proposito: el global trae otros nombres (status-activo,
+// status-pagado) y no los de evento. Ver la nota de cabecera.
+
+.status-badge {
+  display: inline-block;
+  padding: 0.2rem 0.6rem;
+  border-radius: 20px;
+  font-weight: 600;
+  font-size: 0.8rem;
+  white-space: nowrap;
+
+  &.status-programado {
+    background: var(--success-bg);
+    color: var(--success-text);
+  }
+
+  &.status-en_curso {
+    background: var(--info-bg);
+    color: var(--info-text);
+  }
+
+  &.status-finalizado {
+    background: var(--bg-input);
+    color: var(--text-secondary);
+  }
+
+  &.status-cancelado {
+    background: var(--danger-bg);
+    color: var(--danger-text);
+  }
+}
+
+// --- Estados de carga ---
+
+.loading {
+  padding: 2rem 0;
+  text-align: center;
+  color: var(--text-secondary);
+}
+
+.empty-state {
+  padding: 2rem 0;
+  text-align: center;
+  color: var(--text-muted);
+}
+
+.text-muted {
+  color: var(--text-muted);
+}
+
+// Aviso de "inscripcion incompleta". Es aviso y no error: el torneo es valido y
+// la lista se puede imprimir, lo que falta son datos que conviene rellenar.
+.alert-warning {
+  background: var(--warning-bg);
+  color: var(--warning-text);
+  border: 1px solid var(--warning);
+}
+
+// Marca en la celda cuando un dato no llego. Un guion suelto pasa desapercibido
+// en una tabla larga y termina impreso en la lista; "Sin escuela" no.
+.falta-dato {
+  display: inline-block;
+  padding: 0.1rem 0.45rem;
+  border-radius: 10px;
+  background: var(--warning-bg);
+  color: var(--warning-text);
+  font-size: 0.75rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+// --- Desglose por escuela ---
+
+.escuelas-resumen {
+  margin-top: 1.25rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--border-primary);
+
+  h4 {
+    margin: 0 0 0.6rem;
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--text-secondary);
+  }
+}
+
+.escuelas-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+.escuela-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.3rem 0.65rem;
+  font-size: 0.8rem;
+  background: var(--bg-input);
+  border: 1px solid var(--border-secondary);
+  border-radius: 14px;
+  color: var(--text-secondary);
+
+  strong {
+    color: var(--text-primary);
+    font-variant-numeric: tabular-nums;
+  }
+}
+
+// --- Modal ---
+
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: var(--bg-overlay);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 1rem;
+}
+
+.modal {
+  background: var(--bg-card);
+  border-radius: 14px;
+  width: 100%;
+  max-width: 520px;
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+}
+
+// La lista de confirmados tiene seis columnas; en el ancho estandar se
+// apilarian en tarjetas y habria que scrollear mucho dentro del modal.
+.modal-lg {
+  max-width: 860px;
+}
+
+.modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1.25rem 1.5rem;
+  border-bottom: 1px solid var(--border-modal);
+
+  h3 {
+    margin: 0;
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--text-primary);
+  }
+}
+
+.btn-close {
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  line-height: 1;
+  color: var(--text-muted);
+  cursor: pointer;
+  padding: 0.25rem;
+
+  &:hover {
+    color: var(--text-primary);
+  }
+}
+
+.modal-body {
+  padding: 1.5rem;
+  overflow-y: auto;
+}
+
+.modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.75rem;
+  padding: 1.25rem 1.5rem;
+  border-top: 1px solid var(--border-modal);
+}
+
+.detalle-subtitulo {
+  margin: 0 0 1rem;
+  font-size: 0.85rem;
+  color: var(--text-muted);
+}
+
+// --- Movil ---
+// La tabla de 7 columnas no cabe en un telefono. Cada fila se convierte en una
+// tarjeta y el `data-label` de cada celda se muestra como etiqueta, que es para
+// que ese atributo este en el HTML.
+
+@media (max-width: 768px) {
+  .page-container {
+    padding: 1rem;
+  }
+
+  .page-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .filters-bar .filter-group {
+    min-width: 140px;
+  }
+
+  .stat-value {
+    font-size: 1.35rem;
+  }
+
+  .data-table {
+    thead {
+      display: none;
+    }
+
+    tbody tr {
+      display: block;
+      border: 1px solid var(--border-primary);
+      border-radius: 10px;
+      margin-bottom: 0.75rem;
+      padding: 0.25rem 0;
+    }
+
+    td {
+      display: flex;
+      justify-content: space-between;
+      gap: 1rem;
+      padding: 0.5rem 1rem;
+      border-bottom: 1px solid var(--border-table-row);
+
+      &::before {
+        content: attr(data-label);
+        font-weight: 600;
+        color: var(--text-secondary);
+        flex-shrink: 0;
+      }
+
+      &:last-child {
+        border-bottom: none;
+      }
+    }
+
+    .actions {
+      text-align: left;
+    }
+  }
+}
+
+@media (max-width: 480px) {
+  .stat-card {
+    padding: 0.85rem 1rem;
+  }
+
+  .stat-value {
+    font-size: 1.2rem;
+  }
+}

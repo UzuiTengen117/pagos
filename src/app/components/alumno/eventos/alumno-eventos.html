@@ -1,0 +1,250 @@
+<div class="page-container">
+  <div class="page-header">
+    <div>
+      <h2>Eventos</h2>
+      <p class="page-subtitle">Torneos y dual meets. Aquí verás cuánto falta para cada uno.</p>
+    </div>
+
+    @if (!cargando() && eventos().length > 0) {
+      <div class="filtro-tabs">
+        <button type="button" class="tab" [class.tab-activo]="filtro() === 'proximos'" (click)="setFiltro('proximos')">
+          Próximos
+        </button>
+        <button type="button" class="tab" [class.tab-activo]="filtro() === 'todos'" (click)="setFiltro('todos')">
+          Todos
+        </button>
+      </div>
+    }
+  </div>
+
+  @if (errorCarga()) {
+    <div class="alert alert-error">
+      <p>{{ errorCarga() }}</p>
+      <button class="btn btn-secondary btn-sm" (click)="cargar()">Reintentar</button>
+    </div>
+  } @else if (cargando()) {
+    <div class="empty-state-card">Cargando eventos...</div>
+  } @else if (visibles().length === 0) {
+    <div class="empty-state-card">
+      <h3>Aún no hay eventos</h3>
+      <p>Tu entrenador todavía no ha publicado un torneo o dual meet.</p>
+    </div>
+  } @else {
+    <div class="eventos-grid">
+      @if (mostrandoTodosPorFallo()) {
+        <p class="aviso-fallback">No hay eventos abiertos a inscripción, así que se muestran todos los que tu entrenador ha publicado.</p>
+      }
+      @for (tarjeta of visibles(); track tarjeta.evento.id) {
+        <article class="evento-card" [class.evento-pasado]="tarjeta.terminada || tarjeta.evento.estado === 'cancelado'">
+          @if (tarjeta.evento.imagen) {
+            <div class="evento-banner">
+              <img [src]="tarjeta.evento.imagen" [alt]="tarjeta.evento.nombre" />
+              <span class="badge" [class]="'badge-' + tarjeta.evento.tipo">
+                {{ tipoEtiqueta(tarjeta.evento.tipo) }}
+              </span>
+            </div>
+          } @else {
+            <div class="evento-banner evento-banner-vacio">
+              <span class="badge" [class]="'badge-' + tarjeta.evento.tipo">
+                {{ tipoEtiqueta(tarjeta.evento.tipo) }}
+              </span>
+            </div>
+          }
+
+          <div class="evento-body">
+            <h3 class="evento-nombre">{{ tarjeta.evento.nombre }}</h3>
+
+            @if (!tarjeta.terminada) {
+              <div class="reloj" [class.reloj-urgente]="tarjeta.cuenta.dias === 0 && tarjeta.cuenta.horas < 24">
+                <span class="reloj-titulo">Falta</span>
+                <div class="reloj-cifras">
+                  @if (tarjeta.cuenta.dias > 0) {
+                    <div class="cifra">
+                      <span class="cifra-valor">{{ tarjeta.cuenta.dias }}</span>
+                      <span class="cifra-label">días</span>
+                    </div>
+                  }
+                  <div class="cifra">
+                    <span class="cifra-valor">{{ dosDigitos(tarjeta.cuenta.horas) }}</span>
+                    <span class="cifra-label">horas</span>
+                  </div>
+                  <div class="cifra">
+                    <span class="cifra-valor">{{ dosDigitos(tarjeta.cuenta.minutos) }}</span>
+                    <span class="cifra-label">min</span>
+                  </div>
+                  <div class="cifra">
+                    <span class="cifra-valor">{{ dosDigitos(tarjeta.cuenta.segundos) }}</span>
+                    <span class="cifra-label">seg</span>
+                  </div>
+                </div>
+              </div>
+            } @else {
+              <div class="evento-ya-pasado">
+                @if (tarjeta.evento.estado === 'cancelado') {
+                  Evento cancelado
+                } @else if (tarjeta.evento.estado === 'en_curso') {
+                  En curso ahora mismo
+                } @else {
+                  Este evento ya se llevó a cabo
+                }
+              </div>
+            }
+
+            <dl class="evento-datos">
+              <div class="dato">
+                <dt>Fecha y hora</dt>
+                <dd>
+                  {{ fechasTexto().get(tarjeta.evento.id) }}
+                  <span class="dato-extra">{{ tarjeta.evento.fechaInicio | date:'HH:mm' }} hrs</span>
+                </dd>
+              </div>
+              @if (tarjeta.evento.lugar || tarjeta.evento.sede) {
+                <div class="dato">
+                  <dt>Lugar</dt>
+                  <dd>
+                    {{ tarjeta.evento.lugar || '—' }}
+                    @if (tarjeta.evento.sede) {
+                      <span class="dato-extra">{{ tarjeta.evento.sede }}</span>
+                    }
+                  </dd>
+                </div>
+              }
+              @if (tarjeta.evento.categorias) {
+                <div class="dato">
+                  <dt>Categorías</dt>
+                  <dd>{{ tarjeta.evento.categorias }}</dd>
+                </div>
+              }
+              @if (tarjeta.evento.precioInscripcion > 0) {
+                <div class="dato">
+                  <dt>Inscripción</dt>
+                  <dd>${{ tarjeta.evento.precioInscripcion | number:'1.0-2' }}</dd>
+                </div>
+              }
+              <div class="dato">
+                <dt>Inscritos</dt>
+                <dd>
+                  {{ tarjeta.evento.inscritos }}
+                  @if (tarjeta.evento.cupoMaximo != null) {
+                    / {{ tarjeta.evento.cupoMaximo }}
+                  }
+                  @if (plazasRestantes(tarjeta.evento) === 0) {
+                    <span class="dato-extra dato-lleno">Cupo lleno</span>
+                  } @else if (plazasRestantes(tarjeta.evento) != null) {
+                    <span class="dato-extra">{{ plazasRestantes(tarjeta.evento) }} lugares</span>
+                  }
+                </dd>
+              </div>
+            </dl>
+
+            @if (tarjeta.evento.descripcion) {
+              <p class="evento-notas">{{ tarjeta.evento.descripcion }}</p>
+            }
+
+            <div class="evento-acciones">
+              @if (tarjeta.evento.miInscripcion) {
+                <span class="inscrito-chip">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="20 6 9 17 4 12"/>
+                  </svg>
+                  Estás inscrito
+                </span>
+                <button
+                  type="button"
+                  class="btn btn-secondary btn-sm"
+                  [disabled]="procesando() !== null"
+                  (click)="toggleInscripcion(tarjeta.evento)">
+                  {{ procesando() === tarjeta.evento.id ? 'Cancelando...' : 'Cancelar inscripción' }}
+                </button>
+              } @else if (tarjeta.puedeInscribirse) {
+                <button
+                  type="button"
+                  class="btn btn-primary btn-sm"
+                  [disabled]="procesando() !== null"
+                  (click)="abrirModalInscripcion(tarjeta.evento)">
+                  Inscribirme
+                </button>
+              } @else if (tarjeta.motivoBloqueo) {
+                <span class="bloqueo-chip">{{ tarjeta.motivoBloqueo }}</span>
+              }
+            </div>
+          </div>
+        </article>
+      }
+    </div>
+  }
+</div>
+
+@if (showModalInscripcion() && eventoParaInscribir(); as evento) {
+  <div class="modal-overlay" (click)="cerrarModalInscripcion()">
+    <div class="modal-inscripcion" (click)="$event.stopPropagation()" role="dialog" aria-modal="true" aria-labelledby="titulo-inscripcion">
+      <div class="modal-header">
+        <h2 id="titulo-inscripcion">Inscribirme a {{ evento.nombre }}</h2>
+        <button type="button" class="btn-close" (click)="cerrarModalInscripcion()" aria-label="Cerrar">&times;</button>
+      </div>
+
+      <p class="modal-intro">
+        Confirma tus datos para este torneo. Se guardan tal cual los escribas aquí,
+        aunque después los cambies en tu perfil.
+      </p>
+
+      <form class="form-inscripcion" (ngSubmit)="confirmarInscripcion()">
+        <div class="form-row two-col">
+          <div class="form-group">
+            <label for="ins-nombre">Nombre(s)</label>
+            <input id="ins-nombre" type="text" placeholder="Juan Carlos"
+                   [ngModel]="datos().nombre" (ngModelChange)="actualizarDato('nombre', $event)" name="nombre" />
+          </div>
+          <div class="form-group">
+            <label for="ins-edad">Edad</label>
+            <input id="ins-edad" type="number" min="4" max="99" placeholder="12"
+                   [ngModel]="datos().edad" (ngModelChange)="actualizarEdad($event)" name="edad" />
+          </div>
+        </div>
+
+        <div class="form-row two-col">
+          <div class="form-group">
+            <label for="ins-paterno">Apellido paterno</label>
+            <input id="ins-paterno" type="text" placeholder="García"
+                   [ngModel]="datos().primerApellido" (ngModelChange)="actualizarDato('primerApellido', $event)" name="primerApellido" />
+          </div>
+          <div class="form-group">
+            <label for="ins-materno">Apellido materno</label>
+            <input id="ins-materno" type="text" placeholder="Opcional"
+                   [ngModel]="datos().segundoApellido" (ngModelChange)="actualizarDato('segundoApellido', $event)" name="segundoApellido" />
+          </div>
+        </div>
+
+        <div class="form-row two-col">
+          <div class="form-group">
+            <label for="ins-grado">Grado</label>
+            <input id="ins-grado" type="text" placeholder="Ej: 4to"
+                   [ngModel]="datos().grado" (ngModelChange)="actualizarDato('grado', $event)" name="grado" />
+          </div>
+          <div class="form-group">
+            <label for="ins-escuela">Escuela</label>
+            <input id="ins-escuela" type="text" placeholder="Nombre de tu escuela"
+                   [ngModel]="datos().escuela" (ngModelChange)="actualizarDato('escuela', $event)" name="escuela" />
+          </div>
+        </div>
+
+        @if (cargandoPerfil()) {
+          <p class="hint-perfil">Cargando tus datos…</p>
+        }
+
+        @if (errorInscripcion()) {
+          <p class="form-error" role="alert">{{ errorInscripcion() }}</p>
+        }
+
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" (click)="cerrarModalInscripcion()" [disabled]="enviandoInscripcion()">
+            Cancelar
+          </button>
+          <button type="submit" class="btn btn-primary" [disabled]="enviandoInscripcion() || cargandoPerfil()">
+            {{ enviandoInscripcion() ? 'Inscribiendo...' : 'Confirmar inscripción' }}
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+}

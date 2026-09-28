@@ -39,7 +39,10 @@ export class App {
     '/reembolsos': 'Solicitudes de Reembolso',
     '/precios': 'Precios',
     '/becas': 'Becas',
+    '/eventos': 'Eventos',
+    '/eventos/reporte': 'Reporte de Inscripciones',
     '/alumno/home': 'Mi Resumen',
+    '/alumno/eventos': 'Eventos',
     '/alumno/pagos': 'Mis Pagos',
     '/alumno/comprobantes': 'Mis Comprobantes',
   };

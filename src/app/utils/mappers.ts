@@ -7,6 +7,7 @@ import { Comprobante } from '../models/comprobante.model';
 import { Inscripcion } from '../models/inscripcion.model';
 import { SolicitudReembolso } from '../models/reembolso.model';
 import { MiQrAlumno, MiAsistencia, SesionClase, AlumnoEnSesion, ResultadoRegistro } from '../models/asistencia.model';
+import { Evento, EventoFormData, EventoInscrito, DatosInscripcion } from '../models/evento.model';
 
 export function mapRol(backendRol: string): RolUsuario {
   switch (backendRol) {
@@ -348,4 +349,97 @@ export function mapResultadoRegistroFromBackend(data: any): ResultadoRegistro {
       sede: a.sede || '',
     },
   };
+}
+
+// El COUNT(*) y el id de inscripcion llegan como string porque Postgres cuenta
+// en bigint. Se castean aqui para que la plantilla no tenga que hacerlo.
+export function mapEventoFromBackend(data: any): Evento {
+  return {
+    id: data.id,
+    nombre: data.nombre || '',
+    tipo: data.tipo || 'torneo',
+    fechaInicio: data.fecha_inicio,
+    sede: data.sede || '',
+    lugar: data.lugar || '',
+    categorias: data.categorias || '',
+    descripcion: data.descripcion || '',
+    precioInscripcion: Number(data.precio_inscripcion) || 0,
+    cupoMaximo: data.cupo_maximo === null || data.cupo_maximo === undefined ? null : Number(data.cupo_maximo),
+    imagen: data.imagen || '',
+    estado: data.estado || 'programado',
+    inscritos: Number(data.inscritos) || 0,
+    miInscripcion: data.mi_inscripcion ? Number(data.mi_inscripcion) : null,
+    createdAt: data.created_at,
+    updatedAt: data.updated_at,
+  };
+}
+
+export function mapInscritoFromBackend(data: any): EventoInscrito {
+  return {
+    id: data.id,
+    estado: data.estado || 'inscrito',
+    createdAt: data.created_at,
+    alumnoId: data.alumno_id,
+    nombre: data.nombre || '',
+    primerApellido: data.primer_apellido || '',
+    segundoApellido: data.segundo_apellido || '',
+    edad: data.edad === null || data.edad === undefined ? null : Number(data.edad),
+    grado: data.grado || '',
+    escuela: data.escuela || '',
+  };
+}
+
+// datetime-local entrega "2026-10-15T13:00" sin zona, que new Date() interpreta
+// como hora local. Al pasar a ISO se convierte a UTC y el backend lo guarda como
+// timestamptz, que es lo unico que hace falta para que el reloj del alumno sea
+// el mismo para todos los husos.
+export function mapEventoToBackend(form: EventoFormData): any {
+  const inicio = new Date(form.fechaInicioLocal);
+  const fechaIso = Number.isNaN(inicio.getTime()) ? null : inicio.toISOString();
+
+  return {
+    nombre: form.nombre.trim(),
+    tipo: form.tipo,
+    estado: form.estado,
+    fecha_inicio: fechaIso,
+    sede: form.sede.trim(),
+    lugar: form.lugar.trim(),
+    categorias: form.categorias.trim(),
+    descripcion: form.descripcion.trim(),
+    precio_inscripcion: form.precioInscripcion || 0,
+    cupo_maximo: form.cupoMaximo,
+  };
+}
+
+// El cuerpo de POST /eventos/:id/inscribirse. La edad se manda como null y no
+// como '' porque el backend la trata como ausente, no como cero.
+//
+// Se llama mapDatosInscripcion... y no mapInscripcion... a proposito: ya existe
+// un mapInscripcionToBackend para el alta a cursos, que es otro modulo con otro
+// cuerpo. Dos funciones con el mismo nombre y casi el mismo prefijo en el mismo
+// archivo es la forma mas rapida de mandar los datos al endpoint equivocado.
+export function mapDatosInscripcionToBackend(datos: DatosInscripcion): any {
+  return {
+    nombre: datos.nombre.trim(),
+    primer_apellido: datos.primerApellido.trim(),
+    segundo_apellido: datos.segundoApellido.trim(),
+    edad: datos.edad === null || datos.edad === undefined ? null : datos.edad,
+    grado: datos.grado.trim(),
+    escuela: datos.escuela.trim(),
+  };
+}
+
+// El inverso de lo anterior: un ISO a texto local para <input type="datetime-local">.
+// Se resta el offset de la zona antes de recortar, porque toISOString() siempre
+// devuelve UTC y el input espera la hora que el usuario tiene en su reloj.
+export function isoAFechaLocal(fechaIso: string): string {
+  if (!fechaIso) {
+    return '';
+  }
+  const fecha = new Date(fechaIso);
+  if (Number.isNaN(fecha.getTime())) {
+    return '';
+  }
+  const local = new Date(fecha.getTime() - fecha.getTimezoneOffset() * 60000);
+  return local.toISOString().slice(0, 16);
 }

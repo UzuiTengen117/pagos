@@ -43,12 +43,15 @@ export class Sidebar implements OnInit, OnDestroy {
     { label: 'Reembolsos', route: '/reembolsos', icon: 'reembolsos', roles: ['administrador', 'profesor'], permiso: 'solicitudes_reembolso' },
     { label: 'Precios', route: '/precios', icon: 'precios', roles: ['administrador', 'profesor'], permiso: 'precios' },
     { label: 'Becas', route: '/becas', icon: 'becas', roles: ['administrador', 'profesor'], permiso: 'becas' },
+    { label: 'Eventos', route: '/eventos', icon: 'eventos', roles: ['administrador', 'profesor'], permiso: 'eventos' },
     { label: 'Mis Pagos', route: '/alumno/pagos', icon: 'alumno-pagos', roles: ['estudiante'] },
     { label: 'Mis Comprobantes', route: '/alumno/comprobantes', icon: 'alumno-comprobantes', roles: ['estudiante'] },
     { label: 'Mis Solicitudes', route: '/alumno/solicitudes', icon: 'alumno-comprobantes', roles: ['estudiante'] },
+    { label: 'Mis Eventos', route: '/alumno/eventos', icon: 'eventos', roles: ['estudiante'] },
     { label: 'Mi QR Asistencia', route: '/alumno/asistencia', icon: 'asistencia', roles: ['estudiante'] },
     { label: 'Tomar Asistencia', route: '/asistencia/escanear', icon: 'escanear', roles: ['administrador', 'profesor'], permiso: 'asistencias', accion: 'ver:tomar_asistencia' },
     { label: 'Reporte de Asistencias', route: '/asistencia/reporte', icon: 'reporte', roles: ['administrador', 'profesor'], permiso: 'asistencias', accion: 'ver:reporte_asistencias' },
+    { label: 'Reporte de Inscripciones', route: '/eventos/reporte', icon: 'reporte', roles: ['administrador', 'profesor'], permiso: 'eventos', accion: 'ver_inscritos' },
     { label: 'Mi Perfil', route: '/perfil', icon: 'perfil', roles: ['administrador', 'profesor', 'estudiante'] },
   ];
 

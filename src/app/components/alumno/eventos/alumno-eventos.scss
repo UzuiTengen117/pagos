@@ -1,0 +1,560 @@
+.page-container {
+  padding: 1.5rem;
+}
+
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+  flex-wrap: wrap;
+
+  h2 {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: var(--text-page-title);
+    margin: 0 0 0.25rem;
+  }
+}
+
+.page-subtitle {
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+  margin: 0;
+}
+
+.filtro-tabs {
+  display: flex;
+  gap: 0.25rem;
+  padding: 0.25rem;
+  background: var(--bg-input);
+  border: 1px solid var(--border-primary);
+  border-radius: 10px;
+}
+
+.tab {
+  padding: 0.45rem 0.9rem;
+  border: none;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--text-secondary);
+  font-size: 0.85rem;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+  transition: background var(--btn-hover) var(--ease-out), color var(--btn-hover) var(--ease-out);
+
+  &:hover {
+    color: var(--text-primary);
+  }
+}
+
+.tab-activo {
+  background: var(--primary);
+  color: var(--text-on-primary);
+}
+
+.eventos-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 1.25rem;
+}
+
+.evento-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-primary);
+  border-radius: 16px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+  transition: box-shadow var(--btn-hover) var(--ease-out), transform var(--btn-hover) var(--ease-out);
+}
+
+.evento-pasado {
+  opacity: 0.72;
+}
+
+.evento-banner {
+  position: relative;
+  aspect-ratio: 16 / 7;
+  background: var(--bg-input);
+  overflow: hidden;
+
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+
+  .badge {
+    position: absolute;
+    top: 0.75rem;
+    left: 0.75rem;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+  }
+}
+
+.evento-banner-vacio {
+  display: flex;
+  align-items: flex-start;
+  justify-content: flex-start;
+  background: linear-gradient(135deg, var(--primary-lighter), var(--bg-input));
+  border-bottom: 1px solid var(--border-primary);
+}
+
+.evento-body {
+  padding: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  flex: 1;
+}
+
+.evento-nombre {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--text-page-title);
+  margin: 0;
+  line-height: 1.35;
+}
+
+// --- El reloj ---
+
+.reloj {
+  background: var(--bg-input);
+  border: 1px solid var(--border-primary);
+  border-radius: 12px;
+  padding: 0.75rem 0.5rem;
+  text-align: center;
+}
+
+// Menos de 24 horas: el torneo es inminente y el reloj pasa a tono de alerta.
+.reloj-urgente {
+  background: var(--warning-bg);
+  border-color: var(--warning);
+}
+
+.reloj-titulo {
+  display: block;
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-secondary);
+  margin-bottom: 0.5rem;
+}
+
+.reloj-cifras {
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  gap: 0.25rem;
+}
+
+.cifra {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-width: 52px;
+  padding: 0 0.15rem;
+
+  // Separador de columna, imitando un reloj digital.
+  &:not(:last-child) {
+    border-right: 1px solid var(--border-secondary);
+  }
+}
+
+.cifra-valor {
+  font-size: 1.5rem;
+  font-weight: 700;
+  line-height: 1.1;
+  color: var(--text-page-title);
+  // Sin esto los dígitos bailan de ancho cada segundo al pasar de 9 a 10.
+  font-variant-numeric: tabular-nums;
+}
+
+.cifra-label {
+  font-size: 0.65rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-muted);
+  margin-top: 0.15rem;
+}
+
+.evento-ya-pasado {
+  background: var(--bg-input);
+  border: 1px dashed var(--border-secondary);
+  border-radius: 12px;
+  padding: 0.85rem;
+  text-align: center;
+  font-size: 0.85rem;
+  color: var(--text-muted);
+}
+
+// --- Datos ---
+
+.evento-datos {
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.dato {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 1rem;
+  font-size: 0.85rem;
+
+  dt {
+    color: var(--text-secondary);
+    font-weight: 500;
+    flex-shrink: 0;
+  }
+
+  dd {
+    margin: 0;
+    color: var(--text-primary);
+    font-weight: 600;
+    text-align: right;
+  }
+}
+
+.dato-extra {
+  display: block;
+  font-weight: 400;
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
+.dato-lleno {
+  color: var(--danger-text);
+  font-weight: 600;
+}
+
+.evento-notas {
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  line-height: 1.5;
+  margin: 0;
+  padding: 0.75rem;
+  background: var(--bg-input);
+  border-radius: 10px;
+  border-left: 3px solid var(--primary-light);
+}
+
+.evento-acciones {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+  margin-top: auto;
+  padding-top: 0.25rem;
+}
+
+.inscrito-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.3rem 0.7rem;
+  border-radius: 20px;
+  background: var(--success-bg);
+  color: var(--success-text);
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.bloqueo-chip {
+  padding: 0.3rem 0.7rem;
+  border-radius: 20px;
+  background: var(--bg-input);
+  color: var(--text-muted);
+  font-size: 0.8rem;
+  font-weight: 500;
+}
+
+.btn-ghost {
+  background: var(--btn-neutral-bg);
+  color: var(--text-primary);
+  border: 1px solid var(--btn-ghost-border);
+  text-decoration: none;
+
+  &:hover {
+    background: var(--btn-neutral-hover);
+  }
+}
+
+.badge {
+  padding: 0.25rem 0.7rem;
+  border-radius: 20px;
+  font-weight: 600;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+
+  &.badge-torneo {
+    background: var(--purple-bg);
+    color: var(--purple-text);
+  }
+
+  &.badge-dual_meet {
+    background: var(--info-bg);
+    color: var(--info-text);
+  }
+
+  &.badge-open {
+    background: var(--success-bg);
+    color: var(--success-text);
+  }
+
+  &.badge-otro {
+    background: var(--bg-input);
+    color: var(--text-muted);
+  }
+}
+
+.aviso-fallback {
+  grid-column: 1 / -1;
+  margin: 0;
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  background: var(--bg-card);
+  border: 1px solid var(--border-primary);
+  border-left: 3px solid var(--warning);
+  border-radius: 10px;
+  padding: 0.75rem 1rem;
+}
+
+.empty-state-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-primary);
+  border-radius: 14px;
+  padding: 3rem 1.5rem;
+  text-align: center;
+  color: var(--text-secondary);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.6rem;
+
+  h3 {
+    margin: 0;
+    color: var(--text-page-title);
+    font-size: 1.05rem;
+  }
+
+  p {
+    margin: 0;
+    font-size: 0.9rem;
+  }
+}
+
+.alert {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.75rem;
+  padding: 1rem 1.25rem;
+  border-radius: 12px;
+  border: 1px solid;
+  margin-bottom: 1.5rem;
+
+  p {
+    margin: 0;
+    font-size: 0.9rem;
+  }
+}
+
+// --- Modal de inscripción ---
+//
+// El modal vive aqui y no en styles.scss porque los estilos de modal del admin
+// estan scoped a su propio componente (styleUrl), asi que este los hereda
+// copiando el mismo lenguaje visual: mismos tokens, mismo radio y mismo
+// movimiento de entrada.
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: var(--bg-overlay);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 1rem;
+}
+
+.modal-inscripcion {
+  background: var(--bg-card);
+  border-radius: 16px;
+  width: 100%;
+  max-width: 520px;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+  animation: modal-inscripcion-entra 0.3s var(--ease-out);
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+}
+
+@keyframes modal-inscripcion-entra {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 1rem;
+  padding: 1.25rem 1.5rem;
+  border-bottom: 1px solid var(--border-modal);
+
+  h2 {
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: var(--text-page-title);
+    margin: 0;
+  }
+}
+
+.modal-intro {
+  margin: 0;
+  padding: 1rem 1.5rem 0;
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  line-height: 1.5;
+}
+
+.form-inscripcion {
+  padding: 1.25rem 1.5rem 0;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.form-group {
+  margin-bottom: 1rem;
+
+  label {
+    display: block;
+    font-weight: 600;
+    color: var(--text-label);
+    margin-bottom: 0.4rem;
+    font-size: 0.85rem;
+  }
+
+  input {
+    width: 100%;
+    border: 1px solid var(--border-input);
+    border-radius: 8px;
+    padding: 0.65rem 0.75rem;
+    font-size: 0.9rem;
+    background: var(--bg-input);
+    color: var(--text-primary);
+    outline: none;
+    box-sizing: border-box;
+    font-family: inherit;
+    transition: border-color var(--btn-hover) var(--ease-out);
+
+    &:focus {
+      border-color: var(--border-input-focus);
+      background: var(--bg-input-focus);
+    }
+  }
+}
+
+.form-row {
+  display: grid;
+  gap: 1rem;
+
+  &.two-col {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+.hint-perfil {
+  margin: 0 0 0.75rem;
+  font-size: 0.78rem;
+  color: var(--text-muted);
+}
+
+.form-error {
+  margin: 0 0 0.75rem;
+  padding: 0.65rem 0.8rem;
+  border-radius: 8px;
+  background: var(--danger-bg);
+  color: var(--danger-text);
+  font-size: 0.85rem;
+  border-left: 3px solid var(--danger);
+}
+
+.modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.75rem;
+  padding: 1rem 0 1.25rem;
+  margin-top: auto;
+}
+
+@media (max-width: 768px) {
+  .page-container {
+    padding: 1rem;
+  }
+
+  .page-header {
+    flex-direction: column;
+    align-items: flex-start;
+
+    h2 {
+      font-size: 1.1rem;
+    }
+  }
+
+  .filtro-tabs {
+    width: 100%;
+
+    .tab {
+      flex: 1;
+      text-align: center;
+    }
+  }
+
+  .eventos-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .cifra-valor {
+    font-size: 1.3rem;
+  }
+
+  .cifra {
+    min-width: 0;
+    flex: 1;
+  }
+
+  // En un celular los pares nombre/edad y grado/escuela se apilan: a dos
+  // columnas los inputs quedan de ~130px y el nombre del alumno se corta.
+  .form-row.two-col {
+    grid-template-columns: 1fr;
+    gap: 0;
+  }
+
+  .modal-inscripcion {
+    max-height: 94vh;
+  }
+
+  .modal-footer {
+    .btn {
+      flex: 1;
+    }
+  }
+}
