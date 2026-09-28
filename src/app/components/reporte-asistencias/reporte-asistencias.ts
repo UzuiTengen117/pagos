@@ -42,7 +42,6 @@ export class ReporteAsistencias implements OnInit {
   pagina = 1;
 
   filtroSede = '';
-  filtroGrado = '';
   fechaDesde = '';
   fechaHasta = '';
 
@@ -116,14 +115,13 @@ export class ReporteAsistencias implements OnInit {
     return (fecha || '').slice(0, 10);
   }
 
-  get gradosDisponibles(): string[] {
-    return [...new Set(this.alumnos().map((a) => a.grado))].sort((a, b) =>
-      a.localeCompare(b, 'es', { numeric: true })
-    );
-  }
-
-  totalEsperadosDe(grado: string, sede: string): number {
-    return this.alumnos().filter((a) => a.grado === grado && a.sede === sede).length;
+  // Como la clase es por sede, se espera a todos los alumnos de esa sede. Solo
+  // se acota por grado en las clases heredadas, que si eran de un solo grupo.
+  totalEsperadosDe(sesion: SesionClase): number {
+    const deGrado = sesion.grado && sesion.grado.toLowerCase() !== 'todos';
+    return this.alumnos().filter(
+      (a) => a.sede === sesion.sede && (!deGrado || a.grado === sesion.grado)
+    ).length;
   }
 
   get sesionesFiltradas(): SesionClase[] {
@@ -132,7 +130,6 @@ export class ReporteAsistencias implements OnInit {
 
     return this.sesiones().filter((s) => {
       if (this.filtroSede && s.sede !== this.filtroSede) return false;
-      if (this.filtroGrado && s.grado !== this.filtroGrado) return false;
       const dia = this.diaDe(s.fecha);
       if (desde && dia < desde) return false;
       if (hasta && dia > hasta) return false;
@@ -149,7 +146,7 @@ export class ReporteAsistencias implements OnInit {
   }
 
   get hayFiltros(): boolean {
-    return Boolean(this.filtroSede || this.filtroGrado || this.fechaDesde || this.fechaHasta);
+    return Boolean(this.filtroSede || this.fechaDesde || this.fechaHasta);
   }
 
   aplicarFiltros(): void {
@@ -158,7 +155,6 @@ export class ReporteAsistencias implements OnInit {
 
   limpiarFiltros(): void {
     this.filtroSede = '';
-    this.filtroGrado = '';
     this.fechaDesde = '';
     this.fechaHasta = '';
     this.pagina = 1;

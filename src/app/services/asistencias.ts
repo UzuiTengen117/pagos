@@ -51,8 +51,8 @@ export class AsistenciasService {
     );
   }
 
-  abrirSesion(grado: string, sede: string): Observable<SesionClase> {
-    return this.http.post<any>(`${this.apiUrl}/asistencias/abrir-sesion`, { grado, sede }).pipe(
+  abrirSesion(sede: string): Observable<SesionClase> {
+    return this.http.post<any>(`${this.apiUrl}/asistencias/abrir-sesion`, { sede }).pipe(
       map(mapSesionFromBackend)
     );
   }

@@ -14,16 +14,9 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { Subscription } from 'rxjs';
 import jsQR from 'jsqr';
 import { AsistenciasService } from '../../services/asistencias';
-import { AlumnosService } from '../../services/alumnos';
 import { AuthService } from '../../services/auth';
 import { NotificationService } from '../../services/notification';
 import { SesionClase, AlumnoEnSesion } from '../../models/asistencia.model';
-
-const GRADOS_CANONICOS = [
-  
-  'Cinta Negra 1er Dan',
-  'Cinta Negra 2do Dan',
-];
 
 // Pausa entre lecturas: la camara delivers ~30 frames por segundo y sin esto
 // el mismo QR se registraria decenas de veces por segundo.
@@ -39,7 +32,6 @@ const SCAN_INTERVAL_MS = 150;
 })
 export class EscanearAsistencia implements OnInit, OnDestroy {
   private asistenciasService = inject(AsistenciasService);
-  private alumnosService = inject(AlumnosService);
   private authService = inject(AuthService);
   private notificationService = inject(NotificationService);
   private cdr = inject(ChangeDetectorRef);
@@ -62,15 +54,14 @@ export class EscanearAsistencia implements OnInit, OnDestroy {
   camaraActiva = signal(false);
   errorCamara = signal('');
   procesando = signal(false);
+  registrandoId = signal<number | null>(null);
 
-  grado = '';
   sede = '';
   codigoManual = '';
 
   readonly sedes = this.asistenciasService.getSedes();
 
   ngOnInit(): void {
-    this.cargarGrados();
     this.recuperarSesion();
   }
 
@@ -79,41 +70,31 @@ export class EscanearAsistencia implements OnInit, OnDestroy {
     this.subscriptions.unsubscribe();
   }
 
-  private cargarGrados(): void {
-    this.subscriptions.add(
-      this.alumnosService.loadAll().subscribe({
-        next: () => this.cdr.detectChanges(),
-        error: () => this.cdr.detectChanges(),
-      })
-    );
-  }
-
   private recuperarSesion(): void {
     this.subscriptions.add(
-      this.asistenciasService.getSesionActual().subscribe((sesion) => {
-        if (sesion) {
-          this.sesion.set(sesion);
-          this.grado = sesion.grado;
-          this.sede = sesion.sede;
-          this.cargarAlumnos(sesion.id);
-        }
-        this.cdr.detectChanges();
+      this.asistenciasService.getSesionActual().subscribe({
+        next: (sesion) => {
+          if (sesion) {
+            this.sesion.set(sesion);
+            this.sede = sesion.sede;
+            this.cargarAlumnos(sesion.id);
+          }
+          this.cdr.detectChanges();
+        },
+        error: () => {
+          this.sesion.set(null);
+          this.cdr.detectChanges();
+        },
       })
     );
-  }
-
-  // Grados canonicos: lista fija en el orden que quieras que salga en el select.
-  // Se normalizan con .trim() para que no haya problemas de espacios.
-  get gradosDisponibles(): string[] {
-    return GRADOS_CANONICOS;
   }
 
   abrirSesion(): void {
-    if (!this.grado || !this.sede) {
-      this.notificationService.warning('Selecciona el grado y la sede de la clase');
+    if (!this.sede) {
+      this.notificationService.warning('Selecciona la sede de la clase');
       return;
     }
-    this.asistenciasService.abrirSesion(this.grado, this.sede).subscribe({
+    this.asistenciasService.abrirSesion(this.sede).subscribe({
       next: (sesion) => {
         this.sesion.set(sesion);
         this.cargarAlumnos(sesion.id);
@@ -136,7 +117,6 @@ export class EscanearAsistencia implements OnInit, OnDestroy {
         this.sesion.set(null);
         this.alumnos.set([]);
         this.detenerCamara();
-        this.grado = '';
         this.sede = '';
         this.ultimosRegistros.set([]);
         this.notificationService.success('Clase cerrada');
@@ -254,10 +234,21 @@ export class EscanearAsistencia implements OnInit, OnDestroy {
 
   registrarAlumnoManual(alumno: AlumnoEnSesion): void {
     const sesion = this.sesion();
-    if (!sesion) return;
+    if (!sesion || this.registrandoId() !== null) return;
+    this.registrandoId.set(alumno.id);
     this.asistenciasService.registrarManual(alumno.id, sesion.id).subscribe({
-      next: () => this.trasRegistro(alumno.nombre, true, `${alumno.nombre} ${alumno.primerApellido} registrado`),
-      error: (e) => this.trasRegistro(alumno.nombre, false, e?.error?.message || 'No se pudo registrar'),
+      next: () => {
+        this.registrandoId.set(null);
+        this.trasRegistro(alumno.nombre, true, `${alumno.nombre} ${alumno.primerApellido} registrado`);
+      },
+      error: (e) => {
+        this.registrandoId.set(null);
+        if (this.esSesionInvalida(e)) {
+          this.trasRegistro('', false, this.sesionPerdida(e));
+          return;
+        }
+        this.trasRegistro(alumno.nombre, false, e?.error?.message || 'No se pudo registrar');
+      },
     });
   }
 
@@ -275,8 +266,38 @@ export class EscanearAsistencia implements OnInit, OnDestroy {
         const nombre = `${r.alumno.nombre} ${r.alumno.primer_apellido}`.trim();
         this.trasRegistro(nombre, true, r.duplicado ? `${nombre} ya estaba registrado` : `${nombre} registrado`);
       },
-      error: (e) => this.trasRegistro('', false, e?.error?.message || 'Código no reconocido'),
+      error: (e) => {
+        this.procesando.set(false);
+        if (this.esSesionInvalida(e)) {
+          this.trasRegistro('', false, this.sesionPerdida(e));
+          return;
+        }
+        this.trasRegistro('', false, e?.error?.message || 'Código no reconocido');
+      },
     });
+  }
+
+  // 404 = la clase ya no existe (borrada del reporte). 409 = clase cerrada.
+  // El unico 409 que NO es sesion invalida es el duplicado, que el backend
+  // marca con duplicado:true, asi que las dos cosas no se confunden.
+  private esSesionInvalida(e: HttpErrorResponse): boolean {
+    if (e?.status === 404) return true;
+    if (e?.status === 409) return e?.error?.duplicado !== true;
+    return false;
+  }
+
+  // El backend ya no acepta registros para esta clase. Dejar el signal
+  // puesto hace que la pantalla siga mostrando "Clase abierta" y que cada
+  // intento futuro falle igual, sin forma de recuperarse desde la UI.
+  private sesionPerdida(e: HttpErrorResponse): string {
+    this.sesion.set(null);
+    this.alumnos.set([]);
+    this.registrandoId.set(null);
+    this.ultimosRegistros.set([]);
+    this.detenerCamara();
+    this.sede = '';
+    this.cdr.detectChanges();
+    return `${e?.error?.message || 'La clase ya no esta abierta'}. Abre la clase de nuevo para seguir`;
   }
 
   private trasRegistro(nombre: string, ok: boolean, mensaje: string): void {
@@ -304,6 +325,10 @@ export class EscanearAsistencia implements OnInit, OnDestroy {
         this.cdr.detectChanges();
       },
       error: (e: HttpErrorResponse) => {
+        if (this.esSesionInvalida(e)) {
+          this.trasRegistro('', false, this.sesionPerdida(e));
+          return;
+        }
         this.notificationService.error(e?.error?.message || 'No se pudo eliminar');
         this.cdr.detectChanges();
       },

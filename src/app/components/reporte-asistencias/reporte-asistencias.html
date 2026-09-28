@@ -19,16 +19,6 @@
     </div>
 
     <div class="filter-group">
-      <label>Grado</label>
-      <select [(ngModel)]="filtroGrado" (change)="aplicarFiltros()">
-        <option value="">Todos los grados</option>
-        @for (g of gradosDisponibles; track g) {
-          <option [value]="g">{{ g }}</option>
-        }
-      </select>
-    </div>
-
-    <div class="filter-group">
       <label>Desde</label>
       <input type="date" [(ngModel)]="fechaDesde" (change)="aplicarFiltros()" />
     </div>
@@ -65,7 +55,6 @@
         <thead>
           <tr>
             <th data-label="Fecha">Fecha</th>
-            <th data-label="Grado">Grado</th>
             <th data-label="Sede">Sede</th>
             <th data-label="Profesor">Profesor</th>
             <th data-label="Asistieron">Asistieron</th>
@@ -77,14 +66,13 @@
           @for (s of sesionesPagina; track s.id) {
             <tr>
               <td data-label="Fecha">{{ s.fecha | date: 'dd/MM/yyyy' }}</td>
-              <td data-label="Grado">{{ s.grado }}</td>
               <td data-label="Sede">{{ s.sede }}</td>
               <td data-label="Profesor">
                 {{ s.profesorNombre }} {{ s.profesorApellido }}
               </td>
               <td data-label="Asistieron">
                 <span class="contador">
-                  {{ s.totalAsistencias ?? 0 }} / {{ totalEsperadosDe(s.grado, s.sede) }}
+                  {{ s.totalAsistencias ?? 0 }} / {{ totalEsperadosDe(s) }}
                 </span>
               </td>
               <td data-label="Estado">
@@ -120,7 +108,7 @@
     <div class="modal" (click)="$event.stopPropagation()">
       <div class="modal-header">
         <h3>
-          {{ sesionSeleccionada.grado }} - {{ sesionSeleccionada.sede }}
+          {{ sesionSeleccionada.sede }}
         </h3>
         <button type="button" class="btn-close" (click)="cerrarDetalle()">&times;</button>
       </div>
@@ -219,7 +207,6 @@
         </div>
         <p>
           Vas a eliminar la clase de
-          <strong>{{ sesionAEliminar.grado }}</strong> en
           <strong>{{ sesionAEliminar.sede }}</strong> del
           <strong>{{ sesionAEliminar.fecha | date: 'dd/MM/yyyy' }}</strong>.
         </p>
