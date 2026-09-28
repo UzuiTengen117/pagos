@@ -51,7 +51,7 @@ export class Sidebar implements OnInit, OnDestroy {
     { label: 'Mi QR Asistencia', route: '/alumno/asistencia', icon: 'asistencia', roles: ['estudiante'] },
     { label: 'Tomar Asistencia', route: '/asistencia/escanear', icon: 'escanear', roles: ['administrador', 'profesor'], permiso: 'asistencias', accion: 'ver:tomar_asistencia' },
     { label: 'Reporte de Asistencias', route: '/asistencia/reporte', icon: 'reporte', roles: ['administrador', 'profesor'], permiso: 'asistencias', accion: 'ver:reporte_asistencias' },
-    { label: 'Reporte de Inscripciones', route: '/eventos/reporte', icon: 'reporte', roles: ['administrador', 'profesor'], permiso: 'eventos', accion: 'ver_inscritos' },
+    { label: 'Reporte de Inscripciones', route: '/eventos/reporte', icon: 'reporte', roles: ['administrador', 'profesor'], permiso: 'eventos', accion: 'ver:reporte_eventos' },
     { label: 'Mi Perfil', route: '/perfil', icon: 'perfil', roles: ['administrador', 'profesor', 'estudiante'] },
   ];
 

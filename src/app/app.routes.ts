@@ -29,6 +29,6 @@ export const routes: Routes = [
   { path: 'alumno/eventos', loadComponent: () => import('./components/alumno/eventos/alumno-eventos').then(m => m.AlumnoEventos), canActivate: [authGuard] },
   { path: 'asistencia/escanear', loadComponent: () => import('./components/escanear/escanear-asistencia').then(m => m.EscanearAsistencia), canActivate: [authGuard, roleGuard, permisosGuard], data: { roles: ['administrador', 'profesor'], permisoModulo: 'asistencias', permisoAccion: 'ver:tomar_asistencia' } },
   { path: 'asistencia/reporte', loadComponent: () => import('./components/reporte-asistencias/reporte-asistencias').then(m => m.ReporteAsistencias), canActivate: [authGuard, roleGuard, permisosGuard], data: { roles: ['administrador', 'profesor'], permisoModulo: 'asistencias', permisoAccion: 'ver:reporte_asistencias' } },
-  { path: 'eventos/reporte', loadComponent: () => import('./components/reporte-inscripciones/reporte-inscripciones').then(m => m.ReporteInscripciones), canActivate: [authGuard, roleGuard, permisosGuard], data: { roles: ['administrador', 'profesor'], permisoModulo: 'eventos', permisoAccion: 'ver_inscritos' } },
+  { path: 'eventos/reporte', loadComponent: () => import('./components/reporte-inscripciones/reporte-inscripciones').then(m => m.ReporteInscripciones), canActivate: [authGuard, roleGuard, permisosGuard], data: { roles: ['administrador', 'profesor'], permisoModulo: 'eventos', permisoAccion: 'ver:reporte_eventos' } },
   { path: '**', redirectTo: '/login' },
 ];

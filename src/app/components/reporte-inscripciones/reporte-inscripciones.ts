@@ -346,12 +346,12 @@ export class ReporteInscripciones implements OnInit {
     });
   }
 
-  // El boton de corregir se oculta sin permiso de `editar`: es escritura sobre
+  // El boton de corregir se oculta sin permiso de `editar:eventos`: es escritura sobre
   // el registro de un alumno, no consulta. Ver la lista si se puede con
-  // `ver_inscritos` solamente.
+  // `ver:reporte_eventos` solamente.
   inicializarPermisos(): void {
     this.permisosService.getMisPermisos().subscribe({
-      next: res => this.puedeEditarInscrito.set((res.permisos || []).includes('eventos:editar')),
+      next: res => this.puedeEditarInscrito.set((res.permisos || []).includes('eventos:editar:eventos')),
       error: () => this.puedeEditarInscrito.set(false),
     });
   }

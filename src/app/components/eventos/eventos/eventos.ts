@@ -151,10 +151,10 @@ export class Eventos implements OnInit, OnDestroy {
     this.permisosService.getMisPermisos().subscribe({
       next: (res) => {
         const lista = res.permisos || [];
-        this.puedeCrear.set(lista.includes('eventos:crear'));
-        this.puedeEditar.set(lista.includes('eventos:editar'));
-        this.puedeEliminar.set(lista.includes('eventos:eliminar'));
-        this.puedeVerInscritos.set(lista.includes('eventos:ver_inscritos'));
+        this.puedeCrear.set(lista.includes('eventos:crear:eventos'));
+        this.puedeEditar.set(lista.includes('eventos:editar:eventos'));
+        this.puedeEliminar.set(lista.includes('eventos:eliminar:eventos'));
+        this.puedeVerInscritos.set(lista.includes('eventos:ver:reporte_eventos'));
       },
       error: () => {
         this.puedeCrear.set(false);
