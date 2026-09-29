@@ -1,0 +1,82 @@
+@if (visible() && disponibles().length > 0) {
+  <div class="aviso-overlay">
+    <div class="aviso-modal" role="dialog" aria-modal="true" aria-labelledby="aviso-titulo">
+      @if (eventoPrincipal(); as evento) {
+        @if (mostrarImagen()) {
+          <div class="aviso-banner">
+            <img [src]="evento.imagen" [alt]="evento.nombre" (error)="imagenRota.set(true)" />
+          </div>
+        }
+
+        <div class="aviso-header">
+          <span class="aviso-badge">{{ tipoEtiqueta(evento.tipo) }}</span>
+          <button type="button" class="aviso-cerrar" (click)="cerrar()" aria-label="Cerrar">&times;</button>
+        </div>
+
+        <div class="aviso-body">
+          <h3 id="aviso-titulo">{{ evento.nombre }}</h3>
+
+          <div class="aviso-datos">
+            <div class="aviso-dato">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>
+              </svg>
+              <span>{{ evento.fechaInicio | date: 'EEEE d MMMM, HH:mm' }}</span>
+            </div>
+
+            @if (evento.lugar) {
+              <div class="aviso-dato">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/>
+                </svg>
+                <span>{{ evento.lugar }}@if (evento.sede) { &middot; {{ evento.sede }} }</span>
+              </div>
+            }
+
+            @if (evento.categorias) {
+              <div class="aviso-dato">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M20.21 2.21a5.5 5.5 0 0 0-7.78 0L12 2.63l-.43-.42a5.5 5.5 0 0 0-7.78 7.78l1.42 1.42a2 2 0 0 1 2.83 0l.34-.34a2 2 0 0 0 0-2.83L8.04 8.8a3.5 3.5 0 0 1 4.95-4.95L12 7.46l-.99-.99a3.5 3.5 0 0 0-4.95 4.95l1.42 1.42a2 2 0 0 1 0 2.83l-.34.34a2 2 0 0 1-2.83 0L3.89 14.7a5.5 5.5 0 0 0 7.78 7.78L12 22.37l.33-.31a5.5 5.5 0 0 0 7.78-7.78l-1.42-1.42a2 2 0 0 0-2.83 0l-.34.34a2 2 0 0 0 0 2.83l.34.34a2 2 0 0 0 2.83 0l1.41-1.42a5.5 5.5 0 0 0 0-7.78z"/>
+                </svg>
+                <span>{{ evento.categorias }}</span>
+              </div>
+            }
+
+            <div class="aviso-dato">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+              </svg>
+              <span>
+                @if (estaLleno(evento)) {
+                  Cupo lleno
+                } @else if (evento.cupoMaximo != null) {
+                  Quedan {{ lugaresLibres(evento) }} de {{ evento.cupoMaximo }} lugares
+                } @else {
+                  Inscritos: {{ evento.inscritos }}
+                }
+              </span>
+            </div>
+          </div>
+
+          @if (evento.descripcion) {
+            <p class="aviso-descripcion">{{ evento.descripcion }}</p>
+          }
+
+          @if (otros() > 0) {
+            <p class="aviso-otros">
+              Y {{ otros() }} evento{{ otros() === 1 ? '' : 's' }} más
+              {{ otros() === 1 ? 'disponible' : 'disponibles' }}.
+            </p>
+          }
+        </div>
+
+        <div class="aviso-footer">
+          <button type="button" class="btn btn-secondary" (click)="cerrar()">Ahora no</button>
+          <button type="button" class="btn btn-primary" (click)="irAInscripcion()">
+            Ver e inscribirme
+          </button>
+        </div>
+      }
+    </div>
+  </div>
+}
