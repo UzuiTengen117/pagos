@@ -1,4 +1,4 @@
-import { Usuario, RolUsuario } from '../models/usuario.model';
+﻿import { Usuario, RolUsuario } from '../models/usuario.model';
 import { Alumno } from '../models/alumno.model';
 import { Pago } from '../models/pago.model';
 import { Beca } from '../models/beca.model';
@@ -7,7 +7,8 @@ import { Comprobante } from '../models/comprobante.model';
 import { Inscripcion } from '../models/inscripcion.model';
 import { SolicitudReembolso } from '../models/reembolso.model';
 import { MiQrAlumno, MiAsistencia, SesionClase, AlumnoEnSesion, ResultadoRegistro } from '../models/asistencia.model';
-import { Evento, EventoFormData, EventoInscrito, DatosInscripcion } from '../models/evento.model';
+import { DatosInscripcion, Evento, EventoFormData, EventoInscrito } from '../models/evento.model';
+import { Examen, ExamenFormData } from '../models/examen.model';
 
 export function mapRol(backendRol: string): RolUsuario {
   switch (backendRol) {
@@ -374,6 +375,9 @@ export function mapEventoFromBackend(data: any): Evento {
   };
 }
 
+// Devuelve `EventoInscrito` y no un tipo por modulo: `ExamenInscrito` tiene
+// exactamente los mismos campos, asi que la tipacion estructural lo acepta sin
+// necesidad de una interseccion que solo confunde.
 export function mapInscritoFromBackend(data: any): EventoInscrito {
   return {
     id: data.id,
@@ -442,4 +446,49 @@ export function isoAFechaLocal(fechaIso: string): string {
   }
   const local = new Date(fecha.getTime() - fecha.getTimezoneOffset() * 60000);
   return local.toISOString().slice(0, 16);
+}
+
+// --- Examenes ---
+//
+// Solo hay dos mappers propios: la fila de la inscripcion y el cuerpo del
+// formulario se reusan tal cual, porque el examen guarda exactamente los mismos
+// seis campos que el evento con la misma validacion. Duplicarlos daria dos
+// funciones que hoy son iguales y divergen en el primer cambio.
+
+export function mapExamenFromBackend(data: any): Examen {
+  return {
+    id: data.id,
+    nombre: data.nombre || '',
+    niveles: data.niveles || '',
+    fechaExamen: data.fecha_examen,
+    sede: data.sede || '',
+    lugar: data.lugar || '',
+    descripcion: data.descripcion || '',
+    precioInscripcion: Number(data.precio_inscripcion) || 0,
+    cupoMaximo: data.cupo_maximo === null || data.cupo_maximo === undefined ? null : Number(data.cupo_maximo),
+    imagen: data.imagen || '',
+    tieneHoja: Boolean(data.tiene_hoja),
+    estado: data.estado || 'programado',
+    inscritos: Number(data.inscritos) || 0,
+    miInscripcion: data.mi_inscripcion ? Number(data.mi_inscripcion) : null,
+    createdAt: data.created_at,
+    updatedAt: data.updated_at,
+  };
+}
+
+export function mapExamenToBackend(form: ExamenFormData): any {
+  const examen = new Date(form.fechaExamenLocal);
+  const fechaIso = Number.isNaN(examen.getTime()) ? null : examen.toISOString();
+
+  return {
+    nombre: form.nombre.trim(),
+    estado: form.estado,
+    fecha_examen: fechaIso,
+    sede: form.sede.trim(),
+    lugar: form.lugar.trim(),
+    niveles: form.niveles.trim(),
+    descripcion: form.descripcion.trim(),
+    precio_inscripcion: form.precioInscripcion || 0,
+    cupo_maximo: form.cupoMaximo,
+  };
 }

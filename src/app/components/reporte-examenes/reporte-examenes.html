@@ -1,0 +1,381 @@
+﻿<div class="page-container">
+  <div class="page-header">
+    <h2>Reporte de Inscripciones</h2>
+    @if (total() > 0) {
+      <button type="button" class="btn btn-secondary" (click)="descargarResumenExcel()">
+        Descargar resumen
+      </button>
+    }
+  </div>
+
+  @if (error()) {
+    <div class="alert alert-error">{{ error() }}</div>
+  }
+
+  <div class="stats-row">
+    <div class="stat-card">
+      <span class="stat-label">Examenes</span>
+      <span class="stat-value">{{ total() }}</span>
+    </div>
+    <div class="stat-card">
+      <span class="stat-label">Inscritos</span>
+      <span class="stat-value">{{ totalInscritos() }}</span>
+    </div>
+    <div class="stat-card">
+      <span class="stat-label">Con inscritos</span>
+      <span class="stat-value">{{ totalConInscritos() }}</span>
+    </div>
+    <div class="stat-card">
+      <span class="stat-label">Cancelados</span>
+      <span class="stat-value">{{ totalCancelados() }}</span>
+    </div>
+  </div>
+
+  <div class="filters-bar">
+    <!-- Los filtros son signals: `[(ngModel)]="filtroX"` solo funciona sobre
+         propiedades planas, asi que con signals el binding va explicito. Con
+         banana sobre un signal, escribiria la funcion y el filtro nunca
+         cambiaria. -->
+    <div class="filter-group filter-search">
+      <label>Buscar</label>
+      <input
+        type="search"
+        placeholder="Nombre, categoría, lugar..."
+        [ngModel]="filtroTexto()"
+        (ngModelChange)="filtroTexto.set($event); aplicarFiltros()" />
+    </div>
+
+    <div class="filter-group">
+      <label>Cinta</label>
+      <select [ngModel]="filtroNivel()" (ngModelChange)="filtroNivel.set($event); aplicarFiltros()">
+        <option value="">Todas</option>
+        @for (c of cintas; track c) {
+          <option [value]="c">{{ c }}</option>
+        }
+      </select>
+    </div>
+
+    <div class="filter-group">
+      <label>Estado</label>
+      <select [ngModel]="filtroEstado()" (ngModelChange)="filtroEstado.set($event); aplicarFiltros()">
+        <option value="">Todos</option>
+        @for (e of estados; track e.valor) {
+          <option [value]="e.valor">{{ e.etiqueta }}</option>
+        }
+      </select>
+    </div>
+
+    <div class="filter-group">
+      <label>Sede</label>
+      <select [ngModel]="filtroSede()" (ngModelChange)="filtroSede.set($event); aplicarFiltros()">
+        <option value="">Todas las sedes</option>
+        @for (s of sedes; track s) {
+          <option [value]="s">{{ s }}</option>
+        }
+      </select>
+    </div>
+
+    <div class="filter-group">
+      <label>Desde</label>
+      <input type="date" [ngModel]="fechaDesde()" (ngModelChange)="fechaDesde.set($event); aplicarFiltros()" />
+    </div>
+
+    <div class="filter-group">
+      <label>Hasta</label>
+      <input type="date" [ngModel]="fechaHasta()" (ngModelChange)="fechaHasta.set($event); aplicarFiltros()" />
+    </div>
+
+    @if (hayFiltros) {
+      <div class="filter-group">
+        <label>&nbsp;</label>
+        <button type="button" class="btn btn-secondary" (click)="limpiarFiltros()">Limpiar</button>
+      </div>
+    }
+  </div>
+
+  @if (cargando()) {
+    <div class="loading">Cargando reporte...</div>
+  } @else if (examenesFiltrados().length === 0) {
+    <div class="empty-state">
+      @if (hayFiltros) {
+        <p>No hay examenes que coincidan con los filtros.</p>
+        <button type="button" class="btn btn-secondary" (click)="limpiarFiltros()">Limpiar filtros</button>
+      } @else {
+        <p>Todavía no hay examenes registrados.</p>
+      }
+    </div>
+  } @else {
+    <p class="result-count">
+      {{ total() }} {{ total() === 1 ? 'examen' : 'examenes' }}
+      &middot; {{ totalInscritos() }} inscritos en total
+    </p>
+
+    <div class="table-card">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th data-label="Examen">Examen</th>
+            <th data-label="Fecha">Fecha</th>
+            <th data-label="Sede">Sede</th>
+            <th data-label="Categorías">Categorías</th>
+            <th data-label="Estado">Estado</th>
+            <th data-label="Inscritos">Inscritos</th>
+            <th data-label="Acciones">Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (e of examenesPagina(); track e.id) {
+            <tr>
+              <td data-label="Examen">
+                <div class="examen-cell">
+                  <span class="examen-nombre">{{ e.nombre }}</span>
+                  @if (e.niveles) {
+                    <span class="examen-tipo">{{ e.niveles }}</span>
+                  }
+                </div>
+              </td>
+              <td data-label="Fecha">{{ e.fechaExamen | date: 'dd/MM/yyyy HH:mm' }}</td>
+              <td data-label="Sede">
+                <span class="text-muted">{{ e.sede || '—' }}</span>
+              </td>
+              <td data-label="Categorías">
+                <span class="text-muted">{{ e.niveles || '—' }}</span>
+              </td>
+              <td data-label="Estado">
+                <span class="status-badge" [class]="'status-' + e.estado">
+                  {{ etiquetaEstado(e.estado) }}
+                </span>
+              </td>
+              <td data-label="Inscritos">
+                <span class="contador">
+                  {{ e.inscritos }}
+                  @if (e.cupoMaximo != null) {
+                    <span class="contador-separador">/ {{ e.cupoMaximo }}</span>
+                  }
+                </span>
+                @if (estaLleno(e)) {
+                  <span class="cupo-lleno">Cupo lleno</span>
+                }
+              </td>
+              <td class="actions" data-label="Acciones">
+                <button type="button" class="btn btn-secondary btn-sm" (click)="verDetalle(e)">
+                  Ver confirmados
+                </button>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+
+    @if (total() > pageSize) {
+      <app-paginacion
+        [total]="total()"
+        [pageSize]="pageSize"
+        [pagina]="pagina()"
+        (cambiarPagina)="cambiarPagina($event)" />
+    }
+  }
+</div>
+
+@if (examenSeleccionado(); as examen) {
+  <div class="modal-overlay" (click)="cerrarDetalle()">
+    <div class="modal modal-lg" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h3>Confirmados — {{ examen.nombre }}</h3>
+        <button type="button" class="btn-close" (click)="cerrarDetalle()">&times;</button>
+      </div>
+
+      <div class="modal-body">
+        <p class="detalle-subtitulo">
+          {{ examen.fechaExamen | date: 'dd/MM/yyyy HH:mm' }}
+          @if (examen.sede) {
+            &middot; {{ examen.sede }}
+          }
+          @if (examen.niveles) {
+            &middot; {{ examen.niveles }}
+          }
+        </p>
+
+        @if (cargandoDetalle()) {
+          <div class="loading">Cargando confirmados...</div>
+        } @else if (errorDetalle()) {
+          <div class="alert alert-error">{{ errorDetalle() }}</div>
+        } @else if (inscritos().length === 0) {
+          <p class="empty-state">Nadie se ha inscrito a este examen todavía.</p>
+        } @else {
+          <p class="result-count">
+            {{ inscritos().length }} alumno(s) confirmada(s)
+            @if (examen.cupoMaximo != null) {
+              de {{ examen.cupoMaximo }} lugares
+            }
+          </p>
+
+          <div class="table-card">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th data-label="No.">#</th>
+                  <th data-label="Alumno">Alumno</th>
+                  <th data-label="Edad">Edad</th>
+                  <th data-label="Grado">Grado</th>
+                  <th data-label="Escuela">Escuela</th>
+                  <th data-label="Inscripción">Se inscribió</th>
+                  @if (puedeEditarInscrito()) {
+                    <th data-label="Acciones">Acciones</th>
+                  }
+                </tr>
+              </thead>
+              <tbody>
+                @for (i of inscritos(); track i.id; let n = $index) {
+                  <tr>
+                    <td data-label="No.">{{ n + 1 }}</td>
+                    <td data-label="Alumno">{{ nombreCompleto(i) }}</td>
+                    <td data-label="Edad">
+                      @if (i.edad != null) {
+                        {{ i.edad }}
+                      } @else {
+                        <span class="falta-dato">Sin edad</span>
+                      }
+                    </td>
+                    <td data-label="Grado">{{ i.grado }}</td>
+                    <td data-label="Escuela">
+                      @if (i.escuela) {
+                        {{ i.escuela }}
+                      } @else {
+                        <span class="falta-dato">Sin escuela</span>
+                      }
+                    </td>
+                    <td data-label="Inscripción">
+                      <span class="text-muted">{{ i.createdAt | date: 'dd/MM/yyyy HH:mm' }}</span>
+                    </td>
+                    @if (puedeEditarInscrito()) {
+                      <td class="actions" data-label="Acciones">
+                        <button type="button" class="btn btn-secondary btn-sm" (click)="abrirEditor(i)">
+                          Corregir
+                        </button>
+                      </td>
+                    }
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+
+          @if (faltanDatos()) {
+            <div class="alert alert-warning">
+              {{ faltanDatos() }} inscripción(es) tienen datos incompletos.
+              Corrige los que faltan antes de imprimir la lista.
+            </div>
+          }
+
+          @if (escuelasDe(examen).length > 1) {
+            <div class="escuelas-resumen">
+              <h4>Por escuela</h4>
+              <div class="escuelas-chips">
+                @for (x of escuelasDe(examen); track x.escuela) {
+                  <span class="escuela-chip">
+                    {{ x.escuela }}
+                    <strong>{{ x.total }}</strong>
+                  </span>
+                }
+              </div>
+            </div>
+          }
+        }
+      </div>
+
+      <div class="modal-footer">
+        <button
+          type="button"
+          class="btn btn-secondary"
+          (click)="descargarDetalleExcel()"
+          [disabled]="inscritos().length === 0">
+          Descargar Excel
+        </button>
+        <button type="button" class="btn btn-primary" (click)="cerrarDetalle()">Cerrar</button>
+      </div>
+    </div>
+  </div>
+}
+
+@if (editandoId() !== null) {
+  <div class="modal-overlay" (click)="cerrarEditor()">
+    <div class="modal" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h3>Corregir inscripción</h3>
+        <button type="button" class="btn-close" (click)="cerrarEditor()">&times;</button>
+      </div>
+
+      <div class="modal-body">
+        <p class="detalle-subtitulo">
+          Estos datos son los de ESTE examen. No cambian el perfil del alumno.
+        </p>
+
+        @if (editandoError()) {
+          <div class="alert alert-error">{{ editandoError() }}</div>
+        }
+
+        <div class="form-row two-col">
+          <div class="form-group">
+            <label>Nombre</label>
+            <input type="text"
+                   [ngModel]="editandoDatos().nombre"
+                   (ngModelChange)="actualizarEditando('nombre', $event)" />
+          </div>
+          <div class="form-group">
+            <label>Apellido paterno</label>
+            <input type="text"
+                   [ngModel]="editandoDatos().primerApellido"
+                   (ngModelChange)="actualizarEditando('primerApellido', $event)" />
+          </div>
+        </div>
+
+        <div class="form-row two-col">
+          <div class="form-group">
+            <label>Apellido materno</label>
+            <input type="text"
+                   [ngModel]="editandoDatos().segundoApellido"
+                   (ngModelChange)="actualizarEditando('segundoApellido', $event)" />
+          </div>
+          <div class="form-group">
+            <label>Edad</label>
+            <input type="number"
+                   [min]="4"
+                   [max]="99"
+                   placeholder="Sin edad"
+                   [ngModel]="editandoDatos().edad"
+                   (ngModelChange)="actualizarEdad($event)" />
+            <span class="field-hint">Opcional. Déjala vacía si no la tienes.</span>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>Grado</label>
+          <input type="text"
+                 [ngModel]="editandoDatos().grado"
+                 (ngModelChange)="actualizarEditando('grado', $event)" />
+        </div>
+
+        <div class="form-group">
+          <label>Escuela</label>
+          <input type="text"
+                 placeholder="Ej: Escuela XYZ"
+                 [ngModel]="editandoDatos().escuela"
+                 (ngModelChange)="actualizarEditando('escuela', $event)" />
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" (click)="cerrarEditor()"
+                [disabled]="editandoGuardando()">
+          Cancelar
+        </button>
+        <button type="button" class="btn btn-primary" (click)="guardarEditor()"
+                [disabled]="editandoGuardando()">
+          {{ editandoGuardando() ? 'Guardando...' : 'Guardar' }}
+        </button>
+      </div>
+    </div>
+  </div>
+}

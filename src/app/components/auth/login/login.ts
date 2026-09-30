@@ -5,9 +5,18 @@ import { Router, RouterLink } from '@angular/router';
 import { AuthService } from '../../../services/auth';
 import { NotificationService } from '../../../services/notification';
 import { DuplicateSessionModal } from '../../modal/duplicate-session-modal';
-import { timeout, catchError } from 'rxjs/operators';
+import { timeout, catchError, map } from 'rxjs/operators';
 import { of, Subscription } from 'rxjs';
 import { HttpErrorResponse } from '@angular/common/http';
+
+// El resultado del login se modela comounion y no como "respuesta o null": antes
+// el error se manejaba DOS veces (dentro de catchError y otra vez en next, al
+// recibir el of(null) de retorno), y ese segundo toque de `loading` caia
+// despues de que la notificacion escribiera su signal, que es exactamente lo que
+// Angular reportaba como NG0100 en el binding `disabled`.
+type ResultadoLogin =
+  | { ok: true }
+  | { ok: false; status: number };
 
 @Component({
   selector: 'app-login',
@@ -71,29 +80,32 @@ export class Login implements OnInit, OnDestroy {
 
     this.authService.login({ username, password }).pipe(
       timeout(5000),
-      catchError((error) => {
-        this.loading = false;
-        if (error instanceof HttpErrorResponse && error.status === 429) {
-          this.startCooldown(30);
-          this.notificationService.error('Demasiados intentos. Espera antes de intentar de nuevo.');
-        } else {
-          this.notificationService.error('Credenciales incorrectas');
-        }
-        return of(null);
-      })
-    ).subscribe({
-      next: (response) => {
-        this.loading = false;
-        if (!response) return;
+      // Aca SOLO se transforma la respuesta. Ningun estado del componente se
+      // toca dentro de catchError: si se tocara, el error se resolveria dos
+      // veces y el binding `disabled` se moveria dentro de la misma pasada de
+      // deteccion de cambios. Todo ocurre en el subscribe, una sola vez.
+      map((): ResultadoLogin => ({ ok: true })),
+      catchError((error) => of<ResultadoLogin>({
+        ok: false,
+        status: error instanceof HttpErrorResponse ? error.status : 0,
+      }))
+    ).subscribe((resultado) => {
+      this.loading = false;
+
+      if (resultado.ok) {
         const user = this.authService.currentUser();
         if (user?.rol === 'estudiante') {
           this.router.navigate(['/alumno/home']);
         } else {
           this.router.navigate(['/home']);
         }
-      },
-      error: () => {
-        this.loading = false;
+        return;
+      }
+
+      if (resultado.status === 429) {
+        this.startCooldown(30);
+        this.notificationService.error('Demasiados intentos. Espera antes de intentar de nuevo.');
+      } else {
         this.notificationService.error('Credenciales incorrectas');
       }
     });

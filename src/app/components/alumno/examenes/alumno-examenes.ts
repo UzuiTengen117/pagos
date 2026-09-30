@@ -1,9 +1,9 @@
-import { Component, inject, signal, computed, OnInit, OnDestroy, ChangeDetectorRef } from '@angular/core';
+﻿import { Component, inject, signal, computed, OnInit, OnDestroy, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Subscription, interval } from 'rxjs';
-import { Evento, DatosInscripcion } from '../../../models/evento.model';
-import { EventosService, TIPOS_EVENTO } from '../../../services/eventos';
+import { Examen, DatosInscripcion } from '../../../models/examen.model';
+import { ExamenesService, ESTADOS_EXAMEN } from '../../../services/examenes';
 import { AlumnosService } from '../../../services/alumnos';
 import { NotificationService } from '../../../services/notification';
 import { RefreshService } from '../../../services/refresh';
@@ -13,8 +13,8 @@ import { PaginacionComponent } from '../../paginacion/paginacion';
 import { paginar, PAGE_SIZE } from '../../../utils/paginacion';
 import { NOMBRE_ESCUELA } from '../../../utils/academia';
 
-interface TarjetaEvento {
-  evento: Evento;
+interface TarjetaExamen {
+  examen: Examen;
   cuenta: ReturnType<typeof calcularCuentaRegresiva>;
   // Estado guardado o reloj, el queSea. La plantilla lo usa para decidir si
   // muestra el reloj o el aviso, y no solo el reloj.
@@ -24,14 +24,14 @@ interface TarjetaEvento {
 }
 
 @Component({
-  selector: 'app-alumno-eventos',
+  selector: 'app-alumno-examenes',
   standalone: true,
   imports: [CommonModule, FormsModule, PaginacionComponent],
-  templateUrl: './alumno-eventos.html',
-  styleUrl: './alumno-eventos.scss',
+  templateUrl: './alumno-examenes.html',
+  styleUrl: './alumno-examenes.scss',
 })
-export class AlumnoEventos implements OnInit, OnDestroy {
-  private eventosService = inject(EventosService);
+export class AlumnoExamenes implements OnInit, OnDestroy {
+  private examenesService = inject(ExamenesService);
   private alumnosService = inject(AlumnosService);
   private notificationService = inject(NotificationService);
   private refreshService = inject(RefreshService);
@@ -42,18 +42,18 @@ export class AlumnoEventos implements OnInit, OnDestroy {
 
   // Un solo signal de "ahora" para todos los relojes. Cada segundo se actualiza
   // una vez y los contadores de todas las tarjetas se recalculan contra el, en
-  // vez de tener un temporizador por evento que se desincroniza al segundo tic.
+  // vez de tener un temporizador por examen que se desincroniza al segundo tic.
   private ahora = signal(Date.now());
 
-  eventos = signal<Evento[]>([]);
+  examenes = signal<Examen[]>([]);
 
   // Fechas ya formateadas en su propio computed. Si se calcularan dentro de
   // `tarjetas` se reharían en cada tic del reloj, y Intl no es barato; este
   // computed no lee `ahora` así que solo corre cuando cambia la lista.
   fechasTexto = computed(() => {
     const mapa = new Map<number, string>();
-    for (const evento of this.eventos()) {
-      mapa.set(evento.id, formatearFechaLarga(evento.fechaInicio));
+    for (const examen of this.examenes()) {
+      mapa.set(examen.id, formatearFechaLarga(examen.fechaExamen));
     }
     return mapa;
   });
@@ -66,11 +66,9 @@ export class AlumnoEventos implements OnInit, OnDestroy {
 
   visiblesPagina = computed(() => paginar(this.visibles(), this.pagina()));
 
-  readonly tipos = TIPOS_EVENTO;
-
   // Tarjetas con el reloj ya resuelto para el instante actual. Al leer
   // this.ahora() el computed se invalida solo en cada tic.
-  tarjetas = computed<TarjetaEvento[]>(() => {
+  tarjetas = computed<TarjetaExamen[]>(() => {
     const ahora = this.ahora();
     // Solo el alumno se inscribe. La ruta no restringe por rol (la lista es
     // publica para cualquier sesion iniciada, igual que becas), asi que un
@@ -78,26 +76,26 @@ export class AlumnoEventos implements OnInit, OnDestroy {
     // backend resolveria su alumno_id y no encontraria registro.
     const esAlumno = this.authService.currentUser()?.rol === 'estudiante';
 
-    return this.eventos().map(evento => {
-      const cuenta = calcularCuentaRegresiva(evento.fechaInicio, ahora);
+    return this.examenes().map(examen => {
+      const cuenta = calcularCuentaRegresiva(examen.fechaExamen, ahora);
 
       // El estado guardado manda igual que la fecha. Con solo mirar el reloj, un
-      // evento marcado "finalizado" por el entrenador aparecia con "Inscribirme"
+      // examen marcado "finalizado" por el entrenador aparecia con "Inscribirme"
       // y el backend lo rechazaba con un 400: el boton prometia algo que no iba
       // a pasar.
-      const cancelado = evento.estado === 'cancelado';
-      const yaFue = evento.estado === 'finalizado' || evento.estado === 'en_curso';
+      const cancelado = examen.estado === 'cancelado';
+      const yaFue = examen.estado === 'finalizado' || examen.estado === 'en_curso';
       const terminada = yaFue || cuenta.terminado;
-      const lleno = evento.cupoMaximo != null && evento.inscritos >= evento.cupoMaximo;
+      const lleno = examen.cupoMaximo != null && examen.inscritos >= examen.cupoMaximo;
 
       let puedeInscribirse = esAlumno && !terminada && !cancelado && !lleno;
 
       let motivoBloqueo = '';
-      if (cancelado) motivoBloqueo = 'Este evento fue cancelado';
-      else if (terminada) motivoBloqueo = yaFue ? 'Este evento ya se lleva a cabo' : 'Ya se llevó a cabo';
+      if (cancelado) motivoBloqueo = 'Este examen fue cancelado';
+      else if (terminada) motivoBloqueo = yaFue ? 'Este examen ya se lleva a cabo' : 'Ya se llevó a cabo';
       else if (lleno) motivoBloqueo = 'Cupo lleno';
 
-      return { evento, cuenta, terminada, puedeInscribirse, motivoBloqueo };
+      return { examen, cuenta, terminada, puedeInscribirse, motivoBloqueo };
     });
   });
 
@@ -107,21 +105,21 @@ export class AlumnoEventos implements OnInit, OnDestroy {
   visibles = computed(() => {
     const todas = this.tarjetas();
     if (this.filtro() === 'proximos') {
-      const vigentes = todas.filter(t => t.evento.estado !== 'cancelado' && !t.terminada);
+      const vigentes = todas.filter(t => t.examen.estado !== 'cancelado' && !t.terminada);
       return vigentes.length > 0 ? vigentes : todas;
     }
     return todas;
   });
 
   // Solo cuando no hay NADA vigente pero si historial. Comparar longitudes no
-  // sirve: con tres eventos próximos visibles() tambien trae los tres, y el
+  // sirve: con tres examenes próximos visibles() tambien trae los tres, y el
   // aviso apareceria en cada carga.
   mostrandoTodosPorFallo = computed(() => {
     if (this.filtro() !== 'proximos') {
       return false;
     }
     const tarjetas = this.tarjetas();
-    const vigentes = tarjetas.filter(t => t.evento.estado !== 'cancelado' && !t.terminada);
+    const vigentes = tarjetas.filter(t => t.examen.estado !== 'cancelado' && !t.terminada);
     return vigentes.length === 0 && tarjetas.length > 0;
   });
 
@@ -153,20 +151,20 @@ export class AlumnoEventos implements OnInit, OnDestroy {
       this.cargando.set(true);
     }
 
-    this.eventosService.loadAll().subscribe({
+    this.examenesService.loadAll().subscribe({
       next: (data) => {
-        this.eventos.set(data);
+        this.examenes.set(data);
         this.cargando.set(false);
         this.errorCarga.set('');
         this.cdr.detectChanges();
       },
       error: (err) => {
-        this.eventos.set([]);
+        this.examenes.set([]);
         this.cargando.set(false);
         this.errorCarga.set(
           err?.status === 0
             ? 'No hay conexión con el servidor. Revisa tu internet e inténtalo de nuevo.'
-            : err?.error?.message || 'No se pudieron cargar los eventos.'
+            : err?.error?.message || 'No se pudieron cargar los examenes.'
         );
         this.cdr.detectChanges();
       },
@@ -177,14 +175,14 @@ export class AlumnoEventos implements OnInit, OnDestroy {
 
   // Cancelar es una accion de un toque: no hay nada que confirmar. Inscribirse
   // abre el formulario, porque el backend exige los datos del alumno.
-  toggleInscripcion(evento: Evento): void {
+  toggleInscripcion(examen: Examen): void {
     if (this.procesando() !== null) {
       return;
     }
 
-    if (evento.miInscripcion) {
-      this.procesando.set(evento.id);
-      this.eventosService.cancelarInscripcion(evento.id).subscribe({
+    if (examen.miInscripcion) {
+      this.procesando.set(examen.id);
+      this.examenesService.cancelarInscripcion(examen.id).subscribe({
         next: () => {
           this.procesando.set(null);
           this.notificationService.success('Inscripción cancelada');
@@ -197,11 +195,60 @@ export class AlumnoEventos implements OnInit, OnDestroy {
       return;
     }
 
-    this.abrirModalInscripcion(evento);
+    this.abrirModalInscripcion(examen);
+  }
+
+  // ── Hoja de inscripcion ───────────────────────────────────────────────────
+
+  descargandoHoja = signal<number | null>(null);
+
+  // El PDF se pide con HttpClient y no con un <a href> por dos razones: la ruta
+  // es privada y necesita el token de la cabecera, y el nombre del archivo lo
+  // decide el backend segun el nombre del examen. Con <a> el navegador bajaria
+  // un archivo sin nombre o se comeria el 401.
+  descargarHoja(examen: Examen): void {
+    if (this.descargandoHoja() !== null) {
+      return;
+    }
+
+    this.descargandoHoja.set(examen.id);
+    this.examenesService.descargarHoja(examen.id).subscribe({
+      next: ({ blob, nombreArchivo }) => {
+        this.descargandoHoja.set(null);
+        this.guardarComo(blob, nombreArchivo);
+      },
+      error: () => {
+        // OJO: la peticion va con responseType 'blob', asi que un 404 con
+        // {"message": "..."} llega como un Blob y no como objeto. Por eso
+        // `err.error.message` daria undefined y por eso el texto es fijo: es lo
+        // unico que se puede decir con certeza cuando la respuesta vino
+        // encapsulada.
+        this.descargandoHoja.set(null);
+        this.notificationService.error('No se pudo descargar la hoja de inscripción.');
+      },
+    });
+  }
+
+  // La URL del objeto se revoca SIEMPRE, no solo en el camino feliz: cada una
+  // retiene los varios MB del PDF en memoria mientras la pestana viva, y
+  // descargar dos veces en una sesion larga deja el telefono sin memoria.
+  //
+  // Pero NO se puede revocar en el acto. `enlace.click()` arranca la descarga de
+  // forma asincrona: si la URL se libera en la linea siguiente, Firefox y Safari
+  // cancelan el archivo a mitad de camino. Por eso se espera un instante.
+  private guardarComo(blob: Blob, nombreArchivo: string): void {
+    const url = URL.createObjectURL(blob);
+    const enlace = document.createElement('a');
+    enlace.href = url;
+    enlace.download = nombreArchivo;
+    document.body.appendChild(enlace);
+    enlace.click();
+    enlace.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 10_000);
   }
 
   showModalInscripcion = signal(false);
-  eventoParaInscribir = signal<Evento | null>(null);
+  examenParaInscribir = signal<Examen | null>(null);
   cargandoPerfil = signal(false);
   enviandoInscripcion = signal(false);
   errorInscripcion = signal('');
@@ -218,8 +265,8 @@ export class AlumnoEventos implements OnInit, OnDestroy {
   // Abre el modal. El perfil se pide una sola vez y se cachea en el servicio: si
   // el alumno ya se ha inscrito antes, la segunda vez los campos llegan listos
   // sin volver a pegarle a la base.
-  abrirModalInscripcion(evento: Evento): void {
-    this.eventoParaInscribir.set(evento);
+  abrirModalInscripcion(examen: Examen): void {
+    this.examenParaInscribir.set(examen);
     this.errorInscripcion.set('');
 
     // Se conservan los datos ya escritos si el alumno cierra y reabre el modal.
@@ -270,7 +317,7 @@ export class AlumnoEventos implements OnInit, OnDestroy {
       return;
     }
     this.showModalInscripcion.set(false);
-    this.eventoParaInscribir.set(null);
+    this.examenParaInscribir.set(null);
     this.errorInscripcion.set('');
   }
 
@@ -291,43 +338,51 @@ export class AlumnoEventos implements OnInit, OnDestroy {
     const d = this.datos();
     if (!d.nombre.trim()) return 'Escribe tu nombre';
     if (!d.primerApellido.trim()) return 'Escribe tu apellido paterno';
+    if (!d.segundoApellido.trim()) return 'Escribe tu apellido materno';
     if (!d.grado.trim()) return 'Escribe tu grado';
     // La escuela no se valida: la pone la academia en cada apertura y el input
     // va bloqueado, asi que el alumno no tiene como dejarla vacia.
 
-    if (d.edad !== null) {
-      if (!Number.isInteger(d.edad)) return 'Ingresa una edad válida';
-      if (d.edad < 4 || d.edad > 99) return 'Ingresa una edad válida (entre 4 y 99)';
-    }
+    // La edad es obligatoria, asi que `null` ya no es "no la escribio" sino un
+    // dato faltante: se valida siempre, no solo cuando viene algo.
+    if (d.edad === null) return 'Escribe tu edad';
+    if (!Number.isInteger(d.edad)) return 'Ingresa una edad válida';
+    if (d.edad < 4 || d.edad > 99) return 'Ingresa una edad válida (entre 4 y 99)';
+
     return '';
   }
 
   confirmarInscripcion(): void {
-    const evento = this.eventoParaInscribir();
-    if (!evento || this.enviandoInscripcion()) {
+    const examen = this.examenParaInscribir();
+    if (!examen || this.enviandoInscripcion()) {
       return;
     }
 
     const error = this.validarInscripcion();
     if (error) {
       this.errorInscripcion.set(error);
+      // El aviso va en los dos lugares a proposito. La alerta dice QUE hay que
+      // hacer, y el mensaje del formulario dice QUE campo falta: con "datos
+      // incompletos" solo, el alumno tiene que adivinar cual de los cinco le
+      // quedo en blanco.
+      this.notificationService.warning('Datos incompletos, por favor completa los datos');
       return;
     }
 
     this.enviandoInscripcion.set(true);
     this.errorInscripcion.set('');
-    this.procesando.set(evento.id);
+    this.procesando.set(examen.id);
 
-    this.eventosService.inscribirse(evento.id, this.datos()).subscribe({
+    this.examenesService.inscribirse(examen.id, this.datos()).subscribe({
       next: () => {
         this.enviandoInscripcion.set(false);
         this.procesando.set(null);
         this.showModalInscripcion.set(false);
-        this.eventoParaInscribir.set(null);
+        this.examenParaInscribir.set(null);
         // Se limpian los datos: la escuela o el grado pueden cambiar para el
         // siguiente torneo, y arrastrar el valor viejo invita al error.
         this.datos.set(this.datosVacios());
-        this.notificationService.success(`Te inscribiste a ${evento.nombre}`);
+        this.notificationService.success(`Te inscribiste a ${examen.nombre}`);
       },
       error: (err) => {
         this.enviandoInscripcion.set(false);
@@ -346,18 +401,21 @@ export class AlumnoEventos implements OnInit, OnDestroy {
     return padDos(valor);
   }
 
-  tipoEtiqueta(tipo: Evento['tipo']): string {
-    return this.tipos.find(t => t.valor === tipo)?.etiqueta || tipo;
+  // El badge del encabezado muestra el ESTADO, no el tipo: un examen no tiene
+  // tipo (en Eventos esa pastilla distinguia torneo de dual meet) y lo que el
+  // alumno necesita ver de un vistazo es si todavia puede inscribirse o ya paso.
+  estadoEtiqueta(estado: Examen['estado']): string {
+    return ESTADOS_EXAMEN.find(e => e.valor === estado)?.etiqueta || estado;
   }
 
   // `!= null` y no `=== null`: el mapper devuelve null cuando no hay cupo, pero
   // un JSON viejo sin el campo llega undefined y con la comparacion estricta el
-  // evento se renderizaba con "/ undefined" y "NaN lugares".
-  plazasRestantes(evento: Evento): number | null {
-    if (evento.cupoMaximo == null) {
+  // examen se renderizaba con "/ undefined" y "NaN lugares".
+  plazasRestantes(examen: Examen): number | null {
+    if (examen.cupoMaximo == null) {
       return null;
     }
-    return Math.max(0, evento.cupoMaximo - evento.inscritos);
+    return Math.max(0, examen.cupoMaximo - examen.inscritos);
   }
 
   setFiltro(valor: 'proximos' | 'todos'): void {

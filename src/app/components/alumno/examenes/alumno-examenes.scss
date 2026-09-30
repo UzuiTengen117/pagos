@@ -1,4 +1,4 @@
-.page-container {
+﻿.page-container {
   padding: 1.5rem;
 }
 
@@ -55,19 +55,17 @@
   color: var(--text-on-primary);
 }
 
-  .eventos-grid {
+  .examenes-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
     gap: 1.25rem;
-    // `start` y no el `stretch` por defecto. El banner ya no tiene alto fijo —
-    // lo marca la imagen, que es lo unico que hace que la foto ocupe el ancho
-    // completo sin franjas. Con `stretch`, la tarjeta se estiraria hasta la mas
-    // alta de su fila y las mas cortas abririan un hueco entre el ultimo dato y
-    // el borde de abajo. Con `start` cada tarjeta se ajusta a su contenido.
+    // `start` y no el `stretch` por defecto: como el banner ya no tiene alto
+    // fijo, sin esto las tarjetas se estirarian hasta la mas alta de su fila y
+    // las mas cortas abririan un hueco antes del borde de abajo.
     align-items: start;
   }
 
-.evento-card {
+.examen-card {
   background: var(--bg-card);
   border: 1px solid var(--border-primary);
   border-radius: 16px;
@@ -78,17 +76,15 @@
   transition: box-shadow var(--btn-hover) var(--ease-out), transform var(--btn-hover) var(--ease-out);
 }
 
-.evento-pasado {
+.examen-pasado {
   opacity: 0.72;
 }
 
-.evento-banner {
+.examen-banner {
   position: relative;
-  // SIN aspect-ratio fijo. Con un marco de proporcion fija, `contain` siempre
-  // deja franjas: no hay forma de que una imagen cuya proporcion no coincide con
-  // el marco lo llene entero a la vez. Dejando que el alto lo marque la propia
-  // imagen, el cartel ocupa el 100% del ancho y el espacio que sobra se reparte
-  // arriba y abajo en vez de acumularse a los lados.
+  // SIN aspect-ratio fijo, igual que en las tarjetas de eventos: sin marco, el
+  // alto lo marca la imagen y el cartel ocupa el ancho completo sin dejar
+  // franjas a los lados.
   background: var(--bg-input);
   overflow: hidden;
 
@@ -97,9 +93,7 @@
     width: 100%;
     height: auto;
     object-fit: contain;
-    // Mismo tope que el aviso del home. Sin el, un afiche vertical de 1:2
-    // mediria 640px de alto en una tarjeta de 320 de ancho y empujaria el resto
-    // de la informacion muy por debajo del pliegue.
+    // Mismo tope que en el resto de los lugares donde sale un cartel.
     max-height: 300px;
   }
 
@@ -111,7 +105,7 @@
   }
 }
 
-.evento-banner-vacio {
+.examen-banner-vacio {
   display: flex;
   align-items: flex-start;
   justify-content: flex-start;
@@ -119,7 +113,7 @@
   border-bottom: 1px solid var(--border-primary);
 }
 
-.evento-body {
+.examen-body {
   padding: 1.25rem;
   display: flex;
   flex-direction: column;
@@ -127,7 +121,7 @@
   flex: 1;
 }
 
-.evento-nombre {
+.examen-nombre {
   font-size: 1.05rem;
   font-weight: 700;
   color: var(--text-page-title);
@@ -197,7 +191,7 @@
   margin-top: 0.15rem;
 }
 
-.evento-ya-pasado {
+.examen-ya-pasado {
   background: var(--bg-input);
   border: 1px dashed var(--border-secondary);
   border-radius: 12px;
@@ -209,7 +203,7 @@
 
 // --- Datos ---
 
-.evento-datos {
+.examen-datos {
   margin: 0;
   display: flex;
   flex-direction: column;
@@ -249,7 +243,7 @@
   font-weight: 600;
 }
 
-.evento-notas {
+.examen-notas {
   font-size: 0.85rem;
   color: var(--text-secondary);
   line-height: 1.5;
@@ -260,7 +254,7 @@
   border-left: 3px solid var(--primary-light);
 }
 
-.evento-acciones {
+.examen-acciones {
   display: flex;
   align-items: center;
   gap: 0.6rem;
@@ -309,24 +303,27 @@
   text-transform: uppercase;
   letter-spacing: 0.03em;
 
-  &.badge-torneo {
-    background: var(--purple-bg);
-    color: var(--purple-text);
-  }
-
-  &.badge-dual_meet {
+  // Un examen no lleva `tipo`, asi que la pastilla se pinta por estado. El
+  // color comunica lo que el alumno tiene que decidir: azul todavia se puede
+  // inscribir, ambar esta en curso, gris ya paso, rojo se cancelo.
+  &.badge-programado {
     background: var(--info-bg);
     color: var(--info-text);
   }
 
-  &.badge-open {
-    background: var(--success-bg);
-    color: var(--success-text);
+  &.badge-en_curso {
+    background: var(--warning-bg);
+    color: var(--warning-text);
   }
 
-  &.badge-otro {
+  &.badge-finalizado {
     background: var(--bg-input);
     color: var(--text-muted);
+  }
+
+  &.badge-cancelado {
+    background: var(--danger-bg);
+    color: var(--danger-text);
   }
 }
 
@@ -501,6 +498,20 @@
   color: var(--text-muted);
 }
 
+// El asterisco de campo obligatorio. Se define aqui y no en styles.scss
+// porque solo aparece en este formulario: no tiene por que ser global.
+.req {
+  color: var(--danger);
+  font-weight: 700;
+  margin-left: 0.1rem;
+}
+
+.hint-obligatorio {
+  margin: -0.35rem 0 0.9rem;
+  font-size: 0.78rem;
+  color: var(--text-muted);
+}
+
 .form-error {
   margin: 0 0 0.75rem;
   padding: 0.65rem 0.8rem;
@@ -542,7 +553,7 @@
     }
   }
 
-  .eventos-grid {
+  .examenes-grid {
     grid-template-columns: 1fr;
   }
 

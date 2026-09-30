@@ -1,0 +1,584 @@
+﻿.page-container {
+  padding: 1.5rem;
+}
+
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+
+  h2 {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: var(--text-page-title);
+    margin: 0 0 0.25rem;
+  }
+}
+
+.page-subtitle {
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+  margin: 0;
+}
+
+// --- Resumen ---
+
+.stats-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.stat-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-primary);
+  border-radius: 14px;
+  padding: 1rem 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+
+  .stat-value {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--text-page-title);
+  }
+
+  .stat-label {
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+}
+
+// --- Filtros ---
+
+.filter-input,
+.filter-select {
+  border: 1px solid var(--border-input);
+  background: var(--bg-input);
+  color: var(--text-primary);
+  border-radius: 8px;
+  padding: 0.6rem 0.75rem;
+  font-size: 0.9rem;
+  outline: none;
+  box-sizing: border-box;
+
+  &:focus {
+    border-color: var(--border-input-focus);
+    background: var(--bg-input-focus);
+  }
+}
+
+.filter-input {
+  flex: 1;
+  min-width: 220px;
+}
+
+.btn-ghost {
+  background: var(--btn-neutral-bg);
+  color: var(--text-primary);
+  border: 1px solid var(--btn-ghost-border);
+
+  &:hover {
+    background: var(--btn-neutral-hover);
+  }
+}
+
+// --- Tabla ---
+
+.table-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-primary);
+  border-radius: 14px;
+  overflow: hidden;
+}
+
+.data-table {
+  width: 100%;
+  border-collapse: collapse;
+
+  th,
+  td {
+    padding: 0.875rem 1rem;
+    text-align: left;
+    font-size: 0.9rem;
+  }
+
+  thead {
+    background: var(--bg-input);
+
+    th {
+      font-weight: 600;
+      color: var(--text-secondary);
+      border-bottom: 2px solid var(--border-table-header);
+      white-space: nowrap;
+    }
+  }
+
+  tbody {
+    tr {
+      border-bottom: 1px solid var(--border-table-row);
+      transition: background var(--btn-hover) var(--ease-out);
+
+      &:hover {
+        background: var(--bg-card-hover);
+      }
+    }
+
+    td {
+      color: var(--text-primary);
+    }
+  }
+
+  .empty-state {
+    text-align: center;
+    padding: 2rem;
+    color: var(--text-muted);
+    font-style: italic;
+  }
+
+  // La columna de cintas reemplaza a la de tipo. Es texto, no un badge: las
+  // cintas son una lista abierta y pintarlas como pastilla por cada una haria
+  // una fila ilegible en un examen de siete cintas.
+  .niveles-texto {
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+
+    &.vacio {
+      color: var(--text-muted);
+    }
+  }
+}
+
+// Un examen ya pasado se atenúa en vez de desaparecer: el profesor lo necesita
+// para comparar contra ediciones anteriores.
+.row-pasado {
+  opacity: 0.6;
+}
+
+.examen-cell {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  min-width: 200px;
+}
+
+.examen-thumb {
+  width: 44px;
+  height: 44px;
+  border-radius: 8px;
+  object-fit: cover;
+  flex-shrink: 0;
+  border: 1px solid var(--border-secondary);
+}
+
+.examen-thumb-empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--bg-input);
+  color: var(--text-muted);
+}
+
+.examen-info {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+
+  strong {
+    font-weight: 600;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+}
+
+.examen-sub {
+  display: block;
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  font-weight: 400;
+}
+
+.fecha-cell {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+  align-items: flex-start;
+}
+
+.countdown-chip {
+  margin-top: 0.15rem;
+  display: inline-block;
+  padding: 0.1rem 0.45rem;
+  border-radius: 12px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  background: var(--bg-input);
+  color: var(--text-muted);
+}
+
+.countdown-live {
+  background: var(--warning-bg);
+  color: var(--warning-text);
+}
+
+.cupo-lleno {
+  color: var(--danger-text);
+  font-weight: 600;
+}
+
+.actions {
+  display: flex;
+  gap: 0.5rem;
+  justify-content: flex-end;
+}
+
+// --- Badges ---
+
+.badge {
+  padding: 0.2rem 0.6rem;
+  border-radius: 20px;
+  font-weight: 600;
+  font-size: 0.8rem;
+  white-space: nowrap;
+
+  &.badge-torneo {
+    background: var(--purple-bg);
+    color: var(--purple-text);
+  }
+
+  &.badge-dual_meet {
+    background: var(--info-bg);
+    color: var(--info-text);
+  }
+
+  &.badge-open {
+    background: var(--success-bg);
+    color: var(--success-text);
+  }
+
+  &.badge-otro {
+    background: var(--bg-input);
+    color: var(--text-muted);
+  }
+}
+
+.status-badge {
+  padding: 0.2rem 0.6rem;
+  border-radius: 20px;
+  font-weight: 600;
+  font-size: 0.8rem;
+  white-space: nowrap;
+
+  &.status-programado {
+    background: var(--success-bg);
+    color: var(--success-text);
+  }
+
+  &.status-en_curso {
+    background: var(--info-bg);
+    color: var(--info-text);
+  }
+
+  &.status-finalizado {
+    background: var(--bg-input);
+    color: var(--text-secondary);
+  }
+
+  &.status-cancelado {
+    background: var(--danger-bg);
+    color: var(--danger-text);
+  }
+}
+
+.empty-state-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-primary);
+  border-radius: 14px;
+  padding: 3rem 1rem;
+  text-align: center;
+  color: var(--text-muted);
+}
+
+// --- Modales ---
+
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: var(--bg-overlay);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 1rem;
+}
+
+.modal {
+  background: var(--bg-card);
+  border-radius: 16px;
+  width: 100%;
+  max-width: 560px;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+  animation: slideUp 0.3s var(--ease-out);
+  display: flex;
+  flex-direction: column;
+  max-height: 90vh;
+
+  &.modal-sm {
+    max-width: 440px;
+  }
+
+  &.modal-lg {
+    max-width: 760px;
+  }
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1.25rem 1.5rem;
+  border-bottom: 1px solid var(--border-modal);
+
+  h3 {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--text-page-title);
+    margin: 0;
+  }
+}
+
+.modal-body {
+  padding: 1.5rem;
+  overflow-y: auto;
+}
+
+.modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.75rem;
+  padding: 1rem 1.5rem;
+  border-top: 1px solid var(--border-modal);
+}
+
+// --- Formulario ---
+
+.form-group {
+  margin-bottom: 1rem;
+
+  label {
+    display: block;
+    font-weight: 600;
+    color: var(--text-label);
+    margin-bottom: 0.4rem;
+    font-size: 0.85rem;
+  }
+
+  input,
+  select,
+  textarea {
+    width: 100%;
+    border: 1px solid var(--border-input);
+    border-radius: 8px;
+    padding: 0.65rem 0.75rem;
+    font-size: 0.9rem;
+    background: var(--bg-input);
+    color: var(--text-primary);
+    outline: none;
+    box-sizing: border-box;
+    transition: border-color var(--btn-hover) var(--ease-out);
+    font-family: inherit;
+
+    &:focus {
+      border-color: var(--border-input-focus);
+      background: var(--bg-input-focus);
+    }
+  }
+
+  textarea {
+    resize: vertical;
+  }
+}
+
+.form-row {
+  display: grid;
+  gap: 1rem;
+
+  &.two-col {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  // three-col va en flex porque el bloque responsive global de styles.scss lo
+  // colapsa con flex-direction: column.
+  &.three-col {
+    display: flex;
+    gap: 1rem;
+
+    > * {
+      flex: 1;
+      min-width: 0;
+    }
+  }
+}
+
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin-top: 0.5rem;
+}
+
+.chip {
+  padding: 0.25rem 0.6rem;
+  border-radius: 14px;
+  border: 1px solid var(--border-secondary);
+  background: var(--bg-input);
+  color: var(--text-secondary);
+  font-size: 0.75rem;
+  cursor: pointer;
+  transition: background var(--btn-hover) var(--ease-out);
+
+  &:hover {
+    background: var(--primary-lighter);
+    color: var(--text-on-primary);
+  }
+}
+
+// Chip marcado. Sin este estado el multi-select es inutil: el texto del input
+// ya muestra la seleccion, pero el chip no da ninguna pista visual de cual es,
+// y al ser el input opcional (se puede escribir a mano) no puede deducirse.
+.chip-activo {
+  background: var(--primary);
+  color: var(--text-on-primary);
+  border-color: var(--primary);
+
+  &:hover {
+    background: var(--primary);
+    color: var(--text-on-primary);
+  }
+}
+
+// --- Imagen ---
+
+.image-picker {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.file-drop {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 1.5rem;
+  border: 2px dashed var(--border-secondary);
+  border-radius: 12px;
+  background: var(--bg-input);
+  color: var(--text-secondary);
+  font-size: 0.85rem;
+  cursor: pointer;
+  text-align: center;
+  transition: border-color var(--btn-hover) var(--ease-out);
+
+  &:hover {
+    border-color: var(--primary);
+    color: var(--text-primary);
+  }
+
+  // Oculto visualmente pero NO display:none: asi sigue siendo tabulable y
+  // activable con Enter, que es lo que un input file necesita para no dejar
+  // fuera a quien navega solo con teclado.
+  input[type='file'] {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+  }
+
+  &:focus-within {
+    border-color: var(--primary);
+    color: var(--text-primary);
+  }
+}
+
+.field-hint {
+  display: block;
+  font-size: 0.72rem;
+  color: var(--text-muted);
+  margin-top: 0.3rem;
+  line-height: 1.4;
+}
+
+.image-preview {
+  max-width: 100%;
+  max-height: 220px;
+  border-radius: 12px;
+  object-fit: contain;
+  background: var(--bg-input);
+  border: 1px solid var(--border-secondary);
+}
+
+.image-picker-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.image-hint {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
+// El nombre de un PDF puede ser muy largo ("convocatoria al torneo de poesia
+// del 2 de octubre 2026 (2).pdf"). Sin truncar, empuja el boton "Quitar" fuera
+// de la pantalla en un celular.
+.hoja-nombre {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.inscritos-count {
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  margin: 0 0 0.75rem;
+}
+
+.delete-icon {
+  text-align: center;
+  margin-bottom: 1rem;
+}
+
+.warning-text {
+  color: var(--text-muted);
+  font-size: 0.85rem;
+}

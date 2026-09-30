@@ -1,4 +1,21 @@
-<app-evento-aviso [eventos]="eventos()" />
+<!--
+  Los dos avisos van en cadena y no en una lista mezclada: el primero se
+  destapa apenas hay algo que avisar, y el segundo espera a que el alumno cierre
+  el primero. Por eso cada app-aviso recibe su propia lista y su propio visible;
+  el orden lo resuelve el padre, en alumno-home.ts. No se apilan porque dos
+  overlays encima del otro se leen como uno solo.
+-->
+<app-aviso
+  [avisos]="avisosEventos()"
+  [visible]="mostrarAvisoEventos()"
+  (cerrado)="cerrarAvisoEventos()"
+/>
+
+<app-aviso
+  [avisos]="avisosExamenes()"
+  [visible]="mostrarAvisoExamenes()"
+  (cerrado)="cerrarAvisoExamenes()"
+/>
 
 <div class="dashboard">
   <div class="welcome-banner">

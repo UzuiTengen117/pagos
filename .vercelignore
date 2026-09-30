@@ -1,0 +1,19 @@
+# El build lo genera Vercel en su maquina. Subir el dist local solo agrega peso
+# y el riesgo de que se sirva una version vieja si alguien lo confunde con el
+# resultado real.
+dist/
+.angular/
+node_modules/
+
+# El .env nunca se despliega, por la misma razon que en el backend: las
+# variables las toma del proyecto de Vercel, no del archivo.
+.env
+.env*
+!.env.example
+
+.git
+.gitignore
+.vscode
+.idea
+*.log
+npm-debug.log*

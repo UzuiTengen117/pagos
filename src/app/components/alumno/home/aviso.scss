@@ -33,20 +33,40 @@
   }
 }
 
-// Banner con la foto del torneo. Mismo aspect-ratio que la tarjeta de Mis
-// Eventos para que el alumno no vea la misma foto recortada de dos maneras
-// distintas en la misma sesion.
+// Banner con la foto del torneo. A diferencia de la tarjeta de Mis Eventos, aqui
+// NO hay marco fijo, y es deliberado: el modal muestra una sola imagen, asi que
+// no hay grilla que alinear y puede ocupar todo el ancho disponible. Los dos
+// lugares van en `contain` porque en `cover` el marco recortaba justo la fecha y
+// el lugar, que es lo que se lee para decidir si ir al evento.
 .aviso-banner {
   position: relative;
-  aspect-ratio: 16 / 7;
+  // SIN aspect-ratio fijo, a diferencia de las tarjetas. Con un marco fijo y
+  // `contain` hay un compromiso imposible: el cartel se ve entero, pero siempre
+  // con franjas, y se ve mas chico cuanto mas se aleje de la proporcion del
+  // marco. Dejando que el alto lo marque la propia imagen, la foto ocupa el
+  // 100% del ancho y no hay ni recorte ni franjas, en cualquier formato.
   background: var(--bg-input);
   overflow: hidden;
 
   img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
     display: block;
+    width: 100%;
+    // El alto natural mantiene la proporcion sin deformar. El `object-fit` se
+    // deja igual, pero solo entra en juego cuando el `max-height` de abajo
+    // obliga a la imagen a entrar en una caja mas baja que su proporcion.
+    height: auto;
+    object-fit: contain;
+    // Tope de altura en px y NO en vh a proposito. Con vh el tope se estira con
+    // la pantalla: en un monitor de 1200px de alto el tope queda en 384px y el
+    // banner vuelve a ser altisimo, que es justo lo que se queria evitar. Con px
+    // el alto es el mismo en cualquier dispositivo, y en el celular ni se llega
+    // a tocar, porque ahi manda el ancho de la imagen y nunca pasa de ~300px.
+    //
+    // 300px y no menos porque a 420px de ancho de modal, 300px da 1.4:1: un
+    // cartel apaisado (16:9, que son 236px) entra entero sin tocarse, y solo
+    // recorta el alto en los formatos cuadrados o verticales, que son los que
+    // se desbordaban.
+    max-height: 300px;
   }
 }
 

@@ -20,6 +20,9 @@ export const routes: Routes = [
   { path: 'becas', loadComponent: () => import('./components/becas/becas/becas').then(m => m.Becas), canActivate: [authGuard, roleGuard, permisosGuard], data: { roles: ['administrador', 'profesor'], permisoModulo: 'becas' } },
   { path: 'reembolsos', loadComponent: () => import('./components/reembolsos/reembolsos/reembolsos').then(m => m.Reembolsos), canActivate: [authGuard, roleGuard, permisosGuard], data: { roles: ['administrador', 'profesor'], permisoModulo: 'solicitudes_reembolso' } },
   { path: 'eventos', loadComponent: () => import('./components/eventos/eventos/eventos').then(m => m.Eventos), canActivate: [authGuard, roleGuard, permisosGuard], data: { roles: ['administrador', 'profesor'], permisoModulo: 'eventos' } },
+  { path: 'examenes', loadComponent: () => import('./components/examenes/examenes/examenes').then(m => m.Examenes), canActivate: [authGuard, roleGuard, permisosGuard], data: { roles: ['administrador', 'profesor'], permisoModulo: 'examenes' } },
+  { path: 'examenes/reporte', loadComponent: () => import('./components/reporte-examenes/reporte-examenes').then(m => m.ReporteExamenes), canActivate: [authGuard, roleGuard, permisosGuard], data: { roles: ['administrador', 'profesor'], permisoModulo: 'examenes', permisoAccion: 'ver:reporte_examenes' } },
+  { path: 'alumno/examenes', loadComponent: () => import('./components/alumno/examenes/alumno-examenes').then(m => m.AlumnoExamenes), canActivate: [authGuard] },
 
   { path: 'alumno/home', loadComponent: () => import('./components/alumno/home/alumno-home').then(m => m.AlumnoHome), canActivate: [authGuard] },
   { path: 'alumno/pagos', loadComponent: () => import('./components/alumno/pagos/alumno-pagos').then(m => m.AlumnoPagos), canActivate: [authGuard] },
