@@ -82,32 +82,32 @@ export class Pagos implements OnInit, OnDestroy {
     this.pagosService.loadAll().subscribe({
       next: (pagosData) => {
         this.pagos = pagosData;
-        this.cdr.detectChanges();
+        this.cdr.markForCheck();
       },
       error: (err) => {
         console.error('Error cargando pagos:', err);
         this.pagos = [];
         this.mensajeError = 'Error al cargar los pagos. Verifica tu sesion.';
-        this.cdr.detectChanges();
+        this.cdr.markForCheck();
       }
     });
 
     this.alumnosService.loadAll().subscribe({
       next: (alumnosData) => {
         this.alumnos = alumnosData;
-        this.cdr.detectChanges();
+        this.cdr.markForCheck();
       },
       error: (err) => {
         console.error('Error cargando alumnos:', err);
         this.alumnos = [];
-        this.cdr.detectChanges();
+        this.cdr.markForCheck();
       }
     });
 
     this.becasService.loadAll().subscribe({
       next: (becasData) => {
         this.becas = becasData;
-        this.cdr.detectChanges();
+        this.cdr.markForCheck();
       },
       error: () => {
         this.becas = [];
@@ -117,7 +117,7 @@ export class Pagos implements OnInit, OnDestroy {
     this.preciosService.loadAll().subscribe({
       next: (preciosData) => {
         this.precios = preciosData.filter(p => !p.concepto.toLowerCase().includes('inscripcion'));
-        this.cdr.detectChanges();
+        this.cdr.markForCheck();
       },
       error: () => {
         this.precios = [];
@@ -157,7 +157,7 @@ export class Pagos implements OnInit, OnDestroy {
       this.formData.semana = 1;
       this.formData.mesesSeleccionados = [];
       this.formData.mes = 'Enero';
-      this.cdr.detectChanges();
+      this.cdr.markForCheck();
       return;
     }
 
@@ -168,7 +168,7 @@ export class Pagos implements OnInit, OnDestroy {
     this.formData.monto = 0;
     this.formData.montoOriginal = 0;
     this.formData.concepto = '';
-    this.cdr.detectChanges();
+    this.cdr.markForCheck();
   }
 
   onTipoPagoSelect(precioId: number): void {
@@ -186,7 +186,7 @@ export class Pagos implements OnInit, OnDestroy {
     }
     this.onPrecioChange();
     this.actualizarConcepto();
-    this.cdr.detectChanges();
+    this.cdr.markForCheck();
   }
 
   onTipoPagoChange(): void {
@@ -197,7 +197,7 @@ export class Pagos implements OnInit, OnDestroy {
     }
     this.autoSeleccionarPrecio();
     this.actualizarConcepto();
-    this.cdr.detectChanges();
+    this.cdr.markForCheck();
   }
 
   private autoSeleccionarPrecio(): void {
@@ -269,7 +269,7 @@ export class Pagos implements OnInit, OnDestroy {
     }
     this.onPrecioChange();
     this.actualizarConcepto();
-    this.cdr.detectChanges();
+    this.cdr.markForCheck();
   }
 
   isMesSelected(mes: string): boolean {
@@ -278,12 +278,12 @@ export class Pagos implements OnInit, OnDestroy {
 
   toggleMesesDropdown(): void {
     this.showMesesDropdown = !this.showMesesDropdown;
-    this.cdr.detectChanges();
+    this.cdr.markForCheck();
   }
 
   closeMesesDropdown(): void {
     this.showMesesDropdown = false;
-    this.cdr.detectChanges();
+    this.cdr.markForCheck();
   }
 
   getMesesSeleccionadosText(): string {
@@ -296,13 +296,13 @@ export class Pagos implements OnInit, OnDestroy {
     if (this.formData.precioId) {
       this.onPrecioChange();
       this.actualizarConcepto();
-      this.cdr.detectChanges();
+      this.cdr.markForCheck();
     }
   }
 
   onMesChange(): void {
     this.actualizarConcepto();
-    this.cdr.detectChanges();
+    this.cdr.markForCheck();
   }
 
   togglePagoParcial(): void {
@@ -311,14 +311,14 @@ export class Pagos implements OnInit, OnDestroy {
     } else {
       this.formData.estado = 'pendiente';
     }
-    this.cdr.detectChanges();
+    this.cdr.markForCheck();
   }
 
   togglePendienteNotas(): void {
     if (this.formData.estado !== 'pendiente') {
       this.formData.notasPendiente = '';
     }
-    this.cdr.detectChanges();
+    this.cdr.markForCheck();
   }
 
   getAlumnoBeca(alumnoId: number | null): string {
@@ -353,7 +353,7 @@ export class Pagos implements OnInit, OnDestroy {
     }
 
     this.pagos = resultado;
-    this.cdr.detectChanges();
+    this.cdr.markForCheck();
   }
 
   limpiarFiltros(): void {
@@ -364,11 +364,11 @@ export class Pagos implements OnInit, OnDestroy {
     this.pagosService.loadAll().subscribe({
       next: (data) => {
         this.pagos = data;
-        this.cdr.detectChanges();
+        this.cdr.markForCheck();
       },
       error: () => {
         this.pagos = [];
-        this.cdr.detectChanges();
+        this.cdr.markForCheck();
       }
     });
   }
@@ -380,7 +380,7 @@ export class Pagos implements OnInit, OnDestroy {
     this.mensajeError = '';
     this.mensajeExito = '';
     this.showMesesDropdown = false;
-    this.cdr.detectChanges();
+    this.cdr.markForCheck();
   }
 
   private detectarTipoPago(concepto: string, precioId: number | null): 'mensualidad' | 'semanal' | 'diario' {
@@ -418,7 +418,7 @@ export class Pagos implements OnInit, OnDestroy {
     this.showModal = true;
     this.mensajeError = '';
     this.mensajeExito = '';
-    this.cdr.detectChanges();
+    this.cdr.markForCheck();
   }
 
   closeModal(): void {
@@ -428,7 +428,7 @@ export class Pagos implements OnInit, OnDestroy {
     this.mensajeError = '';
     this.mensajeExito = '';
     this.showMesesDropdown = false;
-    this.cdr.detectChanges();
+    this.cdr.markForCheck();
   }
 
   savePago(): void {
@@ -436,27 +436,27 @@ export class Pagos implements OnInit, OnDestroy {
 
     if (!this.formData.alumnoId) {
       this.mensajeError = 'Selecciona un alumno.';
-      this.cdr.detectChanges();
+      this.cdr.markForCheck();
       return;
     }
     if (!this.formData.concepto.trim()) {
       this.mensajeError = 'Ingresa un concepto.';
-      this.cdr.detectChanges();
+      this.cdr.markForCheck();
       return;
     }
     if (!this.formData.precioId) {
       this.mensajeError = 'Selecciona un tipo de pago.';
-      this.cdr.detectChanges();
+      this.cdr.markForCheck();
       return;
     }
     if (this.formData.monto <= 0) {
       this.mensajeError = 'El monto debe ser mayor a 0.';
-      this.cdr.detectChanges();
+      this.cdr.markForCheck();
       return;
     }
     if (this.formData.esPagoParcial && (this.formData.montoParcial <= 0 || this.formData.montoParcial > this.formData.monto)) {
       this.mensajeError = 'El monto parcial debe ser mayor a 0 y menor o igual al monto total.';
-      this.cdr.detectChanges();
+      this.cdr.markForCheck();
       return;
     }
 
@@ -464,7 +464,7 @@ export class Pagos implements OnInit, OnDestroy {
     const alumno = this.alumnosService.getById(alumnoId);
     if (!alumno) {
       this.mensajeError = 'El alumno seleccionado no es válido.';
-      this.cdr.detectChanges();
+      this.cdr.markForCheck();
       return;
     }
 
@@ -505,7 +505,7 @@ export class Pagos implements OnInit, OnDestroy {
         } else {
           this.mensajeExito = 'Pago registrado correctamente.';
         }
-        this.cdr.detectChanges();
+        this.cdr.markForCheck();
         setTimeout(() => {
           this.closeModal();
           this.recargarPagos();
@@ -514,7 +514,7 @@ export class Pagos implements OnInit, OnDestroy {
       error: (err) => {
         console.error('Error guardando pago:', err);
         this.mensajeError = err.error?.message || 'Error al guardar el pago. Intenta de nuevo.';
-        this.cdr.detectChanges();
+        this.cdr.markForCheck();
       }
     });
   }
@@ -522,13 +522,13 @@ export class Pagos implements OnInit, OnDestroy {
   openDeleteModal(pago: Pago): void {
     this.pagoToDelete = pago;
     this.showDeleteModal = true;
-    this.cdr.detectChanges();
+    this.cdr.markForCheck();
   }
 
   closeDeleteModal(): void {
     this.showDeleteModal = false;
     this.pagoToDelete = null;
-    this.cdr.detectChanges();
+    this.cdr.markForCheck();
   }
 
   deletePago(): void {
@@ -543,7 +543,7 @@ export class Pagos implements OnInit, OnDestroy {
         console.error('Error eliminando pago:', err);
         this.mensajeError = err.error?.message || 'Error al eliminar el pago.';
         this.closeDeleteModal();
-        this.cdr.detectChanges();
+        this.cdr.markForCheck();
       }
     });
   }
@@ -553,12 +553,12 @@ export class Pagos implements OnInit, OnDestroy {
     this.pagosService.loadAll().subscribe({
       next: (data) => {
         this.pagos = data;
-        this.cdr.detectChanges();
+        this.cdr.markForCheck();
       },
       error: (err) => {
         console.error('Error recargando pagos:', err);
         this.pagos = [];
-        this.cdr.detectChanges();
+        this.cdr.markForCheck();
       }
     });
   }

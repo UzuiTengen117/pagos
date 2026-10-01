@@ -158,7 +158,7 @@ export class AlumnoEventos implements OnInit, OnDestroy {
         this.eventos.set(data);
         this.cargando.set(false);
         this.errorCarga.set('');
-        this.cdr.detectChanges();
+        this.cdr.markForCheck();
       },
       error: (err) => {
         this.eventos.set([]);
@@ -168,7 +168,7 @@ export class AlumnoEventos implements OnInit, OnDestroy {
             ? 'No hay conexión con el servidor. Revisa tu internet e inténtalo de nuevo.'
             : err?.error?.message || 'No se pudieron cargar los eventos.'
         );
-        this.cdr.detectChanges();
+        this.cdr.markForCheck();
       },
     });
   }
@@ -187,10 +187,12 @@ export class AlumnoEventos implements OnInit, OnDestroy {
       this.eventosService.cancelarInscripcion(evento.id).subscribe({
         next: () => {
           this.procesando.set(null);
+          this.cdr.markForCheck();
           this.notificationService.success('Inscripción cancelada');
         },
         error: (err) => {
           this.procesando.set(null);
+          this.cdr.markForCheck();
           this.notificationService.error(err?.error?.message || 'No se pudo cancelar la inscripción.');
         },
       });
@@ -255,12 +257,12 @@ export class AlumnoEventos implements OnInit, OnDestroy {
           segundoApellido: d.segundoApellido || alumno.segundoApellido || '',
           grado: d.grado || alumno.grado || '',
         }));
-        this.cdr.detectChanges();
+        this.cdr.markForCheck();
       },
       error: () => {
         this.cargandoPerfil.set(false);
         // No es un error bloqueante: el alumno puede escribirlo a mano.
-        this.cdr.detectChanges();
+        this.cdr.markForCheck();
       },
     });
   }
@@ -327,13 +329,14 @@ export class AlumnoEventos implements OnInit, OnDestroy {
         // Se limpian los datos: la escuela o el grado pueden cambiar para el
         // siguiente torneo, y arrastrar el valor viejo invita al error.
         this.datos.set(this.datosVacios());
+        this.cdr.markForCheck();
         this.notificationService.success(`Te inscribiste a ${evento.nombre}`);
       },
       error: (err) => {
         this.enviandoInscripcion.set(false);
         this.procesando.set(null);
         this.errorInscripcion.set(err?.error?.message || 'No se pudo completar la inscripción.');
-        this.cdr.detectChanges();
+        this.cdr.markForCheck();
       },
     });
   }

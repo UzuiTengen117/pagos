@@ -47,7 +47,7 @@ export class AlumnoPagos implements OnInit, OnDestroy {
     this.alumnosService.loadAll().subscribe(() => {
       this.inscripcionesService.loadAll().subscribe(() => {
         this.pagosService.loadAll().subscribe(() => {
-          this.cdr.detectChanges();
+          this.cdr.markForCheck();
         });
       });
     });

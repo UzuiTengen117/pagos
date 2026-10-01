@@ -8,7 +8,7 @@ import { Inscripcion } from '../models/inscripcion.model';
 import { SolicitudReembolso } from '../models/reembolso.model';
 import { MiQrAlumno, MiAsistencia, SesionClase, AlumnoEnSesion, ResultadoRegistro } from '../models/asistencia.model';
 import { DatosInscripcion, Evento, EventoFormData, EventoInscrito } from '../models/evento.model';
-import { Examen, ExamenFormData } from '../models/examen.model';
+import { Examen, ExamenFormData, ExamenInscrito, SolicitudExamen, CalificacionExamen } from '../models/examen.model';
 
 export function mapRol(backendRol: string): RolUsuario {
   switch (backendRol) {
@@ -375,9 +375,10 @@ export function mapEventoFromBackend(data: any): Evento {
   };
 }
 
-// Devuelve `EventoInscrito` y no un tipo por modulo: `ExamenInscrito` tiene
-// exactamente los mismos campos, asi que la tipacion estructural lo acepta sin
-// necesidad de una interseccion que solo confunde.
+// Devuelve `EventoInscrito` y no un tipo por modulo. Antes `ExamenInscrito` era
+// identico a este y la tipacion estructural lo aceptaba; ya no lo es, porque un
+// examen lleva la hoja de solicitud y un evento no. Para las filas de examen esta
+// la hoja entera y hay que usar `mapExamenInscritoFromBackend`.
 export function mapInscritoFromBackend(data: any): EventoInscrito {
   return {
     id: data.id,
@@ -390,6 +391,162 @@ export function mapInscritoFromBackend(data: any): EventoInscrito {
     edad: data.edad === null || data.edad === undefined ? null : Number(data.edad),
     grado: data.grado || '',
     escuela: data.escuela || '',
+  };
+}
+
+// Un NUMERIC de Postgres llega como STRING, no como numero: es el tipo exacto por
+// precision y el driver no lo convierte. Sin este Number(), `cal_basicos` seria
+// "8.50", y "8.50" + 1 da "8.501" en una concatenacion y `String(8.50)` da
+// "8.5", o sea que el mismo dato se veria distinto segun por donde pasara.
+function numeroSql(v: any): number | null {
+  if (v === null || v === undefined || v === '') {
+    return null;
+  }
+  const n = Number(v);
+  return Number.isFinite(n) ? n : null;
+}
+
+// Una columna DATE de Postgres la parsea el driver a un Date en hora LOCAL. Un
+// '2026-05-01' midnight UTC-shelf se vuelve 30 de abril en cualquier huso al oeste
+// de Greenwich, y un `<input type="date">` con ese valor muestra el dia anterior.
+//
+// Por eso se reconstruye la fecha desde las piezas locales del Date, nunca con
+// toISOString(): aqui se quiere el dia que escribio el usuario, no el dia UTC.
+//
+// El caso de que ya venga como string se cubre porque un backend con un type
+// parser propio, o un futuro JSON serializado, lo darian asi y el mapper tiene
+// que servir para los dos sin que nadie se acuerde de cual.
+function fechaSql(v: any): string {
+  if (v === null || v === undefined || v === '') {
+    return '';
+  }
+  if (typeof v === 'string') {
+    // Si ya viene "YYYY-MM-DD" (o con hora) se queda con las 10 primeras.
+    return v.slice(0, 10);
+  }
+  if (v instanceof Date && !Number.isNaN(v.getTime())) {
+    const mes = String(v.getMonth() + 1).padStart(2, '0');
+    const dia = String(v.getDate()).padStart(2, '0');
+    return `${v.getFullYear()}-${mes}-${dia}`;
+  }
+  return '';
+}
+
+// El backend guarda la firma SIN el prefijo `data:image/png;base64,` porque es
+// constante y no es dato. Para ponerla en un <img> hay que volver a anteponerlo,
+// y esta es la unica funcion que sabe eso.
+const PREFIJO_FIRMA = 'data:image/png;base64,';
+
+export function prefijoFirma(payload: string | null | undefined): string {
+  if (!payload) {
+    return '';
+  }
+  // Si el backend en algun momento devuelve la data URL entera, no se duplica el
+  // prefijo: una URL con el prefijo dos veces no carga y el <img> sale roto sin
+  // ningun error en consola que lo explique.
+  return payload.startsWith('data:') ? payload : PREFIJO_FIRMA + payload;
+}
+
+// La fila de "inscritos" de un examen, con toda la hoja.
+//
+// No se extiende `mapInscritoFromBackend` a proposito: esa devuelve un
+// `EventoInscrito` de seis campos y la hoja del examen tiene treinta. Compartirla
+// obligaria a que el reporte de eventos cargara campos que no existen ahi, o a que
+// quede marcada opcional la mitad de lo que el examen si necesita.
+export function mapExamenInscritoFromBackend(data: any): ExamenInscrito {
+  return {
+    id: data.id,
+    estado: data.estado || 'inscrito',
+    createdAt: data.created_at,
+    alumnoId: data.alumno_id,
+    nombre: data.nombre || '',
+    primerApellido: data.primer_apellido || '',
+    segundoApellido: data.segundo_apellido || '',
+    edad: data.edad === null || data.edad === undefined ? null : Number(data.edad),
+    grado: data.grado || '',
+    escuela: data.escuela || '',
+    numeroExamen: data.numero_examen ?? null,
+    direccion: data.direccion ?? null,
+    telefono: data.telefono ?? null,
+    fechaNacimiento: fechaSql(data.fecha_nacimiento),
+    fechaIngreso: fechaSql(data.fecha_ingreso),
+    gradoAPasar: data.grado_a_pasar ?? null,
+    fechaExamenAnterior: fechaSql(data.fecha_examen_anterior),
+    fechaUltimoTorneo: fechaSql(data.fecha_ultimo_torneo),
+    fechaSolicitud: fechaSql(data.fecha_solicitud),
+    profesorAutoriza: data.profesor_autoriza ?? null,
+    firmaSolicitante: prefijoFirma(data.firma_solicitante),
+    firmaPadre: prefijoFirma(data.firma_padre),
+    recordAsistencia: numeroSql(data.record_asistencia),
+    calBasicos: numeroSql(data.cal_basicos),
+    calRompimientos: numeroSql(data.cal_rompimientos),
+    calPateo: numeroSql(data.cal_pateo),
+    calCombateLibre: numeroSql(data.cal_combate_libre),
+    calFormas: numeroSql(data.cal_formas),
+    calDefensaPersonal: numeroSql(data.cal_defensa_personal),
+    notaCombateUnPaso: data.nota_combate_un_paso ?? null,
+    notaPateoSaltando: data.nota_pateo_saltando ?? null,
+    comentarios: data.comentarios ?? null,
+    // Triestado y NO `data.aprobado || false`: ese `||` convierte el null en
+    // false, que es exactamente el bug que hace que un alumno sin calificar
+    // aparezca reprobado. Aca se pasa el valor tal cual.
+    aprobado: data.aprobado === null || data.aprobado === undefined ? null : Boolean(data.aprobado),
+    firmaExaminador: prefijoFirma(data.firma_examinador),
+    calificadoAt: data.calificado_at ?? null,
+  };
+}
+
+// El cuerpo de POST /examenes/:id/inscribirse: los seis campos de identidad que
+// ya existian MAS el bloque del alumno de la hoja, en el mismo request.
+//
+// Se separa de `mapDatosInscripcionToBackend` en vez de extenderlo porque ese es
+// el cuerpo de los EVENTOS, que no tienen hoja. Meterle campos de examen
+// obligaria a los eventos a mandarlos.
+export function mapSolicitudExamenToBackend(datos: DatosInscripcion, s: SolicitudExamen): any {
+  return {
+    ...mapDatosInscripcionToBackend(datos),
+    numero_examen: s.numeroExamen.trim(),
+    direccion: s.direccion.trim(),
+    telefono: s.telefono.trim(),
+    // "" en vez de null: un <input type="date"> vacio entrega "" y el backend lo
+    // trata como ausente. Mandar null explicitamente tambien funciona, pero ""
+    // deja claro que el dato no lo escribio nadie y no que alguien lo borro.
+    fecha_nacimiento: s.fechaNacimiento || null,
+    fecha_ingreso: s.fechaIngreso || null,
+    grado_a_pasar: s.gradoAPasar.trim(),
+    fecha_examen_anterior: s.fechaExamenAnterior || null,
+    fecha_ultimo_torneo: s.fechaUltimoTorneo || null,
+    fecha_solicitud: s.fechaSolicitud || null,
+    profesor_autoriza: s.profesorAutoriza.trim(),
+    // Se manda la data URL ENTERA, con prefijo. El backend lo valida y guarda solo
+    // el payload; mandarlo sin prefijo seria obligar al backend a adivinar de que
+    // imagen se trata.
+    firma_solicitante: s.firmaSolicitante || null,
+    firma_padre: s.firmaPadre || null,
+  };
+}
+
+// El cuerpo de PUT /examenes/:id/inscritos/:inscripcionId/calificacion.
+export function mapCalificacionExamenToBackend(c: CalificacionExamen): any {
+  return {
+    // null y no 0 cuando el campo esta vacio: un 0 es una nota real (el alumno no
+    // rompio nada) y un null es "el examinador todavia no lo puso".
+    record_asistencia: c.recordAsistencia,
+    cal_basicos: c.calBasicos,
+    cal_rompimientos: c.calRompimientos,
+    cal_pateo: c.calPateo,
+    cal_combate_libre: c.calCombateLibre,
+    cal_formas: c.calFormas,
+    cal_defensa_personal: c.calDefensaPersonal,
+    nota_combate_un_paso: c.notaCombateUnPaso.trim(),
+    nota_pateo_saltando: c.notaPateoSaltando.trim(),
+    comentarios: c.comentarios.trim(),
+    // null = sin calificar. Los dos booleanos viajan como booleanos de verdad y
+    // no como "true"/"false" en texto: el backend acepta las dos formas, pero
+    // mandarlo tipado hace que el valor llegue a la base sin pasar por un
+    // string-to-bool del que dependa el resultado.
+    aprobado: c.aprobado,
+    firma_examinador: c.firmaExaminador || null,
   };
 }
 

@@ -82,13 +82,13 @@ export class Inscripciones implements OnInit, OnDestroy {
         this.alumnos = alumnosData;
         this.alumnosCargados = true;
         this.completarCargaInicial();
-        this.cdr.detectChanges();
+        this.cdr.markForCheck();
       },
       error: () => {
         this.alumnos = [];
         this.alumnosCargados = true;
         this.completarCargaInicial();
-        this.cdr.detectChanges();
+        this.cdr.markForCheck();
       }
     });
 
@@ -97,13 +97,13 @@ export class Inscripciones implements OnInit, OnDestroy {
         this.precios = preciosData;
         this.preciosCargados = true;
         this.completarCargaInicial();
-        this.cdr.detectChanges();
+        this.cdr.markForCheck();
       },
       error: () => {
         this.precios = [];
         this.preciosCargados = true;
         this.completarCargaInicial();
-        this.cdr.detectChanges();
+        this.cdr.markForCheck();
       }
     });
 
@@ -113,10 +113,10 @@ export class Inscripciones implements OnInit, OnDestroy {
           this.inscripciones = data;
         }
         this.completarCargaInicial();
-        this.cdr.detectChanges();
+        this.cdr.markForCheck();
       },
       error: () => {
-        this.cdr.detectChanges();
+        this.cdr.markForCheck();
       }
     });
   }
@@ -144,7 +144,7 @@ export class Inscripciones implements OnInit, OnDestroy {
       this.formData.montoOriginal = 0;
       this.formData.becaPorcentaje = 0;
       this.formData.concepto = '';
-      this.cdr.detectChanges();
+      this.cdr.markForCheck();
       return;
     }
 
@@ -159,7 +159,7 @@ export class Inscripciones implements OnInit, OnDestroy {
       this.formData.concepto = precio.concepto;
       this.calcularMonto();
     }
-    this.cdr.detectChanges();
+    this.cdr.markForCheck();
   }
 
   onPrecioSelect(precioId: number): void {
@@ -171,7 +171,7 @@ export class Inscripciones implements OnInit, OnDestroy {
     this.formData.precioId = precioId;
     this.formData.concepto = precio.concepto;
     this.calcularMonto();
-    this.cdr.detectChanges();
+    this.cdr.markForCheck();
   }
 
   private calcularMonto(): void {
@@ -221,7 +221,7 @@ export class Inscripciones implements OnInit, OnDestroy {
     }
 
     this.inscripciones = resultado;
-    this.cdr.detectChanges();
+    this.cdr.markForCheck();
   }
 
   limpiarFiltros(): void {
@@ -232,7 +232,7 @@ export class Inscripciones implements OnInit, OnDestroy {
     this.inscripcionesService.loadAll().subscribe({
       next: (data) => {
         this.inscripciones = data;
-        this.cdr.detectChanges();
+        this.cdr.markForCheck();
       },
     });
   }
@@ -243,7 +243,7 @@ export class Inscripciones implements OnInit, OnDestroy {
     this.showModal = true;
     this.mensajeError = '';
     this.mensajeExito = '';
-    this.cdr.detectChanges();
+    this.cdr.markForCheck();
   }
 
   openEditModal(inscripcion: Inscripcion): void {
@@ -264,7 +264,7 @@ export class Inscripciones implements OnInit, OnDestroy {
     this.showModal = true;
     this.mensajeError = '';
     this.mensajeExito = '';
-    this.cdr.detectChanges();
+    this.cdr.markForCheck();
   }
 
   closeModal(): void {
@@ -273,7 +273,7 @@ export class Inscripciones implements OnInit, OnDestroy {
     this.inscripcionToDelete = null;
     this.mensajeError = '';
     this.mensajeExito = '';
-    this.cdr.detectChanges();
+    this.cdr.markForCheck();
   }
 
   saveInscripcion(): void {
@@ -281,17 +281,17 @@ export class Inscripciones implements OnInit, OnDestroy {
 
     if (!this.formData.alumnoId) {
       this.mensajeError = 'Selecciona un alumno.';
-      this.cdr.detectChanges();
+      this.cdr.markForCheck();
       return;
     }
     if (!this.formData.precioId) {
       this.mensajeError = 'Selecciona un tipo de pago.';
-      this.cdr.detectChanges();
+      this.cdr.markForCheck();
       return;
     }
     if (this.formData.monto <= 0) {
       this.mensajeError = 'El monto debe ser mayor a 0.';
-      this.cdr.detectChanges();
+      this.cdr.markForCheck();
       return;
     }
 
@@ -299,7 +299,7 @@ export class Inscripciones implements OnInit, OnDestroy {
     const alumno = this.alumnosService.getById(alumnoId);
     if (!alumno) {
       this.mensajeError = 'El alumno seleccionado no es valido.';
-      this.cdr.detectChanges();
+      this.cdr.markForCheck();
       return;
     }
 
@@ -339,25 +339,25 @@ export class Inscripciones implements OnInit, OnDestroy {
           }).subscribe({
             next: () => {
               this.mensajeExito = 'Inscripcion registrada y comprobante generado.';
-              this.cdr.detectChanges();
+              this.cdr.markForCheck();
               setTimeout(() => this.router.navigate(['/comprobantes']), 800);
             },
             error: () => {
               this.mensajeExito = 'Inscripcion registrada correctamente.';
-              this.cdr.detectChanges();
+              this.cdr.markForCheck();
               setTimeout(() => this.closeModal(), 800);
             },
           });
         } else {
           this.mensajeExito = 'Inscripcion actualizada correctamente.';
-          this.cdr.detectChanges();
+          this.cdr.markForCheck();
           setTimeout(() => this.closeModal(), 800);
         }
       },
       error: (err) => {
         console.error('Error guardando inscripcion:', err);
         this.mensajeError = err.error?.message || 'Error al guardar la inscripcion. Intenta de nuevo.';
-        this.cdr.detectChanges();
+        this.cdr.markForCheck();
       }
     });
   }
@@ -365,13 +365,13 @@ export class Inscripciones implements OnInit, OnDestroy {
   openDeleteModal(inscripcion: Inscripcion): void {
     this.inscripcionToDelete = inscripcion;
     this.showDeleteModal = true;
-    this.cdr.detectChanges();
+    this.cdr.markForCheck();
   }
 
   closeDeleteModal(): void {
     this.showDeleteModal = false;
     this.inscripcionToDelete = null;
-    this.cdr.detectChanges();
+    this.cdr.markForCheck();
   }
 
   deleteInscripcion(): void {
@@ -386,7 +386,7 @@ export class Inscripciones implements OnInit, OnDestroy {
         console.error('Error eliminando inscripcion:', err);
         this.mensajeError = err.error?.message || 'Error al eliminar la inscripcion.';
         this.closeDeleteModal();
-        this.cdr.detectChanges();
+        this.cdr.markForCheck();
       }
     });
   }
@@ -397,7 +397,7 @@ export class Inscripciones implements OnInit, OnDestroy {
       next: (data) => {
         this.inscripciones = data;
         this.completarCargaInicial();
-        this.cdr.detectChanges();
+        this.cdr.markForCheck();
       },
     });
   }
@@ -426,7 +426,7 @@ export class Inscripciones implements OnInit, OnDestroy {
       }
       return i;
     });
-    this.cdr.detectChanges();
+    this.cdr.markForCheck();
   }
 
   descargarExcel(): void {

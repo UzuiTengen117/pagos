@@ -54,17 +54,17 @@ export class Home implements OnInit, OnDestroy {
     this.pagosService.loadAll().subscribe({
       next: () => {
         this.resumen = this.pagosService.getResumen();
-        this.cdr.detectChanges();
+        this.cdr.markForCheck();
       },
       error: () => {
-        this.cdr.detectChanges();
+        this.cdr.markForCheck();
       }
     });
 
     this.alumnosService.loadAll().subscribe({
       next: (alumnos) => {
         this.totalAlumnos = alumnos.length;
-        this.cdr.detectChanges();
+        this.cdr.markForCheck();
 
         this.becasService.loadAll().subscribe({
           next: (becasData) => {
@@ -73,20 +73,20 @@ export class Home implements OnInit, OnDestroy {
               porcentaje: b.porcentaje,
               cantidad: alumnos.filter(a => a.becaId === b.id).length,
             }));
-            this.cdr.detectChanges();
+            this.cdr.markForCheck();
           },
           error: () => {}
         });
       },
       error: () => {
-        this.cdr.detectChanges();
+        this.cdr.markForCheck();
       }
     });
 
     this.comprobantesService.loadAll().subscribe({
       next: (data) => {
         this.totalComprobantes = data.length;
-        this.cdr.detectChanges();
+        this.cdr.markForCheck();
       },
       error: () => {}
     });
@@ -117,13 +117,13 @@ export class Home implements OnInit, OnDestroy {
     this.filtroFechaFin = '';
     this.mensajeError = '';
     this.showDateModal = true;
-    this.cdr.detectChanges();
+    this.cdr.markForCheck();
   }
 
   closeDateModal(): void {
     this.showDateModal = false;
     this.mensajeError = '';
-    this.cdr.detectChanges();
+    this.cdr.markForCheck();
   }
 
   aceptarFechas(): void {
@@ -131,13 +131,13 @@ export class Home implements OnInit, OnDestroy {
 
     if (!this.filtroFechaInicio || !this.filtroFechaFin) {
       this.mensajeError = 'Selecciona una fecha de inicio y una fecha de fin.';
-      this.cdr.detectChanges();
+      this.cdr.markForCheck();
       return;
     }
 
     if (this.filtroFechaInicio > this.filtroFechaFin) {
       this.mensajeError = 'La fecha de inicio no puede ser mayor que la fecha de fin.';
-      this.cdr.detectChanges();
+      this.cdr.markForCheck();
       return;
     }
 
@@ -147,18 +147,18 @@ export class Home implements OnInit, OnDestroy {
     };
     this.showDateModal = false;
     this.showConfirmModal = true;
-    this.cdr.detectChanges();
+    this.cdr.markForCheck();
   }
 
   cancelarConfirmacion(): void {
     this.showConfirmModal = false;
-    this.cdr.detectChanges();
+    this.cdr.markForCheck();
   }
 
   confirmarDescarga(): void {
     this.descargarExcelGanancias();
     this.showConfirmModal = false;
-    this.cdr.detectChanges();
+    this.cdr.markForCheck();
   }
 
   formatFecha(fecha: string): string {

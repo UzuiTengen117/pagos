@@ -85,12 +85,12 @@ export class Reembolsos implements OnInit, OnDestroy {
         this.pendientes = data;
         this.paginaPendientes = 1;
         this.cargandoPendientes = false;
-        this.cdr.detectChanges();
+        this.cdr.markForCheck();
       },
       error: () => {
         this.pendientes = [];
         this.cargandoPendientes = false;
-        this.cdr.detectChanges();
+        this.cdr.markForCheck();
       }
     });
   }
@@ -102,12 +102,12 @@ export class Reembolsos implements OnInit, OnDestroy {
         this.historial = data;
         this.paginaHistorial = 1;
         this.cargandoHistorial = false;
-        this.cdr.detectChanges();
+        this.cdr.markForCheck();
       },
       error: () => {
         this.historial = [];
         this.cargandoHistorial = false;
-        this.cdr.detectChanges();
+        this.cdr.markForCheck();
       }
     });
   }
@@ -168,6 +168,7 @@ export class Reembolsos implements OnInit, OnDestroy {
   confirmarAprobacion(): void {
     if (!this.solicitudAprobar) return;
     if (!this.motivoAprobacion.trim()) {
+      this.cdr.markForCheck();
       this.notificationService.warning('El motivo de la aprobación es requerido');
       return;
     }
@@ -176,9 +177,13 @@ export class Reembolsos implements OnInit, OnDestroy {
     this.reembolsosService.aprobar(id, motivo).subscribe({
       next: () => {
         this.cerrarAprobacion();
+        this.cdr.markForCheck();
         this.notificationService.success('Solicitud aprobada');
       },
-      error: () => this.notificationService.error('No se pudo aprobar la solicitud')
+      error: () => {
+        this.cdr.markForCheck();
+        this.notificationService.error('No se pudo aprobar la solicitud')
+       }
     });
   }
 
@@ -197,6 +202,7 @@ export class Reembolsos implements OnInit, OnDestroy {
   confirmarRechazo(): void {
     if (!this.solicitudRechazar) return;
     if (!this.motivoRechazo.trim()) {
+      this.cdr.markForCheck();
       this.notificationService.warning('El motivo del rechazo es requerido');
       return;
     }
@@ -205,9 +211,13 @@ export class Reembolsos implements OnInit, OnDestroy {
     this.reembolsosService.rechazar(id, motivo).subscribe({
       next: () => {
         this.cerrarRechazo();
+        this.cdr.markForCheck();
         this.notificationService.success('Solicitud rechazada');
       },
-      error: () => this.notificationService.error('No se pudo rechazar la solicitud')
+      error: () => {
+        this.cdr.markForCheck();
+        this.notificationService.error('No se pudo rechazar la solicitud')
+       }
     });
   }
 
@@ -228,6 +238,7 @@ export class Reembolsos implements OnInit, OnDestroy {
   guardarEdicion(): void {
     if (!this.solicitudEditar) return;
     if (!this.editarMotivo.trim()) {
+      this.cdr.markForCheck();
       this.notificationService.warning('El motivo es requerido');
       return;
     }
@@ -235,16 +246,26 @@ export class Reembolsos implements OnInit, OnDestroy {
     this.reembolsosService.editar(id, this.editarMotivo.trim(), this.editarMonto ?? undefined).subscribe({
       next: () => {
         this.cerrarEdicion();
+        this.cdr.markForCheck();
         this.notificationService.success('Solicitud actualizada');
       },
-      error: () => this.notificationService.error('No se pudo actualizar la solicitud')
+      error: () => {
+        this.cdr.markForCheck();
+        this.notificationService.error('No se pudo actualizar la solicitud')
+       }
     });
   }
 
   reabrir(solicitud: SolicitudReembolso): void {
     this.reembolsosService.reabrir(solicitud.id).subscribe({
-      next: () => this.notificationService.success('Solicitud reabierta'),
-      error: () => this.notificationService.error('No se pudo reabrir la solicitud')
+      next: () => {
+        this.cdr.markForCheck();
+        this.notificationService.success('Solicitud reabierta');
+      },
+      error: () => {
+        this.cdr.markForCheck();
+        this.notificationService.error('No se pudo reabrir la solicitud');
+      }
     });
   }
 
@@ -264,9 +285,13 @@ export class Reembolsos implements OnInit, OnDestroy {
     this.reembolsosService.eliminar(id).subscribe({
       next: () => {
         this.cerrarEliminar();
+        this.cdr.markForCheck();
         this.notificationService.success('Solicitud eliminada');
       },
-      error: () => this.notificationService.error('No se pudo eliminar la solicitud')
+      error: () => {
+        this.cdr.markForCheck();
+        this.notificationService.error('No se pudo eliminar la solicitud')
+       }
     });
   }
 }

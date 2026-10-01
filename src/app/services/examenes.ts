@@ -1,14 +1,23 @@
 ﻿import { Injectable, signal, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, map, tap } from 'rxjs';
-import { Examen, ExamenFormData, ExamenInscrito, DatosInscripcion } from '../models/examen.model';
+import {
+  Examen,
+  ExamenFormData,
+  ExamenInscrito,
+  DatosInscripcion,
+  SolicitudExamen,
+  CalificacionExamen,
+} from '../models/examen.model';
 import { RefreshService } from './refresh';
 import { environment } from '../../environments/environment';
 import {
   mapExamenFromBackend,
   mapExamenToBackend,
-  mapInscritoFromBackend,
+  mapExamenInscritoFromBackend,
   mapDatosInscripcionToBackend,
+  mapSolicitudExamenToBackend,
+  mapCalificacionExamenToBackend,
 } from '../utils/mappers';
 
 export const ESTADOS_EXAMEN: { valor: Examen['estado']; etiqueta: string }[] = [
@@ -161,25 +170,57 @@ export class ExamenesService {
   // Corregir los datos de una inscripcion. El snapshot sigue siendo del alumno
   // (la hoja de resultados no cambia), lo que cambia es que ahora esta completo
   // y es correcto.
+  //
+  // Solo identidad: el bloque de la hoja lo escribe `calificarInscrito` y va por
+  // otra ruta a proposito, porque son permisos distintos.
   editarInscrito(examenId: number, inscripcionId: number, datos: DatosInscripcion): Observable<ExamenInscrito> {
     return this.http
       .patch<any>(`${this.apiUrl}/examenes/${examenId}/inscritos/${inscripcionId}`, mapDatosInscripcionToBackend(datos))
-      .pipe(map(mapInscritoFromBackend));
+      .pipe(map(mapExamenInscritoFromBackend));
+  }
+
+  // Llenar el bloque "PARA USO EXCLUSIVO DE LA INSTITUCION": record de asistencia,
+  // las seis areas, las notas de combate un paso y pateo saltando, comentarios
+  // generales, el veredicto y la firma del examinador.
+  //
+  // Ruta aparte de `editarInscrito` y no un flag dentro, porque los permisos no
+  // son los mismos: `editarInscrito` la puede llamar el propio alumno para
+  // arreglar un error de su captura, y esta es un juicio del entrenador. Si
+  // compartieran ruta, el alumno podria llamarla y aprobarse a si mismo.
+  calificarInscrito(
+    examenId: number,
+    inscripcionId: number,
+    calificacion: CalificacionExamen
+  ): Observable<ExamenInscrito> {
+    return this.http
+      .put<any>(
+        `${this.apiUrl}/examenes/${examenId}/inscritos/${inscripcionId}/calificacion`,
+        mapCalificacionExamenToBackend(calificacion)
+      )
+      .pipe(map(mapExamenInscritoFromBackend));
   }
 
   loadInscritos(id: number): Observable<ExamenInscrito[]> {
     return this.http
       .get<any[]>(`${this.apiUrl}/examenes/${id}/inscritos`)
-      .pipe(map(data => data.map(mapInscritoFromBackend)));
+      .pipe(map(data => data.map(mapExamenInscritoFromBackend)));
   }
 
   // El alumno decide su propia participacion: el backend resuelve el alumno_id
   // desde el token, asi que aqui no viaja ningun id. Lo que si viaja son los
   // datos que escribio en el modal, que quedan congelados como snapshot.
-  inscribirse(id: number, datos: DatosInscripcion): Observable<any> {
-    return this.http.post<any>(`${this.apiUrl}/examenes/${id}/inscribirse`, mapDatosInscripcionToBackend(datos)).pipe(
-      tap(() => this.refreshService.refresh())
-    );
+  //
+  // `solicitud` es el bloque de la hoja y va en el MISMO request y no en uno
+  // aparte: la inscripcion no puede quedar a medias con la identidad guardada y
+  // la hoja sin validar, y ademas el backend no podria rechazar un cuerpo sin la
+  // hoja ni aceptarlo por separado. Es obligatorio y no opcional por eso mismo:
+  // si un dia se hiciera `solicitud?`, el compilador dejaria pasar una llamada
+  // sin la hoja y el alumno se inscribiria con doce columnas en NULL sin que
+  // nadie lo note.
+  inscribirse(id: number, datos: DatosInscripcion, solicitud: SolicitudExamen): Observable<any> {
+    return this.http
+      .post<any>(`${this.apiUrl}/examenes/${id}/inscribirse`, mapSolicitudExamenToBackend(datos, solicitud))
+      .pipe(tap(() => this.refreshService.refresh()));
   }
 
   cancelarInscripcion(id: number): Observable<any> {

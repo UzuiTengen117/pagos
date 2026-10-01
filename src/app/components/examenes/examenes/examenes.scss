@@ -582,3 +582,70 @@
   color: var(--text-muted);
   font-size: 0.85rem;
 }
+
+// --- Calificación del examen (PARA USO EXCLUSIVO DE LA INSTITUCIÓN) ---
+
+// Los tres estados del veredicto. Son tres estilos y no uno parametrizado porque
+// "sin calificar" NO es un reprobado atenuado: es un dato ausente y tiene que
+// verse ausente. Un gris neutro lo dice; un rojo claro haria creer al entrenador
+// que el alumno ya reprobó y lo que tiene que hacer es calificarlo.
+.badge-aprobado,
+.badge-reprobado,
+.badge-sin-calificar {
+  padding: 0.2rem 0.6rem;
+  border-radius: 20px;
+  font-weight: 600;
+  font-size: 0.8rem;
+  white-space: nowrap;
+}
+
+.badge-aprobado {
+  background: var(--success-bg);
+  color: var(--success-text);
+}
+
+.badge-reprobado {
+  background: var(--danger-bg);
+  color: var(--danger-text);
+}
+
+.badge-sin-calificar {
+  background: var(--bg-input);
+  color: var(--text-muted);
+  // El guion bajo la etiqueta: el dato se espera, no se lleno con un cero.
+  border-bottom: 1px dashed var(--border-input);
+}
+
+.td-acciones {
+  text-align: right;
+  white-space: nowrap;
+}
+
+// La tabla "ÁREA / CALIFICACIÓN" de la hoja impresa: seis casillas en dos filas
+// de tres. Un `grid` y no columnas de tabla porque la hoja impresa es una tabla
+// pero aca los campos son inputs y una tabla de inputs no se comporta.
+.cal-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 0 1rem;
+}
+
+.hoja-seccion {
+  margin: 1.5rem 0 0.9rem;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-secondary);
+  padding-bottom: 0.4rem;
+  border-bottom: 1px solid var(--border-secondary);
+}
+
+.form-error {
+  margin: 0.75rem 0 0;
+  padding: 0.65rem 0.85rem;
+  border-radius: 8px;
+  background: var(--danger-bg);
+  color: var(--danger-text);
+  font-size: 0.85rem;
+}

@@ -53,11 +53,11 @@ export class Precios implements OnInit, OnDestroy {
     this.preciosService.loadAll().subscribe({
       next: (data) => {
         this.precios = data;
-        this.cdr.detectChanges();
+        this.cdr.markForCheck();
       },
       error: () => {
         this.precios = [];
-        this.cdr.detectChanges();
+        this.cdr.markForCheck();
       }
     });
   }
@@ -80,7 +80,7 @@ export class Precios implements OnInit, OnDestroy {
     this.showModal = true;
     this.mensajeError = '';
     this.mensajeExito = '';
-    this.cdr.detectChanges();
+    this.cdr.markForCheck();
   }
 
   openEditModal(precio: Precio): void {
@@ -89,7 +89,7 @@ export class Precios implements OnInit, OnDestroy {
     this.showModal = true;
     this.mensajeError = '';
     this.mensajeExito = '';
-    this.cdr.detectChanges();
+    this.cdr.markForCheck();
   }
 
   closeModal(): void {
@@ -97,19 +97,19 @@ export class Precios implements OnInit, OnDestroy {
     this.formData = this.getEmptyForm();
     this.mensajeError = '';
     this.mensajeExito = '';
-    this.cdr.detectChanges();
+    this.cdr.markForCheck();
   }
 
   openDeleteModal(precio: Precio): void {
     this.precioToDelete = precio;
     this.showDeleteModal = true;
-    this.cdr.detectChanges();
+    this.cdr.markForCheck();
   }
 
   closeDeleteModal(): void {
     this.showDeleteModal = false;
     this.precioToDelete = null;
-    this.cdr.detectChanges();
+    this.cdr.markForCheck();
   }
 
   savePrecio(): void {
@@ -117,12 +117,12 @@ export class Precios implements OnInit, OnDestroy {
 
     if (!this.formData.concepto?.trim()) {
       this.mensajeError = 'Ingresa un concepto.';
-      this.cdr.detectChanges();
+      this.cdr.markForCheck();
       return;
     }
     if (!this.formData.monto || this.formData.monto <= 0) {
       this.mensajeError = 'El monto debe ser mayor a 0.';
-      this.cdr.detectChanges();
+      this.cdr.markForCheck();
       return;
     }
 
@@ -130,7 +130,7 @@ export class Precios implements OnInit, OnDestroy {
       this.preciosService.update(this.formData as Precio).subscribe({
         next: () => {
           this.mensajeExito = 'Tipo de pago actualizado correctamente.';
-          this.cdr.detectChanges();
+          this.cdr.markForCheck();
           setTimeout(() => {
             this.closeModal();
             this.loadPrecios();
@@ -138,14 +138,14 @@ export class Precios implements OnInit, OnDestroy {
         },
         error: (err) => {
           this.mensajeError = err.error?.message || 'Error al actualizar el tipo de pago.';
-          this.cdr.detectChanges();
+          this.cdr.markForCheck();
         }
       });
     } else {
       this.preciosService.create(this.formData as Omit<Precio, 'id'>).subscribe({
         next: () => {
           this.mensajeExito = 'Tipo de pago creado correctamente.';
-          this.cdr.detectChanges();
+          this.cdr.markForCheck();
           setTimeout(() => {
             this.closeModal();
             this.loadPrecios();
@@ -153,7 +153,7 @@ export class Precios implements OnInit, OnDestroy {
         },
         error: (err) => {
           this.mensajeError = err.error?.message || 'Error al crear el tipo de pago.';
-          this.cdr.detectChanges();
+          this.cdr.markForCheck();
         }
       });
     }

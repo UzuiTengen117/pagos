@@ -51,11 +51,11 @@ export class Becas implements OnInit, OnDestroy {
     this.becasService.loadAll().subscribe({
       next: (data) => {
         this.becas = data;
-        this.cdr.detectChanges();
+        this.cdr.markForCheck();
       },
       error: () => {
         this.becas = [];
-        this.cdr.detectChanges();
+        this.cdr.markForCheck();
       }
     });
   }

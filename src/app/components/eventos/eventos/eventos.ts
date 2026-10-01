@@ -176,12 +176,12 @@ export class Eventos implements OnInit, OnDestroy {
         this.eventos.set(data);
         this.cargando.set(false);
         this.clampPagina();
-        this.cdr.detectChanges();
+        this.cdr.markForCheck();
       },
       error: () => {
         this.eventos.set([]);
         this.cargando.set(false);
-        this.cdr.detectChanges();
+        this.cdr.markForCheck();
       },
     });
   }
@@ -387,13 +387,14 @@ export class Eventos implements OnInit, OnDestroy {
           return;
         }
 
+        this.cdr.markForCheck();
         this.notificationService.success(eraEdicion ? 'Evento actualizado correctamente.' : 'Evento creado correctamente.');
         this.closeModal();
       },
       error: (err) => {
         this.guardando.set(false);
         this.formError.set(err?.error?.message || 'Error al guardar el evento.');
-        this.cdr.detectChanges();
+        this.cdr.markForCheck();
       },
     });
   }
@@ -406,6 +407,7 @@ export class Eventos implements OnInit, OnDestroy {
 
     const error = this.eventosService.validarImagen(archivo);
     if (error) {
+      this.cdr.markForCheck();
       this.notificationService.error(error);
       input.value = '';
       return;
@@ -415,7 +417,7 @@ export class Eventos implements OnInit, OnDestroy {
     lector.onload = () => {
       this.imagenSeleccionada.set(archivo);
       this.imagenPreview.set(String(lector.result || ''));
-      this.cdr.detectChanges();
+      this.cdr.markForCheck();
     };
     lector.readAsDataURL(archivo);
     input.value = '';
@@ -438,11 +440,13 @@ export class Eventos implements OnInit, OnDestroy {
         this.quitandoImagen.set(false);
         this.imagenSeleccionada.set(null);
         this.imagenPreview.set('');
+        this.cdr.markForCheck();
         this.notificationService.success('Imagen eliminada');
-        this.cdr.detectChanges();
+        this.cdr.markForCheck();
       },
       error: (err) => {
         this.quitandoImagen.set(false);
+        this.cdr.markForCheck();
         this.notificationService.error(err?.error?.message || 'No se pudo eliminar la imagen.');
       },
     });
@@ -460,6 +464,7 @@ export class Eventos implements OnInit, OnDestroy {
     } catch {
       this.guardando.set(false);
       this.closeModal();
+      this.cdr.markForCheck();
       this.notificationService.error('No se pudo procesar la imagen. Intenta con otro archivo.');
       return;
     }
@@ -468,11 +473,13 @@ export class Eventos implements OnInit, OnDestroy {
       next: () => {
         this.guardando.set(false);
         this.closeModal();
+        this.cdr.markForCheck();
         this.notificationService.success(eraEdicion ? 'Evento actualizado correctamente.' : 'Evento creado correctamente.');
       },
       error: (err) => {
         this.guardando.set(false);
         this.closeModal();
+        this.cdr.markForCheck();
         this.notificationService.error(
           err?.error?.message || 'El evento se guardó, pero la imagen no se pudo subir.'
         );
@@ -528,10 +535,12 @@ export class Eventos implements OnInit, OnDestroy {
     this.eventosService.delete(evento.id).subscribe({
       next: () => {
         this.closeDeleteModal();
+        this.cdr.markForCheck();
         this.notificationService.success('Evento eliminado');
       },
       error: (err) => {
         this.closeDeleteModal();
+        this.cdr.markForCheck();
         this.notificationService.error(err?.error?.message || 'Error al eliminar el evento.');
       },
     });
@@ -549,12 +558,13 @@ export class Eventos implements OnInit, OnDestroy {
       next: (data) => {
         this.inscritos.set(data);
         this.cargandoInscritos.set(false);
-        this.cdr.detectChanges();
+        this.cdr.markForCheck();
       },
       error: (err) => {
         this.cargandoInscritos.set(false);
+        this.cdr.markForCheck();
         this.notificationService.error(err?.error?.message || 'No se pudo cargar la lista de inscritos.');
-        this.cdr.detectChanges();
+        this.cdr.markForCheck();
       },
     });
   }

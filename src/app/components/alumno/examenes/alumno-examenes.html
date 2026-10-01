@@ -164,7 +164,7 @@
                     class="btn btn-ghost btn-sm"
                     [disabled]="procesando() !== null || descargandoHoja() !== null"
                     (click)="descargarHoja(tarjeta.examen)">
-                    {{ descargandoHoja() === tarjeta.examen.id ? 'Descargando...' : 'Descargar hoja' }}
+                    {{ descargandoHoja() === tarjeta.examen.id ? 'Descargando...' : 'Descargar solicitud rellenada' }}
                   </button>
                 }
               } @else if (tarjeta.puedeInscribirse) {
@@ -201,8 +201,8 @@
       </div>
 
       <p class="modal-intro">
-        Confirma tus datos para este torneo. Se guardan tal cual los escribas aquí,
-        aunque después los cambies en tu perfil.
+        Llena la solicitud de examen. Se guarda tal cual lo escribas aquí, aunque
+        después lo cambies en tu perfil.
       </p>
 
       <p class="hint-obligatorio">
@@ -210,12 +210,14 @@
       </p>
 
       <!-- novalidate a proposito: los `required` de abajo alcanzan para que el
-           navegador marque los campos y para que las technologies de asistencia
+           navegador marque los campos y para que las tecnologías de asistencia
            (teclado, lector de pantalla) los anuncien, pero la validacion de
            verdad la hace confirmarInscripcion(), que da un mensaje en espanol y
            dice QUE campo falta. Sin esto, el navegador bloquea el submit con
            su propio texto y el mensaje propio nunca se ve. -->
       <form class="form-inscripcion" (ngSubmit)="confirmarInscripcion()" novalidate>
+        <h3 class="hoja-seccion">Datos del alumno</h3>
+
         <div class="form-row two-col">
           <div class="form-group">
             <label for="ins-nombre">Nombre(s) <span class="req" aria-hidden="true">*</span></label>
@@ -244,21 +246,84 @@
 
         <div class="form-row two-col">
           <div class="form-group">
-            <label for="ins-grado">Grado <span class="req" aria-hidden="true">*</span></label>
+            <label for="ins-nacimiento">Fecha de nacimiento <span class="req" aria-hidden="true">*</span></label>
+            <input id="ins-nacimiento" type="date" required
+                   [ngModel]="solicitud().fechaNacimiento"
+                   (ngModelChange)="actualizarSolicitud('fechaNacimiento', $event)" name="fechaNacimiento" />
+          </div>
+          <div class="form-group">
+            <label for="ins-telefono">Teléfono <span class="req" aria-hidden="true">*</span></label>
+            <!-- `type="tel"` y no `type="number"`: el telefono de una hoja
+                 mexicana lleva espacios, guiones y a veces +52, y `number` no
+                 acepta ninguno de los tres y ademas quita los ceros de la
+                 izquierda al parsear. -->
+            <input id="ins-telefono" type="tel" placeholder="55 1234 5678" required
+                   [ngModel]="solicitud().telefono" (ngModelChange)="actualizarSolicitud('telefono', $event)" name="solicitudTelefono" />
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="ins-direccion">Dirección <span class="req" aria-hidden="true">*</span></label>
+          <input id="ins-direccion" type="text" placeholder="Calle, número, colonia, ciudad" required
+                 [ngModel]="solicitud().direccion" (ngModelChange)="actualizarSolicitud('direccion', $event)" name="direccion" />
+        </div>
+
+        <h3 class="hoja-seccion">Trayectoria en la escuela</h3>
+
+        <div class="form-row two-col">
+          <div class="form-group">
+            <label for="ins-grado">Grado actual <span class="req" aria-hidden="true">*</span></label>
             <input id="ins-grado" type="text" placeholder="Ej: 4to" required
                    [ngModel]="datos().grado" (ngModelChange)="actualizarDato('grado', $event)" name="grado" />
           </div>
           <div class="form-group">
-            <label for="ins-escuela">Escuela</label>
-            <!-- Bloqueada a proposito: todos los alumnos son de AMTKD y la
-                 academia no cambia. Se deja visible, y no oculta, para que el
-                 alumno sepa que nombre queda en la lista impresa. El
-                 (ngModelChange) se queda: sin el, el ngModel no engancha. -->
-            <input id="ins-escuela" type="text" class="input-readonly"
-                   [ngModel]="datos().escuela" (ngModelChange)="actualizarDato('escuela', $event)"
-                   name="escuela" readonly />
+            <label for="ins-grado-pasar">Grado a pasar <span class="req" aria-hidden="true">*</span></label>
+            <input id="ins-grado-pasar" type="text" placeholder="Ej: 5to" required
+                   [ngModel]="solicitud().gradoAPasar"
+                   (ngModelChange)="actualizarSolicitud('gradoAPasar', $event)" name="gradoAPasar" />
           </div>
         </div>
+
+        <div class="form-group">
+          <label for="ins-escuela">Escuela</label>
+          <!-- Bloqueada a proposito: todos los alumnos son de AMTKD y la
+               academia no cambia. Se deja visible, y no oculta, para que el
+               alumno sepa que nombre queda en la lista impresa. El
+               (ngModelChange) se queda: sin el, el ngModel no engancha. -->
+          <input id="ins-escuela" type="text" class="input-readonly"
+                 [ngModel]="datos().escuela" (ngModelChange)="actualizarDato('escuela', $event)"
+                 name="escuela" readonly />
+        </div>
+
+        <div class="form-group">
+          <label for="ins-ingreso">Fecha de ingreso <span class="req" aria-hidden="true">*</span></label>
+          <input id="ins-ingreso" type="date" required
+                 [ngModel]="solicitud().fechaIngreso"
+                 (ngModelChange)="actualizarSolicitud('fechaIngreso', $event)" name="fechaIngreso" />
+        </div>
+
+        <div class="form-row two-col">
+          <div class="form-group">
+            <label for="ins-examen-anterior">Examen anterior aprobado</label>
+            <!-- Opcional a proposito: un alumno de cinta blanca no tiene uno, y
+                 pedirlo lo dejaria fuera del examen. -->
+            <input id="ins-examen-anterior" type="date"
+                   [ngModel]="solicitud().fechaExamenAnterior"
+                   (ngModelChange)="actualizarSolicitud('fechaExamenAnterior', $event)" name="fechaExamenAnterior" />
+          </div>
+          <div class="form-group">
+            <label for="ins-ultimo-torneo">Participación en el último torneo</label>
+            <input id="ins-ultimo-torneo" type="date"
+                   [ngModel]="solicitud().fechaUltimoTorneo"
+                   (ngModelChange)="actualizarSolicitud('fechaUltimoTorneo', $event)" name="fechaUltimoTorneo" />
+          </div>
+        </div>
+
+        <p class="hoja-nota">
+          La firma, la sección de calificaciones, el récord de asistencia y el
+          veredicto de aprobado o reprobado se hacen o se llenan en la mesa del
+          examen.
+        </p>
 
         @if (cargandoPerfil()) {
           <p class="hint-perfil">Cargando tus datos…</p>

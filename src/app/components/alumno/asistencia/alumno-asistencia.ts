@@ -77,14 +77,14 @@ export class AlumnoAsistencia implements OnInit, OnDestroy {
         this.cargando = false;
         this.segundosParaRenovar.set(SEGUNDOS_TOKEN);
         this.generarImagen(miQr.token);
-        this.cdr.detectChanges();
+        this.cdr.markForCheck();
       },
       error: (e: HttpErrorResponse) => {
         this.miQr.set(null);
         this.qrDataUrl.set('');
         this.errorQr.set(this.explicarError(e));
         this.cargando = false;
-        this.cdr.detectChanges();
+        this.cdr.markForCheck();
       },
     });
   }
@@ -116,9 +116,9 @@ export class AlumnoAsistencia implements OnInit, OnDestroy {
       next: (data) => {
         this.asistencias = data;
         this.pagina = 1;
-        this.cdr.detectChanges();
+        this.cdr.markForCheck();
       },
-      error: () => this.cdr.detectChanges(),
+      error: () => this.cdr.markForCheck(),
     });
   }
 
@@ -142,8 +142,14 @@ export class AlumnoAsistencia implements OnInit, OnDestroy {
     const token = this.miQr()?.token;
     if (!token) return;
     navigator.clipboard?.writeText(token).then(
-      () => this.notificationService.success('Código copiado'),
-      () => this.notificationService.error('No se pudo copiar')
+      () => {
+        this.cdr.markForCheck();
+        this.notificationService.success('Código copiado');
+      },
+      () => {
+        this.cdr.markForCheck();
+        this.notificationService.error('No se pudo copiar');
+      }
     );
   }
 }

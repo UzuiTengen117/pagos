@@ -1,8 +1,8 @@
-﻿import { Component, inject, signal, computed, OnInit, OnDestroy, ChangeDetectorRef } from '@angular/core';
+import { Component, inject, signal, computed, OnInit, OnDestroy, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Subscription, interval } from 'rxjs';
-import { Examen, DatosInscripcion } from '../../../models/examen.model';
+import { Examen, DatosInscripcion, SolicitudExamen } from '../../../models/examen.model';
 import { ExamenesService, ESTADOS_EXAMEN } from '../../../services/examenes';
 import { AlumnosService } from '../../../services/alumnos';
 import { NotificationService } from '../../../services/notification';
@@ -156,7 +156,7 @@ export class AlumnoExamenes implements OnInit, OnDestroy {
         this.examenes.set(data);
         this.cargando.set(false);
         this.errorCarga.set('');
-        this.cdr.detectChanges();
+        this.cdr.markForCheck();
       },
       error: (err) => {
         this.examenes.set([]);
@@ -166,7 +166,7 @@ export class AlumnoExamenes implements OnInit, OnDestroy {
             ? 'No hay conexión con el servidor. Revisa tu internet e inténtalo de nuevo.'
             : err?.error?.message || 'No se pudieron cargar los examenes.'
         );
-        this.cdr.detectChanges();
+        this.cdr.markForCheck();
       },
     });
   }
@@ -185,10 +185,12 @@ export class AlumnoExamenes implements OnInit, OnDestroy {
       this.examenesService.cancelarInscripcion(examen.id).subscribe({
         next: () => {
           this.procesando.set(null);
+          this.cdr.markForCheck();
           this.notificationService.success('Inscripción cancelada');
         },
         error: (err) => {
           this.procesando.set(null);
+          this.cdr.markForCheck();
           this.notificationService.error(err?.error?.message || 'No se pudo cancelar la inscripción.');
         },
       });
@@ -224,6 +226,7 @@ export class AlumnoExamenes implements OnInit, OnDestroy {
         // unico que se puede decir con certeza cuando la respuesta vino
         // encapsulada.
         this.descargandoHoja.set(null);
+        this.cdr.markForCheck();
         this.notificationService.error('No se pudo descargar la hoja de inscripción.');
       },
     });
@@ -262,6 +265,17 @@ export class AlumnoExamenes implements OnInit, OnDestroy {
     escuela: NOMBRE_ESCUELA,
   });
 
+  // Bloque de la hoja "SOLICITUD DE EXAMEN". Va en un signal aparte de `datos` y
+  // NO dentro, aunque los dos viajen en el mismo request: `datos` son los seis
+  // campos de identidad que el backend exige en CUALQUIER inscripcion (tambien la
+  // de un evento, que no tiene hoja) y `solicitud` son los doce que solo existen
+  // en la hoja del examen. Juntarlos obligaria a los eventos a mandarlos.
+  //
+  // Las fechas van como "YYYY-MM-DD" porque es lo que entrega un
+  // <input type="date"> y lo que espera el backend. Un ISO con hora seria un
+  // string valido que el backend rechazaria por el formato.
+  solicitud = signal<SolicitudExamen>(this.solicitudVacia());
+
   // Abre el modal. El perfil se pide una sola vez y se cachea en el servicio: si
   // el alumno ya se ha inscrito antes, la segunda vez los campos llegan listos
   // sin volver a pegarle a la base.
@@ -280,12 +294,43 @@ export class AlumnoExamenes implements OnInit, OnDestroy {
       escuela: NOMBRE_ESCUELA,
     });
 
+    // La hoja se conserva igual que `datos`, por la misma razon: si el alumno
+    // cierra el modal para consultarlo y vuelve, perder doce campos capturados
+    // a mano seria peor que un estado viejo.
+    //
+    // La fecha de la solicitud si se recalcula: es la fecha en que se ESTA
+    // entregando, y si el alumno lo dejo abierto desde ayer la fecha de ayer ya
+    // no es la que va en el papel.
+    const hoy = new Date().toISOString().slice(0, 10);
+    this.solicitud.update(s => ({ ...s, fechaSolicitud: s.fechaSolicitud || hoy }));
+
     this.showModalInscripcion.set(true);
     this.cargarPerfil();
   }
 
   private datosVacios(): DatosInscripcion {
     return { nombre: '', primerApellido: '', segundoApellido: '', edad: null, grado: '', escuela: NOMBRE_ESCUELA };
+  }
+
+  // `numeroExamen`, `profesorAutoriza` y las dos firmas ya no se piden en
+  // pantalla, pero siguen en el objeto porque `mapSolicitudExamenToBackend` los
+  // lee sin optional chaining: si faltaran, el `.trim()` del mapper reventaria
+  // al enviar. Vienen vacios y el backend los guarda como NULL.
+  private solicitudVacia(): SolicitudExamen {
+    return {
+      numeroExamen: '',
+      direccion: '',
+      telefono: '',
+      fechaNacimiento: '',
+      fechaIngreso: '',
+      gradoAPasar: '',
+      fechaExamenAnterior: '',
+      fechaUltimoTorneo: '',
+      fechaSolicitud: '',
+      profesorAutoriza: '',
+      firmaSolicitante: '',
+      firmaPadre: '',
+    };
   }
 
   private cargarPerfil(): void {
@@ -302,14 +347,50 @@ export class AlumnoExamenes implements OnInit, OnDestroy {
           segundoApellido: d.segundoApellido || alumno.segundoApellido || '',
           grado: d.grado || alumno.grado || '',
         }));
-        this.cdr.detectChanges();
+
+        // La hoja se prellena con lo que el perfil ya sabe, por el mismo motivo
+        // del `||`: recargar el perfil no debe pisar lo que el alumno escribio.
+        //
+        // "FECHA DE INGRESO" se toma de `fechaInscripcion` del alumno porque es
+        // exactamente lo mismo: cuando entro a la academia. Y el telefono tambien
+        // viene del mismo sitio. Lo que NO se puede prellenar es la direccion y
+        // la fecha de nacimiento, porque el modelo del alumno no las tiene: se
+        // escriben a mano una vez y ya se quedan en la fila.
+        //
+        // `fechaInscripcion` es un Date y va en hora local del servidor, asi que
+        // se corta con toISOString y NO con los getters locales: un alumno que se
+        // inscribio a las 23:30 en UTC-6 tiene la fecha del dia siguiente en
+        // local, y el prellenado le pondria un dia que no es.
+        this.solicitud.update(s => ({
+          ...s,
+          telefono: s.telefono || alumno.telefono || '',
+          fechaIngreso: s.fechaIngreso || this.aFechaISO(alumno.fechaInscripcion),
+        }));
+        this.cdr.markForCheck();
       },
       error: () => {
         this.cargandoPerfil.set(false);
         // No es un error bloqueante: el alumno puede escribirlo a mano.
-        this.cdr.detectChanges();
+        this.cdr.markForCheck();
       },
     });
+  }
+
+  // Un Date o un ISO a "YYYY-MM-DD" para un <input type="date">.
+  private aFechaISO(valor: Date | string | null | undefined): string {
+    if (!valor) {
+      return '';
+    }
+    const fecha = valor instanceof Date ? valor : new Date(valor);
+    if (Number.isNaN(fecha.getTime())) {
+      return '';
+    }
+    // Se leen los getters locales y no toISOString(): el input espera el dia que
+    // ve el usuario, y toISOString convierte a UTC, que en un huso al oeste de
+    // Greenwich se come el dia.
+    const mes = String(fecha.getMonth() + 1).padStart(2, '0');
+    const dia = String(fecha.getDate()).padStart(2, '0');
+    return `${fecha.getFullYear()}-${mes}-${dia}`;
   }
 
   cerrarModalInscripcion(): void {
@@ -325,6 +406,14 @@ export class AlumnoExamenes implements OnInit, OnDestroy {
     this.datos.update(d => ({ ...d, [campo]: valor }));
     // Se limpia el error en cada tecla: dejarlo pegado arriba mientras el alumno
     // corrige se siente como que el formulario no responde.
+    this.errorInscripcion.set('');
+  }
+
+  actualizarSolicitud<K extends keyof SolicitudExamen>(
+    campo: K,
+    valor: SolicitudExamen[K]
+  ): void {
+    this.solicitud.update(s => ({ ...s, [campo]: valor }));
     this.errorInscripcion.set('');
   }
 
@@ -349,6 +438,38 @@ export class AlumnoExamenes implements OnInit, OnDestroy {
     if (!Number.isInteger(d.edad)) return 'Ingresa una edad válida';
     if (d.edad < 4 || d.edad > 99) return 'Ingresa una edad válida (entre 4 y 99)';
 
+    return this.validarSolicitud();
+  }
+
+  // Validacion del bloque de la hoja.
+  //
+  // Se separa de `validarInscripcion` para que la de identidad siga siendo la
+  // que se lee primero: son los campos que ya existian y el alumno los conoce.
+  //
+  // `fecha_solicitud` y las dos fechas historicas quedan opcionales a proposito,
+  // y no por pereza: la fecha de solicitud la pone el backend con el dia de hoy
+  // si no viene, y las otras dos son datos que un alumno de primer belts
+  // sencillamente no tiene. Pedirlos dejaria fuera justo a los que mas necesitan
+  // quedarse.
+  private validarSolicitud(): string {
+    const s = this.solicitud();
+
+    if (!s.direccion.trim()) return 'Escribe tu dirección';
+    if (!s.telefono.trim()) return 'Escribe tu teléfono';
+    if (!s.gradoAPasar.trim()) return 'Escribe el grado al que vas a pasar';
+
+    if (!s.fechaNacimiento) return 'Escribe tu fecha de nacimiento';
+    if (!s.fechaIngreso) return 'Escribe tu fecha de ingreso';
+
+    // Una fecha de nacimiento futura es un dedo mal puesto o un falso clic en el
+    // calendario. Checarlo aqui evita mandar un 2004-2099 a la institucion.
+    if (this.aFechaISO(new Date()) < s.fechaNacimiento) {
+      return 'La fecha de nacimiento no puede ser futura';
+    }
+    if (this.aFechaISO(new Date()) < s.fechaIngreso) {
+      return 'La fecha de ingreso no puede ser futura';
+    }
+
     return '';
   }
 
@@ -365,6 +486,7 @@ export class AlumnoExamenes implements OnInit, OnDestroy {
       // hacer, y el mensaje del formulario dice QUE campo falta: con "datos
       // incompletos" solo, el alumno tiene que adivinar cual de los cinco le
       // quedo en blanco.
+      this.cdr.markForCheck();
       this.notificationService.warning('Datos incompletos, por favor completa los datos');
       return;
     }
@@ -373,7 +495,7 @@ export class AlumnoExamenes implements OnInit, OnDestroy {
     this.errorInscripcion.set('');
     this.procesando.set(examen.id);
 
-    this.examenesService.inscribirse(examen.id, this.datos()).subscribe({
+    this.examenesService.inscribirse(examen.id, this.datos(), this.solicitud()).subscribe({
       next: () => {
         this.enviandoInscripcion.set(false);
         this.procesando.set(null);
@@ -382,13 +504,34 @@ export class AlumnoExamenes implements OnInit, OnDestroy {
         // Se limpian los datos: la escuela o el grado pueden cambiar para el
         // siguiente torneo, y arrastrar el valor viejo invita al error.
         this.datos.set(this.datosVacios());
+        // La hoja tambien: el grado al que va y las fechas historicas son de la
+        // sesion anterior y arrastrarias datos que el alumno ya no tiene.
+        this.solicitud.set(this.solicitudVacia());
+        this.cdr.markForCheck();
         this.notificationService.success(`Te inscribiste a ${examen.nombre}`);
+        // Si hay plantilla, descarga enseguida el snapshot recién guardado. La
+        // tarjeta permite volver a bajarla si el navegador bloquea la descarga.
+        if (examen.tieneHoja) {
+          this.descargarHoja(examen);
+        }
       },
       error: (err) => {
         this.enviandoInscripcion.set(false);
         this.procesando.set(null);
+
+        // 413 es un caso propio y no un 400 cualquiera: lo devuelve Express ANTES
+        // de que el backend mire el cuerpo, asi que llega sin `message` y sin
+        // decir WHICH campo lo disparo.
+        if (err?.status === 413) {
+          this.errorInscripcion.set(
+            'La solicitud es demasiado grande para enviarse. Revisa los campos y vuelve a intentarlo.'
+          );
+          this.cdr.markForCheck();
+          return;
+        }
+
         this.errorInscripcion.set(err?.error?.message || 'No se pudo completar la inscripción.');
-        this.cdr.detectChanges();
+        this.cdr.markForCheck();
       },
     });
   }

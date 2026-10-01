@@ -63,11 +63,11 @@ export class Alumnos implements OnInit, OnDestroy {
     this.becasService.loadAll().subscribe({
       next: (data) => {
         this.becas = data.filter(b => b.activa);
-        this.cdr.detectChanges();
+        this.cdr.markForCheck();
       },
       error: () => {
         this.becas = [];
-        this.cdr.detectChanges();
+        this.cdr.markForCheck();
       }
     });
   }
@@ -77,11 +77,11 @@ export class Alumnos implements OnInit, OnDestroy {
     this.alumnosService.loadAll().subscribe({
       next: (data) => {
         this.alumnos = data;
-        this.cdr.detectChanges();
+        this.cdr.markForCheck();
       },
       error: () => {
         this.alumnos = [];
-        this.cdr.detectChanges();
+        this.cdr.markForCheck();
       }
     });
     this.loadBecas();
@@ -91,11 +91,11 @@ export class Alumnos implements OnInit, OnDestroy {
     this.profesoresService.getAll().subscribe({
       next: (usuarios) => {
         this.usuariosEstudiantes = usuarios.filter(u => u.rol === 'estudiante');
-        this.cdr.detectChanges();
+        this.cdr.markForCheck();
       },
       error: () => {
         this.usuariosEstudiantes = [];
-        this.cdr.detectChanges();
+        this.cdr.markForCheck();
       }
     });
   }
@@ -104,14 +104,14 @@ export class Alumnos implements OnInit, OnDestroy {
     if (!becaId) {
       this.formData.becaId = undefined;
       this.formData.beca = 0;
-      this.cdr.detectChanges();
+      this.cdr.markForCheck();
       return;
     }
     const beca = this.becas.find(b => b.id === becaId);
     if (beca) {
       this.formData.becaId = beca.id;
       this.formData.beca = beca.porcentaje;
-      this.cdr.detectChanges();
+      this.cdr.markForCheck();
     }
   }
 
@@ -126,7 +126,7 @@ export class Alumnos implements OnInit, OnDestroy {
       this.formData.nombre = usuario.nombre;
       this.formData.username = usuario.username;
       this.formData.email = usuario.email;
-      this.cdr.detectChanges();
+      this.cdr.markForCheck();
     }
   }
 
@@ -221,6 +221,7 @@ export class Alumnos implements OnInit, OnDestroy {
 
   saveAlumno(): void {
     if (!this.formData.sede) {
+      this.cdr.markForCheck();
       this.notificationService.error('La sede es requerida (Progreso o Morelos)');
       return;
     }
@@ -232,6 +233,7 @@ export class Alumnos implements OnInit, OnDestroy {
         },
         error: (err) => {
           const mensaje = err?.error?.message || 'No se pudo guardar el alumno';
+          this.cdr.markForCheck();
           this.notificationService.error(mensaje);
         }
       });
@@ -243,6 +245,7 @@ export class Alumnos implements OnInit, OnDestroy {
         },
         error: (err) => {
           const mensaje = err?.error?.message || 'No se pudo guardar el alumno';
+          this.cdr.markForCheck();
           this.notificationService.error(mensaje);
         }
       });
@@ -256,7 +259,7 @@ export class Alumnos implements OnInit, OnDestroy {
         next: () => {
           this.closeDeleteModal();
           this.alumnos = this.alumnos.filter(a => a.id !== idEliminado);
-          this.cdr.detectChanges();
+          this.cdr.markForCheck();
           this.loadAlumnos();
         },
         error: () => {

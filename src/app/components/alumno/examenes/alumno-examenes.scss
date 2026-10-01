@@ -400,7 +400,10 @@
   background: var(--bg-card);
   border-radius: 16px;
   width: 100%;
-  max-width: 520px;
+  // 520px era el ancho de un formulario de seis campos. Con los doce de la hoja
+  // mas las dos firmas, a 520 las columnas de dos quedan de 200px y un campo de
+  // fecha no entra sin romper en tres lineas.
+  max-width: 720px;
   box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
   animation: modal-inscripcion-entra 0.3s var(--ease-out);
   max-height: 90vh;
@@ -494,6 +497,34 @@
 
 .hint-perfil {
   margin: 0 0 0.75rem;
+  font-size: 0.78rem;
+  color: var(--text-muted);
+}
+
+// Los cortes de la hoja impresa. Un formulario de treinta campos sin separacion
+// se lee como un muro y el alumno no encuentra el que le falta; con los titulos
+// el error dice "dirección" y el alumno sabe donde mirarlo.
+.hoja-seccion {
+  margin: 0 0 1rem;
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-secondary);
+  padding-bottom: 0.4rem;
+  border-bottom: 1px solid var(--border-secondary);
+
+  // El primero no lleva margen arriba: el `padding` del form ya lo separa del
+  // aviso de campos obligatorios.
+  &:first-child {
+    margin-top: 0;
+  }
+}
+
+.hoja-nota {
+  margin: 1.25rem 0 0;
+  padding-top: 0.85rem;
+  border-top: 1px dashed var(--border-secondary);
   font-size: 0.78rem;
   color: var(--text-muted);
 }

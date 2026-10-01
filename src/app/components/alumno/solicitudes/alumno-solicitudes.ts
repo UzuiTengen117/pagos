@@ -41,12 +41,12 @@ export class AlumnoSolicitudes implements OnInit, OnDestroy {
         this.solicitudes = data;
         this.pagina = 1;
         this.cargando = false;
-        this.cdr.detectChanges();
+        this.cdr.markForCheck();
       },
       error: () => {
         this.solicitudes = [];
         this.cargando = false;
-        this.cdr.detectChanges();
+        this.cdr.markForCheck();
       }
     });
   }

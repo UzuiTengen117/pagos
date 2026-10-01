@@ -71,12 +71,12 @@ export class ReporteAsistencias implements OnInit {
     this.alumnosService.loadAll().subscribe({
       next: (lista) => {
         this.alumnos.set(lista);
-        this.cdr.detectChanges();
+        this.cdr.markForCheck();
       },
       error: () => {
         // El reporte no depende de esta lista para existir; degrada sin total esperado.
         this.alumnos.set([]);
-        this.cdr.detectChanges();
+        this.cdr.markForCheck();
       },
     });
   }
@@ -87,13 +87,13 @@ export class ReporteAsistencias implements OnInit {
       next: (sesiones) => {
         this.sesiones.set(sesiones);
         this.cargando = false;
-        this.cdr.detectChanges();
+        this.cdr.markForCheck();
       },
       error: (e: HttpErrorResponse) => {
         this.sesiones.set([]);
         this.cargando = false;
         this.error = this.explicarError(e);
-        this.cdr.detectChanges();
+        this.cdr.markForCheck();
       },
     });
   }
@@ -169,18 +169,19 @@ export class ReporteAsistencias implements OnInit {
     this.sesionSeleccionada = sesion;
     this.alumnosDetalle = [];
     this.cargandoDetalle = true;
-    this.cdr.detectChanges();
+    this.cdr.markForCheck();
 
     this.asistenciasService.loadAlumnosSesion(sesion.id).subscribe({
       next: (lista) => {
         this.alumnosDetalle = lista;
         this.cargandoDetalle = false;
-        this.cdr.detectChanges();
+        this.cdr.markForCheck();
       },
       error: (e: HttpErrorResponse) => {
         this.alumnosDetalle = [];
         this.cargandoDetalle = false;
-        this.cdr.detectChanges();
+        this.cdr.markForCheck();
+        this.cdr.markForCheck();
         this.notificationService.error(
           e?.error?.message || 'No se pudo cargar la lista de alumnos'
         );
@@ -242,6 +243,7 @@ export class ReporteAsistencias implements OnInit {
     ].filter(Boolean).join('_');
 
     XLSX.writeFile(wb, `${nombre}.xlsx`);
+    this.cdr.markForCheck();
     this.notificationService.success('Lista de asistencia descargada');
   }
 
@@ -266,11 +268,13 @@ export class ReporteAsistencias implements OnInit {
         this.cerrarDetalle();
         this.pagina = 1;
         this.cargarSesiones();
+        this.cdr.markForCheck();
         this.notificationService.success(res.message);
       },
       error: (e: HttpErrorResponse) => {
         this.eliminando = false;
-        this.cdr.detectChanges();
+        this.cdr.markForCheck();
+        this.cdr.markForCheck();
         this.notificationService.error(
           e?.error?.message || 'No se pudo eliminar la clase'
         );

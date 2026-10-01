@@ -1,0 +1,77 @@
+.firma {
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+}
+
+.firma-cabecera {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.firma-etiqueta {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--text-label);
+}
+
+.obligatorio {
+  color: var(--error, #dc2626);
+  margin-left: 0.125rem;
+}
+
+.firma-limpiar {
+  border: none;
+  background: none;
+  padding: 0.125rem 0.375rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  cursor: pointer;
+  border-radius: 6px;
+
+  &:hover:not(:disabled) {
+    color: var(--text-primary);
+    background: var(--bg-card-hover);
+  }
+
+  &:disabled {
+    color: var(--text-muted);
+    cursor: default;
+  }
+}
+
+// El marco es el campo de captura. El borde inferior hace de linea de firma, y
+// los otros tres lados van a `--border-input` como cualquier input del proyecto
+// para que no parezca una caja rara suelta en medio del formulario.
+.firma-marco {
+  position: relative;
+  border: 1px solid var(--border-input);
+  border-radius: 8px;
+  overflow: hidden;
+  background: var(--bg-input);
+}
+
+.firma-canvas {
+  display: block;
+  width: 100%;
+  // Lo que hace que un dedo que se desliza en el canvas firme en vez de hacer
+  // scroll. Sin esto, en un movil la hoja se mueve y el trazo sale cortado.
+  touch-action: none;
+  cursor: crosshair;
+}
+
+.firma-pista {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 0.875rem;
+  color: var(--text-muted);
+  // No intercepta los eventos: si el texto tuviera el puntero encima, el
+  // `pointerdown` no llegaria al canvas y no se podria firmar encima.
+  pointer-events: none;
+  user-select: none;
+}

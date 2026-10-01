@@ -1,4 +1,4 @@
-﻿import {
+import {
   Component,
   inject,
   OnInit,
@@ -86,12 +86,12 @@ export class ReporteExamenes implements OnInit {
       next: datos => {
         this.examenes.set(datos);
         this.cargando.set(false);
-        this.cdr.detectChanges();
+        this.cdr.markForCheck();
       },
       error: (err: HttpErrorResponse) => {
         this.error.set(this.explicarError(err));
         this.cargando.set(false);
-        this.cdr.detectChanges();
+        this.cdr.markForCheck();
       },
     });
   }
@@ -228,12 +228,12 @@ export class ReporteExamenes implements OnInit {
       next: data => {
         this.inscritos.set(data);
         this.cargandoDetalle.set(false);
-        this.cdr.detectChanges();
+        this.cdr.markForCheck();
       },
       error: (err: HttpErrorResponse) => {
         this.errorDetalle.set(err.error?.message || 'No se pudo cargar la lista de inscritos.');
         this.cargandoDetalle.set(false);
-        this.cdr.detectChanges();
+        this.cdr.markForCheck();
       },
     });
   }
@@ -344,12 +344,12 @@ export class ReporteExamenes implements OnInit {
         );
         this.editandoGuardando.set(false);
         this.editandoId.set(null);
-        this.cdr.detectChanges();
+        this.cdr.markForCheck();
       },
       error: (err: HttpErrorResponse) => {
         this.editandoError.set(err.error?.message || 'No se pudo guardar la corrección.');
         this.editandoGuardando.set(false);
-        this.cdr.detectChanges();
+        this.cdr.markForCheck();
       },
     });
   }
@@ -433,6 +433,7 @@ export class ReporteExamenes implements OnInit {
 
     const nombre = ['inscripciones', this.sanea(examen.nombre)].filter(Boolean).join('_');
     XLSX.writeFile(wb, `${nombre}.xlsx`);
+    this.cdr.markForCheck();
     this.notificationService.success('Lista de inscritos descargada');
   }
 
@@ -464,6 +465,7 @@ export class ReporteExamenes implements OnInit {
     ];
 
     XLSX.writeFile(wb, 'reporte_inscripciones_examenes.xlsx');
+    this.cdr.markForCheck();
     this.notificationService.success('Resumen descargado');
   }
 }

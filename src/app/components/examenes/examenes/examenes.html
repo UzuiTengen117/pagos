@@ -417,6 +417,10 @@
                 <th>Grado</th>
                 <th>Escuela</th>
                 <th>Fecha de inscripción</th>
+                <th>Resultado</th>
+                @if (puedeEditar()) {
+                  <th></th>
+                }
               </tr>
             </thead>
             <tbody>
@@ -427,6 +431,27 @@
                   <td data-label="Grado">{{ inscrito.grado }}</td>
                   <td data-label="Escuela">{{ inscrito.escuela || '—' }}</td>
                   <td data-label="Fecha de inscripción">{{ inscrito.createdAt | date:'dd/MM/yyyy HH:mm' }}</td>
+                  <td data-label="Resultado">
+                    <!-- El triestado, escrito a mano y NO con un ternario que
+                         convierta el null en algo: un alumno sin calificar tiene
+                         que LEERSE distinto de uno reprobado, y `aprobado ?
+                         'Aprobado' : 'Reprobado'` haria que todos los que faltan
+                         por calificar salieran reprobados. -->
+                    @if (inscrito.aprobado === true) {
+                      <span class="badge-aprobado">Aprobado</span>
+                    } @else if (inscrito.aprobado === false) {
+                      <span class="badge-reprobado">Reprobado</span>
+                    } @else {
+                      <span class="badge-sin-calificar">Sin calificar</span>
+                    }
+                  </td>
+                  @if (puedeEditar()) {
+                    <td class="td-acciones">
+                      <button class="btn btn-sm btn-secondary" (click)="abrirCalificar(inscrito)">
+                        {{ inscrito.aprobado === null ? 'Calificar' : 'Ver / editar' }}
+                      </button>
+                    </td>
+                  }
                 </tr>
               }
             </tbody>
@@ -435,6 +460,113 @@
       </div>
       <div class="modal-footer">
         <button class="btn btn-secondary" (click)="closeInscritosModal()">Cerrar</button>
+      </div>
+    </div>
+  </div>
+}
+
+@if (showCalificarModal() && inscritoParaCalificar(); as inscrito) {
+  <div class="modal-overlay" (click)="cerrarCalificar()">
+    <div class="modal modal-lg" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h3>Calificación — {{ nombreCompleto(inscrito) }}</h3>
+        <button class="btn-close" (click)="cerrarCalificar()" aria-label="Cerrar">
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+          </svg>
+        </button>
+      </div>
+
+      <div class="modal-body">
+        <p class="inscritos-count">
+          Para uso exclusivo de la institución — {{ inscritosExamen()?.nombre }}
+        </p>
+
+        <form (ngSubmit)="guardarCalificacion()" novalidate>
+          <div class="form-group">
+            <label for="cal-record">Récord de asistencia %</label>
+            <input id="cal-record" type="number" min="0" max="100" step="0.01"
+                   [ngModel]="calificacion().recordAsistencia"
+                   (ngModelChange)="actualizarNota('recordAsistencia', $event)" name="recordAsistencia" />
+          </div>
+
+          <h4 class="hoja-seccion">Área / Calificación</h4>
+
+          <div class="cal-grid">
+            @for (area of areasExamen; track area.campo) {
+              <div class="form-group">
+                <label [for]="'cal-' + area.campo">{{ area.etiqueta }}</label>
+                <input [id]="'cal-' + area.campo" type="number" min="0" max="100" step="0.01"
+                       [ngModel]="calificacion()[area.campo]"
+                       (ngModelChange)="actualizarNota(area.campo, $event)"
+                       [name]="area.campo" />
+              </div>
+            }
+          </div>
+
+          <h4 class="hoja-seccion">Comentarios generales</h4>
+
+          <div class="form-group">
+            <label for="cal-un-paso">Combate un paso</label>
+            <textarea id="cal-un-paso" rows="2"
+                      [ngModel]="calificacion().notaCombateUnPaso"
+                      (ngModelChange)="actualizarCalificacion('notaCombateUnPaso', $event)"
+                      name="notaCombateUnPaso"></textarea>
+          </div>
+
+          <div class="form-group">
+            <label for="cal-saltando">Pateo saltando</label>
+            <textarea id="cal-saltando" rows="2"
+                      [ngModel]="calificacion().notaPateoSaltando"
+                      (ngModelChange)="actualizarCalificacion('notaPateoSaltando', $event)"
+                      name="notaPateoSaltando"></textarea>
+          </div>
+
+          <div class="form-group">
+            <label for="cal-comentarios">Comentarios</label>
+            <textarea id="cal-comentarios" rows="3"
+                      [ngModel]="calificacion().comentarios"
+                      (ngModelChange)="actualizarCalificacion('comentarios', $event)"
+                      name="comentarios"></textarea>
+          </div>
+
+          <h4 class="hoja-seccion">Resultado</h4>
+
+          <div class="form-group">
+            <!-- Tres opciones y no dos botones. Con dos botones, abrir a un alumno
+                 ya reprobado y no tocar nada lo dejaria reprobado: no hay forma
+                 de volver a "sin calificar". -->
+            <label for="cal-veredicto">Veredicto</label>
+            <select id="cal-veredicto"
+                    [ngModel]="veredictoTexto()"
+                    (ngModelChange)="cambiarVeredicto($event)" name="aprobado">
+              <option value="null">Sin calificar</option>
+              <option value="true">Aprobado</option>
+              <option value="false">Reprobado</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <app-firma-canvas
+              etiqueta="Firma del examinador"
+              [alto]="130"
+              [valor]="calificacion().firmaExaminador"
+              (valorChange)="actualizarCalificacion('firmaExaminador', $event)" />
+          </div>
+
+          @if (errorCalificacion()) {
+            <p class="form-error" role="alert">{{ errorCalificacion() }}</p>
+          }
+        </form>
+      </div>
+
+      <div class="modal-footer">
+        <button class="btn btn-secondary" (click)="cerrarCalificar()" [disabled]="guardandoCalificacion()">
+          Cancelar
+        </button>
+        <button class="btn btn-primary" (click)="guardarCalificacion()" [disabled]="guardandoCalificacion()">
+          {{ guardandoCalificacion() ? 'Guardando...' : 'Guardar calificación' }}
+        </button>
       </div>
     </div>
   </div>

@@ -1,0 +1,37 @@
+<div class="firma">
+  <div class="firma-cabecera">
+    <label class="firma-etiqueta">
+      {{ etiqueta }}
+      @if (requerido) {
+        <span class="obligatorio">*</span>
+      }
+    </label>
+    <button
+      type="button"
+      class="firma-limpiar"
+      (click)="limpiar()"
+      [disabled]="!hayFirma()"
+    >
+      Limpiar
+    </button>
+  </div>
+
+  <!-- El borde inferior hace de linea de firma, como en la hoja impresa. El
+       canvas va por encima y es transparente en las zonas sin firmar. -->
+  <div class="firma-marco">
+    <canvas
+      #canvas
+      class="firma-canvas"
+      [style.height.px]="alto"
+      (pointerdown)="iniciar($event)"
+      (pointermove)="dibujar($event)"
+      (pointerup)="terminar($event)"
+      (pointercancel)="terminar($event)"
+      (pointerleave)="terminar($event)"
+    ></canvas>
+
+    @if (!hayFirma()) {
+      <span class="firma-pista">Firma aquí</span>
+    }
+  </div>
+</div>

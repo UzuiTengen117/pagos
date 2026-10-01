@@ -64,30 +64,30 @@ export class Comprobantes implements OnInit, OnDestroy {
     this.comprobantesService.loadAll().subscribe({
       next: (data) => {
         this.comprobantes = data;
-        this.cdr.detectChanges();
+        this.cdr.markForCheck();
       },
       error: () => {
         this.comprobantes = [];
         this.mensajeError = 'Error al cargar comprobantes.';
-        this.cdr.detectChanges();
+        this.cdr.markForCheck();
       }
     });
 
     this.alumnosService.loadAll().subscribe({
       next: (data) => {
         this.alumnos = data;
-        this.cdr.detectChanges();
+        this.cdr.markForCheck();
       },
       error: () => {
         this.alumnos = [];
-        this.cdr.detectChanges();
+        this.cdr.markForCheck();
       }
     });
 
     this.pagosService.loadAll().subscribe({
       next: (data) => {
         this.pagos = data;
-        this.cdr.detectChanges();
+        this.cdr.markForCheck();
       },
       error: () => {
         this.pagos = [];
@@ -111,14 +111,14 @@ export class Comprobantes implements OnInit, OnDestroy {
     if (!alumnoId) {
       this.pagosAlumno = [];
       this.formData.pagoId = 0;
-      this.cdr.detectChanges();
+      this.cdr.markForCheck();
       return;
     }
     this.pagosAlumno = this.pagos.filter(p => p.alumnoId === alumnoId);
     this.formData.pagoId = 0;
     this.formData.concepto = '';
     this.formData.monto = 0;
-    this.cdr.detectChanges();
+    this.cdr.markForCheck();
   }
 
   onPagoChange(): void {
@@ -126,7 +126,7 @@ export class Comprobantes implements OnInit, OnDestroy {
     if (!pagoId) {
       this.formData.concepto = '';
       this.formData.monto = 0;
-      this.cdr.detectChanges();
+      this.cdr.markForCheck();
       return;
     }
     const pago = this.pagos.find(p => p.id === pagoId);
@@ -134,7 +134,7 @@ export class Comprobantes implements OnInit, OnDestroy {
       this.formData.concepto = pago.concepto;
       this.formData.monto = pago.monto;
     }
-    this.cdr.detectChanges();
+    this.cdr.markForCheck();
   }
 
   get comprobantesPagina(): Comprobante[] {
@@ -162,7 +162,7 @@ export class Comprobantes implements OnInit, OnDestroy {
     }
 
     this.comprobantes = resultado;
-    this.cdr.detectChanges();
+    this.cdr.markForCheck();
   }
 
   limpiarFiltros(): void {
@@ -173,11 +173,11 @@ export class Comprobantes implements OnInit, OnDestroy {
     this.comprobantesService.loadAll().subscribe({
       next: (data) => {
         this.comprobantes = data;
-        this.cdr.detectChanges();
+        this.cdr.markForCheck();
       },
       error: () => {
         this.comprobantes = [];
-        this.cdr.detectChanges();
+        this.cdr.markForCheck();
       }
     });
   }
@@ -187,7 +187,7 @@ export class Comprobantes implements OnInit, OnDestroy {
     this.showModal = true;
     this.mensajeError = '';
     this.mensajeExito = '';
-    this.cdr.detectChanges();
+    this.cdr.markForCheck();
   }
 
   closeModal(): void {
@@ -195,7 +195,7 @@ export class Comprobantes implements OnInit, OnDestroy {
     this.formData = this.getEmptyForm();
     this.mensajeError = '';
     this.mensajeExito = '';
-    this.cdr.detectChanges();
+    this.cdr.markForCheck();
   }
 
   saveComprobante(): void {
@@ -204,24 +204,24 @@ export class Comprobantes implements OnInit, OnDestroy {
 
     if (!alumnoId) {
       this.mensajeError = 'Selecciona un alumno.';
-      this.cdr.detectChanges();
+      this.cdr.markForCheck();
       return;
     }
     if (!this.formData.concepto.trim()) {
       this.mensajeError = 'Ingresa un concepto.';
-      this.cdr.detectChanges();
+      this.cdr.markForCheck();
       return;
     }
     if (!this.formData.monto || this.formData.monto <= 0) {
       this.mensajeError = 'El monto debe ser mayor a 0.';
-      this.cdr.detectChanges();
+      this.cdr.markForCheck();
       return;
     }
 
     const alumno = this.alumnosService.getById(alumnoId);
     if (!alumno) {
       this.mensajeError = 'El alumno no es valido.';
-      this.cdr.detectChanges();
+      this.cdr.markForCheck();
       return;
     }
 
@@ -238,7 +238,7 @@ export class Comprobantes implements OnInit, OnDestroy {
     }).subscribe({
       next: () => {
         this.mensajeExito = 'Comprobante generado correctamente.';
-        this.cdr.detectChanges();
+        this.cdr.markForCheck();
         setTimeout(() => {
           this.closeModal();
           this.recargarComprobantes();
@@ -246,7 +246,7 @@ export class Comprobantes implements OnInit, OnDestroy {
       },
       error: (err) => {
         this.mensajeError = err.error?.message || 'Error al generar el comprobante.';
-        this.cdr.detectChanges();
+        this.cdr.markForCheck();
       }
     });
   }
@@ -254,13 +254,13 @@ export class Comprobantes implements OnInit, OnDestroy {
   openPreview(comprobante: Comprobante): void {
     this.comprobantePreview = comprobante;
     this.showPreviewModal = true;
-    this.cdr.detectChanges();
+    this.cdr.markForCheck();
   }
 
   closePreview(): void {
     this.showPreviewModal = false;
     this.comprobantePreview = null;
-    this.cdr.detectChanges();
+    this.cdr.markForCheck();
   }
 
   printComprobante(): void {
@@ -321,7 +321,7 @@ export class Comprobantes implements OnInit, OnDestroy {
     this.showEditModal = true;
     this.mensajeError = '';
     this.mensajeExito = '';
-    this.cdr.detectChanges();
+    this.cdr.markForCheck();
   }
 
   closeEditModal(): void {
@@ -330,14 +330,14 @@ export class Comprobantes implements OnInit, OnDestroy {
     this.editFecha = '';
     this.mensajeError = '';
     this.mensajeExito = '';
-    this.cdr.detectChanges();
+    this.cdr.markForCheck();
   }
 
   saveFechaEdit(): void {
     if (!this.comprobanteToEdit) return;
     if (!this.editFecha) {
       this.mensajeError = 'Selecciona una fecha válida.';
-      this.cdr.detectChanges();
+      this.cdr.markForCheck();
       return;
     }
     this.mensajeError = '';
@@ -345,7 +345,7 @@ export class Comprobantes implements OnInit, OnDestroy {
     this.comprobantesService.updateFecha(this.comprobanteToEdit.id, nuevaFecha).subscribe({
       next: () => {
         this.mensajeExito = 'Fecha actualizada correctamente.';
-        this.cdr.detectChanges();
+        this.cdr.markForCheck();
         setTimeout(() => {
           this.closeEditModal();
           this.recargarComprobantes();
@@ -353,7 +353,7 @@ export class Comprobantes implements OnInit, OnDestroy {
       },
       error: (err) => {
         this.mensajeError = err.error?.message || 'Error al actualizar la fecha.';
-        this.cdr.detectChanges();
+        this.cdr.markForCheck();
       }
     });
   }
@@ -361,13 +361,13 @@ export class Comprobantes implements OnInit, OnDestroy {
   openDeleteModal(comprobante: Comprobante): void {
     this.comprobanteToDelete = comprobante;
     this.showDeleteModal = true;
-    this.cdr.detectChanges();
+    this.cdr.markForCheck();
   }
 
   closeDeleteModal(): void {
     this.showDeleteModal = false;
     this.comprobanteToDelete = null;
-    this.cdr.detectChanges();
+    this.cdr.markForCheck();
   }
 
   cancelarComprobante(comprobante: Comprobante): void {
@@ -377,7 +377,7 @@ export class Comprobantes implements OnInit, OnDestroy {
       },
       error: () => {
         this.mensajeError = 'Error al cancelar el comprobante.';
-        this.cdr.detectChanges();
+        this.cdr.markForCheck();
       }
     });
   }
@@ -393,7 +393,7 @@ export class Comprobantes implements OnInit, OnDestroy {
       error: (err) => {
         this.mensajeError = err.error?.message || 'Error al eliminar el comprobante.';
         this.closeDeleteModal();
-        this.cdr.detectChanges();
+        this.cdr.markForCheck();
       }
     });
   }
@@ -403,11 +403,11 @@ export class Comprobantes implements OnInit, OnDestroy {
     this.comprobantesService.loadAll().subscribe({
       next: (data) => {
         this.comprobantes = data;
-        this.cdr.detectChanges();
+        this.cdr.markForCheck();
       },
       error: () => {
         this.comprobantes = [];
-        this.cdr.detectChanges();
+        this.cdr.markForCheck();
       }
     });
   }

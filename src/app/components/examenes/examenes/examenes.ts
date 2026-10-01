@@ -1,9 +1,9 @@
-﻿import { Component, inject, signal, computed, OnInit, OnDestroy, ChangeDetectorRef } from '@angular/core';
+import { Component, inject, signal, computed, OnInit, OnDestroy, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Subscription, interval, filter } from 'rxjs';
 import { Router, NavigationEnd } from '@angular/router';
-import { Examen, ExamenFormData, ExamenInscrito, EstadoExamen } from '../../../models/examen.model';
+import { Examen, ExamenFormData, ExamenInscrito, EstadoExamen, CalificacionExamen } from '../../../models/examen.model';
 import { ExamenesService, ESTADOS_EXAMEN, SEDES_EXAMEN } from '../../../services/examenes';
 import { NotificationService } from '../../../services/notification';
 import { RefreshService } from '../../../services/refresh';
@@ -12,7 +12,42 @@ import { AuthService } from '../../../services/auth';
 import { isoAFechaLocal } from '../../../utils/mappers';
 import { calcularCuentaRegresiva, dosDigitos, eventoTerminado } from '../../../utils/cuentaRegresiva';
 import { PaginacionComponent } from '../../paginacion/paginacion';
+import { FirmaCanvasComponent } from '../../firma-canvas/firma-canvas';
 import { paginar } from '../../../utils/paginacion';
+
+// Las siete notas numericas de la hoja "SOLICITUD DE EXAMEN": el récord primero
+// y despues las seis areas, en el mismo orden en que van impresas.
+//
+// Se listan aqui y no se hardcodean seis `<div>` en el HTML por dos razones: el
+// orden impreso importa (se califica de izquierda a derecha) y agregar un area
+// nueva debe ser una linea y no un bloque de plantilla.
+//
+// `CampoNota` son las claves NUMERICAS de `CalificacionExamen`. El récord comparte
+// con las areas el mismo tratamiento (0-100, "" es null y no 0), asi que el mismo
+// array y el mismo `actualizarNota` lo cubren.
+//
+// El récord NO va en `AREAS_EXAMEN` porque en la hoja va fuera de la tabla
+// "ÁREA / CALIFICACIÓN": es la asistencia, no una de las seis areas.
+type CampoNota =
+  | 'recordAsistencia'
+  | 'calBasicos'
+  | 'calRompimientos'
+  | 'calPateo'
+  | 'calCombateLibre'
+  | 'calFormas'
+  | 'calDefensaPersonal';
+
+const NOTAS_EXAMEN: readonly { campo: CampoNota; etiqueta: string }[] = [
+  { campo: 'recordAsistencia', etiqueta: 'Récord de asistencia %' },
+  { campo: 'calBasicos', etiqueta: 'Básicos' },
+  { campo: 'calRompimientos', etiqueta: 'Rompimientos' },
+  { campo: 'calPateo', etiqueta: 'Pateo' },
+  { campo: 'calCombateLibre', etiqueta: 'Combate libre' },
+  { campo: 'calFormas', etiqueta: 'Formas' },
+  { campo: 'calDefensaPersonal', etiqueta: 'Defensa personal' },
+];
+
+const AREAS_EXAMEN = NOTAS_EXAMEN.slice(1);
 
 // Cintas de la academia, en orden de promocion. No es la escala ITF de
 // compilacion (Blanco y Amarillo, Cobre, Azul, Violeta) sino la de WTF, que es
@@ -55,7 +90,7 @@ const THUMB_CALIDAD = 0.72;
 @Component({
   selector: 'app-examenes',
   standalone: true,
-  imports: [CommonModule, FormsModule, PaginacionComponent],
+  imports: [CommonModule, FormsModule, PaginacionComponent, FirmaCanvasComponent],
   templateUrl: './examenes.html',
   styleUrl: './examenes.scss',
 })
@@ -78,6 +113,10 @@ export class Examenes implements OnInit, OnDestroy {
   // campo de texto acepta cualquier nivel para el caso de que la academia abra
   // una cinta nueva que el catalogo todavia no conoce.
   readonly cintas = CINTAS;
+  // Las seis areas de la hoja, sin el récord (que va aparte en la plantilla).
+  // `readonly` en el componente y no solo en el modulo: la plantilla recorre
+  // este array con `@for`, asi que tiene que ser una propiedad del componente.
+  readonly areasExamen = AREAS_EXAMEN;
 
   examenes = signal<Examen[]>([]);
   cargando = signal(true);
@@ -192,12 +231,12 @@ export class Examenes implements OnInit, OnDestroy {
         this.examenes.set(data);
         this.cargando.set(false);
         this.clampPagina();
-        this.cdr.detectChanges();
+        this.cdr.markForCheck();
       },
       error: () => {
         this.examenes.set([]);
         this.cargando.set(false);
-        this.cdr.detectChanges();
+        this.cdr.markForCheck();
       },
     });
   }
@@ -409,7 +448,7 @@ export class Examenes implements OnInit, OnDestroy {
       error: (err) => {
         this.guardando.set(false);
         this.formError.set(err?.error?.message || 'Error al guardar el examen.');
-        this.cdr.detectChanges();
+        this.cdr.markForCheck();
       },
     });
   }
@@ -435,6 +474,7 @@ export class Examenes implements OnInit, OnDestroy {
 
     this.guardando.set(false);
     this.closeModal();
+    this.cdr.markForCheck();
     this.notificationService.success(eraEdicion ? 'Examen actualizado correctamente.' : 'Examen creado correctamente.');
   }
 
@@ -446,6 +486,7 @@ export class Examenes implements OnInit, OnDestroy {
 
     const error = this.examenesService.validarImagen(archivo);
     if (error) {
+      this.cdr.markForCheck();
       this.notificationService.error(error);
       input.value = '';
       return;
@@ -455,7 +496,7 @@ export class Examenes implements OnInit, OnDestroy {
     lector.onload = () => {
       this.imagenSeleccionada.set(archivo);
       this.imagenPreview.set(String(lector.result || ''));
-      this.cdr.detectChanges();
+      this.cdr.markForCheck();
     };
     lector.readAsDataURL(archivo);
     input.value = '';
@@ -478,11 +519,13 @@ export class Examenes implements OnInit, OnDestroy {
         this.quitandoImagen.set(false);
         this.imagenSeleccionada.set(null);
         this.imagenPreview.set('');
+        this.cdr.markForCheck();
         this.notificationService.success('Imagen eliminada');
-        this.cdr.detectChanges();
+        this.cdr.markForCheck();
       },
       error: (err) => {
         this.quitandoImagen.set(false);
+        this.cdr.markForCheck();
         this.notificationService.error(err?.error?.message || 'No se pudo eliminar la imagen.');
       },
     });
@@ -496,6 +539,7 @@ export class Examenes implements OnInit, OnDestroy {
 
     const error = this.examenesService.validarHoja(archivo);
     if (error) {
+      this.cdr.markForCheck();
       this.notificationService.error(error);
       input.value = '';
       return;
@@ -507,7 +551,7 @@ export class Examenes implements OnInit, OnDestroy {
     // elegir, y no pasa nada: el navegador no emite `change` cuando el valor
     // no cambio.
     input.value = '';
-    this.cdr.detectChanges();
+    this.cdr.markForCheck();
   }
 
   // Igual que la imagen: quitar borra de verdad. En alta todavia no hay fila, y
@@ -525,11 +569,13 @@ export class Examenes implements OnInit, OnDestroy {
         this.quitandoHoja.set(false);
         this.hojaSeleccionada.set(null);
         this.hojaGuardada.set(false);
+        this.cdr.markForCheck();
         this.notificationService.success('Hoja de inscripción eliminada');
-        this.cdr.detectChanges();
+        this.cdr.markForCheck();
       },
       error: (err) => {
         this.quitandoHoja.set(false);
+        this.cdr.markForCheck();
         this.notificationService.error(err?.error?.message || 'No se pudo eliminar la hoja de inscripción.');
       },
     });
@@ -549,6 +595,7 @@ export class Examenes implements OnInit, OnDestroy {
     } catch {
       this.guardando.set(false);
       this.closeModal();
+      this.cdr.markForCheck();
       this.notificationService.error('No se pudo procesar la imagen. Intenta con otro archivo.');
       return false;
     }
@@ -562,6 +609,7 @@ export class Examenes implements OnInit, OnDestroy {
         error: (err) => {
           this.guardando.set(false);
           this.closeModal();
+          this.cdr.markForCheck();
           this.notificationService.error(
             err?.error?.message || 'El examen se guardó, pero la imagen no se pudo subir.'
           );
@@ -589,6 +637,7 @@ export class Examenes implements OnInit, OnDestroy {
         error: (err) => {
           this.guardando.set(false);
           this.closeModal();
+          this.cdr.markForCheck();
           this.notificationService.error(
             err?.error?.message || 'El examen se guardó, pero la hoja no se pudo subir.'
           );
@@ -646,10 +695,12 @@ export class Examenes implements OnInit, OnDestroy {
     this.examenesService.delete(examen.id).subscribe({
       next: () => {
         this.closeDeleteModal();
+        this.cdr.markForCheck();
         this.notificationService.success('Examen eliminado');
       },
       error: (err) => {
         this.closeDeleteModal();
+        this.cdr.markForCheck();
         this.notificationService.error(err?.error?.message || 'Error al eliminar el examen.');
       },
     });
@@ -667,12 +718,13 @@ export class Examenes implements OnInit, OnDestroy {
       next: (data) => {
         this.inscritos.set(data);
         this.cargandoInscritos.set(false);
-        this.cdr.detectChanges();
+        this.cdr.markForCheck();
       },
       error: (err) => {
         this.cargandoInscritos.set(false);
+        this.cdr.markForCheck();
         this.notificationService.error(err?.error?.message || 'No se pudo cargar la lista de inscritos.');
-        this.cdr.detectChanges();
+        this.cdr.markForCheck();
       },
     });
   }
@@ -680,6 +732,165 @@ export class Examenes implements OnInit, OnDestroy {
   closeInscritosModal(): void {
     this.showInscritosModal.set(false);
     this.inscritosExamen.set(null);
+  }
+
+  // --- Calificacion (PARA USO EXCLUSIVO DE LA INSTITUCION) ---
+  //
+  // Va en un modal aparte y no como columna editable dentro de la tabla de
+  // inscritos porque son cosas distintas: la tabla se consulta (y la consulta
+  // la puede hacer un profesor con `ver:reporte_examenes`), calificar es un
+  // juicio del entrenador y exige `editar:examenes`. Meter la edicion en la
+  // tabla haria que el permiso de lectura visualizara campos escribibles.
+  showCalificarModal = signal(false);
+  inscritoParaCalificar = signal<ExamenInscrito | null>(null);
+  calificacion = signal<CalificacionExamen>(this.calificacionVacia());
+  guardandoCalificacion = signal(false);
+  errorCalificacion = signal('');
+
+  abrirCalificar(inscrito: ExamenInscrito): void {
+    const examen = this.inscritosExamen();
+    if (!examen || !this.puedeEditar()) {
+      return;
+    }
+
+    this.inscritoParaCalificar.set(inscrito);
+    // Se precarga con lo que ya habia. Un examen ya calificado se corrige, no
+    // se vuelve a capturar desde cero, y un modal en blanco haria creer al
+    // entrenador que ese alumno no tiene nada.
+    this.calificacion.set({
+      recordAsistencia: inscrito.recordAsistencia ?? null,
+      calBasicos: inscrito.calBasicos ?? null,
+      calRompimientos: inscrito.calRompimientos ?? null,
+      calPateo: inscrito.calPateo ?? null,
+      calCombateLibre: inscrito.calCombateLibre ?? null,
+      calFormas: inscrito.calFormas ?? null,
+      calDefensaPersonal: inscrito.calDefensaPersonal ?? null,
+      notaCombateUnPaso: inscrito.notaCombateUnPaso || '',
+      notaPateoSaltando: inscrito.notaPateoSaltando || '',
+      comentarios: inscrito.comentarios || '',
+      // Se copia el triestado tal cual, incluido el null. Un `|| false` aqui
+      // convertiria "sin calificar" en "reprobado" al abrir el modal.
+      aprobado: inscrito.aprobado ?? null,
+      firmaExaminador: inscrito.firmaExaminador || '',
+    });
+    this.errorCalificacion.set('');
+    this.showCalificarModal.set(true);
+  }
+
+  cerrarCalificar(): void {
+    if (this.guardandoCalificacion()) {
+      return;
+    }
+    this.showCalificarModal.set(false);
+    this.inscritoParaCalificar.set(null);
+    this.errorCalificacion.set('');
+  }
+
+  private calificacionVacia(): CalificacionExamen {
+    return {
+      recordAsistencia: null,
+      calBasicos: null,
+      calRompimientos: null,
+      calPateo: null,
+      calCombateLibre: null,
+      calFormas: null,
+      calDefensaPersonal: null,
+      notaCombateUnPaso: '',
+      notaPateoSaltando: '',
+      comentarios: '',
+      aprobado: null,
+      firmaExaminador: '',
+    };
+  }
+
+  actualizarCalificacion<K extends keyof CalificacionExamen>(
+    campo: K,
+    valor: CalificacionExamen[K]
+  ): void {
+    this.calificacion.update(c => ({ ...c, [campo]: valor }));
+    this.errorCalificacion.set('');
+  }
+
+  // El <input type="number"> entrega string y "" cuando se borra. "" se vuelve
+  // null y no 0: 0 es una nota real (el alumno no rompio nada) y null es "el
+  // examinador todavia no lo puso". Con un Number("") sale 0 y la hoja quedaria
+  // con un cero impreso donde deberia haber un hueco.
+  //
+  // El campo es `CampoNota` y no `keyof CalificacionExamen` para que un
+  // `actualizarNota('comentarios', $event)` no compile: las areas son numericas y
+  // `Number('hola')` es NaN, que se guardaria como nota sin que nadie lo note.
+  actualizarNota(campo: CampoNota, valor: string): void {
+    this.actualizarCalificacion(campo, valor === '' ? null : Number(valor));
+  }
+
+  // El veredicto es un <select> de tres valores y no dos botones de Aprobado /
+  // Reprobado, porque "sin calificar" tiene que ser elegible de forma explicita:
+  // con dos botones, abrir un alumno ya reprobado y no tocar nada ya habria
+  // reaprobado.
+  cambiarVeredicto(valor: string): void {
+    this.actualizarCalificacion(
+      'aprobado',
+      valor === 'true' ? true : valor === 'false' ? false : null
+    );
+  }
+
+  // El triestado del <select>, en texto.
+  //
+  // No se escribe `String(calificacion().aprobado)` en la plantilla: las plantillas
+  // de Angular no tienen acceso a los globales de JavaScript (`String`, `Number`,
+  // `Date`), y el error que sale ("Property 'String' does not exist") no dice nada
+  // de que el problema es una funcion global.
+  veredictoTexto(): string {
+    const a = this.calificacion().aprobado;
+    return a === null ? 'null' : a ? 'true' : 'false';
+  }
+
+  guardarCalificacion(): void {
+    const examen = this.inscritosExamen();
+    const inscrito = this.inscritoParaCalificar();
+    if (!examen || !inscrito || this.guardandoCalificacion()) {
+      return;
+    }
+
+    const c = this.calificacion();
+
+    // El mismo rango del backend. Se repite aqui para avisar antes del request,
+    // no para sustituir la validacion del servidor: esta es una comodidad.
+    //
+    // El bucle va sobre `NOTAS_EXAMEN` entero, no sobre un array de nombres
+    // escrito a mano: si el backend aceptara una octava nota y nadie la metiera
+    // en este array, se guardaria sin revisar.
+    for (const { campo, etiqueta } of NOTAS_EXAMEN) {
+      const n = c[campo];
+      if (n !== null && (n < 0 || n > 100)) {
+        this.errorCalificacion.set(`${etiqueta} debe estar entre 0 y 100`);
+        return;
+      }
+    }
+
+    this.guardandoCalificacion.set(true);
+    this.errorCalificacion.set('');
+
+    this.examenesService.calificarInscrito(examen.id, inscrito.id, c).subscribe({
+      next: (actualizada) => {
+        this.guardandoCalificacion.set(false);
+        this.showCalificarModal.set(false);
+
+        // Se reemplaza la fila en la lista en vez de recargarla entera: recargar
+        // cerraria el contexto de scroll del entrenador, que puede estar
+        // calificando veinte alumnos seguidos.
+        this.inscritos.update(lista =>
+          lista.map(i => (i.id === actualizada.id ? actualizada : i))
+        );
+        this.cdr.markForCheck();
+        this.notificationService.success('Calificación guardada');
+      },
+      error: (err) => {
+        this.guardandoCalificacion.set(false);
+        this.errorCalificacion.set(err?.error?.message || 'No se pudo guardar la calificación.');
+        this.cdr.markForCheck();
+      },
+    });
   }
 
   // --- Utilidades de plantilla ---

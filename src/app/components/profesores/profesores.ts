@@ -75,12 +75,12 @@ export class Profesores implements OnInit, OnDestroy {
         this.allUsuarios = usuarios;
         this.pagina = 1;
         this.aplicarFiltro();
-        this.cdr.detectChanges();
+        this.cdr.markForCheck();
       },
       error: () => {
         this.allUsuarios = [];
         this.usuarios = [];
-        this.cdr.detectChanges();
+        this.cdr.markForCheck();
       }
     });
   }
@@ -157,11 +157,11 @@ export class Profesores implements OnInit, OnDestroy {
     this.permisosService.getModulos().subscribe({
       next: (modulos) => {
         this.modulosPermisos = modulos;
-        this.cdr.detectChanges();
+        this.cdr.markForCheck();
       },
       error: () => {
         this.modulosPermisos = null;
-        this.cdr.detectChanges();
+        this.cdr.markForCheck();
       }
     });
   }
@@ -172,12 +172,12 @@ export class Profesores implements OnInit, OnDestroy {
       next: (res) => {
         this.permisosUsuario = res.permisos;
         this.cargandoPermisos = false;
-        this.cdr.detectChanges();
+        this.cdr.markForCheck();
       },
       error: () => {
         this.permisosUsuario = [];
         this.cargandoPermisos = false;
-        this.cdr.detectChanges();
+        this.cdr.markForCheck();
       }
     });
   }
@@ -189,12 +189,12 @@ export class Profesores implements OnInit, OnDestroy {
       next: (res) => {
         this.permisosUsuario = res.permisos;
         this.cargandoPermisos = false;
-        this.cdr.detectChanges();
+        this.cdr.markForCheck();
       },
       error: () => {
         this.permisosUsuario = [];
         this.cargandoPermisos = false;
-        this.cdr.detectChanges();
+        this.cdr.markForCheck();
       }
     });
   }
@@ -251,8 +251,14 @@ export class Profesores implements OnInit, OnDestroy {
     const lista = seleccion ?? this.construirSeleccionPermisos();
     if (!this.modulosPermisos) return;
     this.permisosService.updatePermisos(usuarioId, lista).subscribe({
-      next: () => this.notificationService.success('Permisos actualizados correctamente'),
-      error: () => this.notificationService.error('No se pudieron guardar los permisos')
+      next: () => {
+        this.cdr.markForCheck();
+        this.notificationService.success('Permisos actualizados correctamente');
+      },
+      error: () => {
+        this.cdr.markForCheck();
+        this.notificationService.error('No se pudieron guardar los permisos');
+      }
     });
   }
 
@@ -280,23 +286,28 @@ export class Profesores implements OnInit, OnDestroy {
   saveUsuario(): void {
     // Validación de campos obligatorios antes de enviar al backend
     if (!this.formData.nombre?.trim()) {
+      this.cdr.markForCheck();
       this.notificationService.error('El nombre es obligatorio');
       return;
     }
     if (!this.formData.primerApellido?.trim()) {
+      this.cdr.markForCheck();
       this.notificationService.error('El primer apellido es obligatorio');
       return;
     }
     if (!this.formData.username?.trim()) {
+      this.cdr.markForCheck();
       this.notificationService.error('El nombre de usuario es obligatorio');
       return;
     }
     if (!this.formData.email?.trim()) {
+      this.cdr.markForCheck();
       this.notificationService.error('El email es obligatorio');
       return;
     }
     // Password solo obligatorio al crear (no al editar)
     if (!this.isEditing && !this.formPassword?.trim()) {
+      this.cdr.markForCheck();
       this.notificationService.error('La contraseña es obligatoria');
       return;
     }
@@ -313,11 +324,13 @@ export class Profesores implements OnInit, OnDestroy {
             this.guardarPermisos(usuarioId, seleccion);
           }
           this.loadAllUsuarios();
+          this.cdr.markForCheck();
           this.notificationService.success('Usuario actualizado correctamente');
         },
         error: (err) => {
           // Muestra error del backend o genérico
           const mensaje = err?.error?.message || 'No se pudo actualizar el usuario';
+          this.cdr.markForCheck();
           this.notificationService.error(mensaje);
           this.loadAllUsuarios();
         }
@@ -331,11 +344,13 @@ export class Profesores implements OnInit, OnDestroy {
             this.guardarPermisos(res.usuario?.id || res.id, seleccion);
           }
           this.loadAllUsuarios();
+          this.cdr.markForCheck();
           this.notificationService.success('Usuario creado correctamente');
         },
         error: (err) => {
           // Muestra error del backend o genérico
           const mensaje = err?.error?.message || 'No se pudo crear el usuario';
+          this.cdr.markForCheck();
           this.notificationService.error(mensaje);
           this.loadAllUsuarios();
         }
@@ -350,10 +365,12 @@ export class Profesores implements OnInit, OnDestroy {
         next: () => {
           this.closeDeleteModal();
           this.loadAllUsuarios();
+          this.cdr.markForCheck();
           this.notificationService.success('Usuario eliminado correctamente');
         },
         error: (err) => {
           const mensaje = err?.error?.message || 'No se pudo eliminar el usuario';
+          this.cdr.markForCheck();
           this.notificationService.error(mensaje);
           this.closeDeleteModal();
           this.loadAllUsuarios();
@@ -369,10 +386,12 @@ export class Profesores implements OnInit, OnDestroy {
         next: () => {
           this.closeRolModal();
           this.loadAllUsuarios();
+          this.cdr.markForCheck();
           this.notificationService.success('Rol cambiado correctamente');
         },
         error: (err) => {
           const mensaje = err?.error?.message || 'No se pudo cambiar el rol';
+          this.cdr.markForCheck();
           this.notificationService.error(mensaje);
           this.closeRolModal();
           this.loadAllUsuarios();

@@ -79,11 +79,11 @@ export class EscanearAsistencia implements OnInit, OnDestroy {
             this.sede = sesion.sede;
             this.cargarAlumnos(sesion.id);
           }
-          this.cdr.detectChanges();
+          this.cdr.markForCheck();
         },
         error: () => {
           this.sesion.set(null);
-          this.cdr.detectChanges();
+          this.cdr.markForCheck();
         },
       })
     );
@@ -91,6 +91,7 @@ export class EscanearAsistencia implements OnInit, OnDestroy {
 
   abrirSesion(): void {
     if (!this.sede) {
+      this.cdr.markForCheck();
       this.notificationService.warning('Selecciona la sede de la clase');
       return;
     }
@@ -99,12 +100,14 @@ export class EscanearAsistencia implements OnInit, OnDestroy {
         this.sesion.set(sesion);
         this.cargarAlumnos(sesion.id);
         // La camara NO se enciende sola: el boton la controla durante toda la clase.
+        this.cdr.markForCheck();
         this.notificationService.success('Clase abierta. Enciende la cámara para escanear.');
-        this.cdr.detectChanges();
+        this.cdr.markForCheck();
       },
       error: (e: HttpErrorResponse) => {
+        this.cdr.markForCheck();
         this.notificationService.error(e?.error?.message || 'No se pudo abrir la clase');
-        this.cdr.detectChanges();
+        this.cdr.markForCheck();
       },
     });
   }
@@ -119,12 +122,14 @@ export class EscanearAsistencia implements OnInit, OnDestroy {
         this.detenerCamara();
         this.sede = '';
         this.ultimosRegistros.set([]);
+        this.cdr.markForCheck();
         this.notificationService.success('Clase cerrada');
-        this.cdr.detectChanges();
+        this.cdr.markForCheck();
       },
       error: (e: HttpErrorResponse) => {
+        this.cdr.markForCheck();
         this.notificationService.error(e?.error?.message || 'No se pudo cerrar la clase');
-        this.cdr.detectChanges();
+        this.cdr.markForCheck();
       },
     });
   }
@@ -133,9 +138,9 @@ export class EscanearAsistencia implements OnInit, OnDestroy {
     this.asistenciasService.loadAlumnosSesion(sesionId).subscribe({
       next: (data) => {
         this.alumnos.set(data);
-        this.cdr.detectChanges();
+        this.cdr.markForCheck();
       },
-      error: () => this.cdr.detectChanges(),
+      error: () => this.cdr.markForCheck(),
     });
   }
 
@@ -174,7 +179,7 @@ export class EscanearAsistencia implements OnInit, OnDestroy {
       this.camaraActiva.set(false);
       this.detenerCamara();
     }
-    this.cdr.detectChanges();
+    this.cdr.markForCheck();
   }
 
   detenerCamara(): void {
@@ -197,7 +202,7 @@ export class EscanearAsistencia implements OnInit, OnDestroy {
     } else {
       this.iniciarCamara();
     }
-    this.cdr.detectChanges();
+    this.cdr.markForCheck();
   }
 
   private iniciarLoop(): void {
@@ -296,15 +301,17 @@ export class EscanearAsistencia implements OnInit, OnDestroy {
     this.ultimosRegistros.set([]);
     this.detenerCamara();
     this.sede = '';
-    this.cdr.detectChanges();
+    this.cdr.markForCheck();
     return `${e?.error?.message || 'La clase ya no esta abierta'}. Abre la clase de nuevo para seguir`;
   }
 
   private trasRegistro(nombre: string, ok: boolean, mensaje: string): void {
     this.procesando.set(false);
     if (ok) {
+      this.cdr.markForCheck();
       this.notificationService.success(mensaje);
     } else {
+      this.cdr.markForCheck();
       this.notificationService.warning(mensaje);
     }
     this.ultimosRegistros.update(lista => [{ nombre, ok, mensaje }, ...lista].slice(0, 5));
@@ -312,25 +319,27 @@ export class EscanearAsistencia implements OnInit, OnDestroy {
     if (sesion) {
       this.cargarAlumnos(sesion.id);
     }
-    this.cdr.detectChanges();
+    this.cdr.markForCheck();
   }
 
   eliminarAsistencia(alumno: AlumnoEnSesion): void {
     if (!alumno.asistenciaId) return;
     this.asistenciasService.eliminarRegistro(alumno.asistenciaId).subscribe({
       next: () => {
+        this.cdr.markForCheck();
         this.notificationService.info('Asistencia eliminada');
         const sesion = this.sesion();
         if (sesion) this.cargarAlumnos(sesion.id);
-        this.cdr.detectChanges();
+        this.cdr.markForCheck();
       },
       error: (e: HttpErrorResponse) => {
         if (this.esSesionInvalida(e)) {
           this.trasRegistro('', false, this.sesionPerdida(e));
           return;
         }
+        this.cdr.markForCheck();
         this.notificationService.error(e?.error?.message || 'No se pudo eliminar');
-        this.cdr.detectChanges();
+        this.cdr.markForCheck();
       },
     });
   }

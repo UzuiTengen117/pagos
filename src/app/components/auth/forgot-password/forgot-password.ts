@@ -40,18 +40,18 @@ export class ForgotPassword {
       catchError((error) => {
         this.loading = false;
         this.errorMsg = error?.error?.message || 'No se pudo verificar el usuario.';
-        this.cdr.detectChanges();
+        this.cdr.markForCheck();
         return of(null);
       })
     ).subscribe({
       next: (res) => {
         this.loading = false;
         if (!res) {
-          this.cdr.detectChanges();
+          this.cdr.markForCheck();
           return;
         }
         this.step = 2;
-        this.cdr.detectChanges();
+        this.cdr.markForCheck();
       },
     });
   }
@@ -73,18 +73,18 @@ export class ForgotPassword {
       catchError((error) => {
         this.loading = false;
         this.errorMsg = error?.error?.message || 'No se pudo restablecer la contraseña.';
-        this.cdr.detectChanges();
+        this.cdr.markForCheck();
         return of(null);
       })
     ).subscribe({
       next: (res) => {
         this.loading = false;
         if (!res) {
-          this.cdr.detectChanges();
+          this.cdr.markForCheck();
           return;
         }
         this.successMsg = 'Contraseña restablecida. Ya puedes iniciar sesión.';
-        this.cdr.detectChanges();
+        this.cdr.markForCheck();
         setTimeout(() => this.router.navigate(['/login']), 2000);
       },
     });
