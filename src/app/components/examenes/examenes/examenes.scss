@@ -554,17 +554,18 @@
   color: var(--text-muted);
 }
 
-// El nombre de un PDF puede ser muy largo ("convocatoria al torneo de poesia
-// del 2 de octubre 2026 (2).pdf"). Sin truncar, empuja el boton "Quitar" fuera
-// de la pantalla en un celular.
-.hoja-nombre {
-  font-size: 0.75rem;
+// El aviso de que la hoja ya viene incluida. No es un campo: es la respuesta a la
+// pregunta "¿y la hoja de inscripcion?", que antes era un drop de PDF y ahora no
+// hay nada que subir.
+.hoja-fija {
+  margin: 0;
+  padding: 0.7rem 0.85rem;
+  border: 1px dashed var(--border-secondary);
+  border-radius: 8px;
+  background: var(--bg-secondary);
   color: var(--text-muted);
-  flex: 1;
-  min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  font-size: 0.78rem;
+  line-height: 1.5;
 }
 
 .inscritos-count {

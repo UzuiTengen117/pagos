@@ -508,12 +508,21 @@ export class AlumnoExamenes implements OnInit, OnDestroy {
         // sesion anterior y arrastrarias datos que el alumno ya no tiene.
         this.solicitud.set(this.solicitudVacia());
         this.cdr.markForCheck();
-        this.notificationService.success(`Te inscribiste a ${examen.nombre}`);
-        // Si hay plantilla, descarga enseguida el snapshot recién guardado. La
-        // tarjeta permite volver a bajarla si el navegador bloquea la descarga.
-        if (examen.tieneHoja) {
-          this.descargarHoja(examen);
-        }
+        // Siempre, sin preguntar por `tieneHoja`: la hoja existe para todos los
+        // examenes. Cuando ese `if` estaba, la descarga se saltaba entera en las
+        // filas antiguas sin ningun aviso, y el alumno se quedaba sin la hoja
+        // rellenada sin saber que le faltaba.
+        this.descargarHoja(examen);
+        // Y el aviso lleva un boton de reintento. La descarga de arriba salta
+        // sola tras dos round-trips, y para entonces el navegador ya puede haber
+        // caducado la activacion del click en "Inscribirme": entonces el
+        // `enlace.click()` no descarga nada y no tira error. Con el boton a la
+        // vista hay un segundo camino, y este con un gesto real del usuario.
+        this.notificationService.successConAccion(
+          `Te inscribiste a ${examen.nombre}`,
+          'Descargar hoja',
+          () => this.descargarHoja(examen)
+        );
       },
       error: (err) => {
         this.enviandoInscripcion.set(false);

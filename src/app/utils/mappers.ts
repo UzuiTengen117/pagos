@@ -624,7 +624,6 @@ export function mapExamenFromBackend(data: any): Examen {
     precioInscripcion: Number(data.precio_inscripcion) || 0,
     cupoMaximo: data.cupo_maximo === null || data.cupo_maximo === undefined ? null : Number(data.cupo_maximo),
     imagen: data.imagen || '',
-    tieneHoja: Boolean(data.tiene_hoja),
     estado: data.estado || 'programado',
     inscritos: Number(data.inscritos) || 0,
     miInscripcion: data.mi_inscripcion ? Number(data.mi_inscripcion) : null,

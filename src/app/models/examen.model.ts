@@ -19,10 +19,12 @@ export interface Examen {
   precioInscripcion: number;
   cupoMaximo: number | null;
   imagen: string;
-  // Si el admin ya subio la hoja de inscripcion en PDF. Es un booleano, no el
-  // PDF: el archivo se pide aparte con GET /examenes/:id/hoja porque son varios
-  // MB y mandarlo en cada listado reventaria la respuesta.
-  tieneHoja: boolean;
+  // NO hay campo `tieneHoja`. Existio cuando el admin subia la hoja examen por
+  // examen y no todas las sesiones la traian, asi que el boton de descarga se
+  // condicionaba a ese booleano. Ahora la hoja va embebida en el backend y
+  // existe siempre, y el booleano solo servia para fallar en silencio: en los
+  // examenes creados antes de eso valia false y el alumno se inscribia sin ver ni
+  // boton ni aviso. No reintroducirlo: la hoja siempre esta.
   estado: EstadoExamen;
   inscritos: number;
   // Id de la inscripcion propia, o null si el alumno no va. Lo resuelve el

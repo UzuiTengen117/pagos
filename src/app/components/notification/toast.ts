@@ -23,6 +23,15 @@ import { NotificationService, Notification } from '../../services/notification';
             }
           </span>
           <span class="toast-message">{{ notification.message }}</span>
+          @if (notification.accion; as accion) {
+            <!-- El click NO se detiene a proposito: primero corre la accion y
+                 despues el evento sube al contenedor, que cierra el aviso. Asi un
+                 boton que se puede pulsar y que ademas se va solo, sin tener que
+                 acordarse de cerrarlo. -->
+            <button type="button" class="toast-accion" (click)="accion.ejecutar()">
+              {{ accion.etiqueta }}
+            </button>
+          }
           <span class="toast-close">&times;</span>
         </div>
       }
@@ -84,6 +93,33 @@ import { NotificationService, Notification } from '../../services/notification';
 
     .toast-message {
       flex: 1;
+    }
+
+    // El aviso entero es pulsable porque lo cierra, asi que el boton de la accion
+    // necesita separarse de esa superficie o no se ve como un control. Al
+    // pulsarlo se invierte: fondo del color del texto y texto blanco, sin
+    // hardcodear un verde que solo le queda bien al aviso de exito.
+    .toast-accion {
+      flex-shrink: 0;
+      padding: 5px 11px;
+      border: 1px solid currentColor;
+      border-radius: 6px;
+      background: transparent;
+      color: inherit;
+      font: inherit;
+      font-size: 0.82rem;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    .toast-accion:hover {
+      background: currentColor;
+      color: #ffffff;
+    }
+
+    .toast-accion:focus-visible {
+      outline: 2px solid currentColor;
+      outline-offset: 2px;
     }
 
     .toast-close {

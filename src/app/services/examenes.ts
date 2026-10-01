@@ -47,10 +47,6 @@ const IMAGENES_PERMITIDAS = ['image/jpeg', 'image/png', 'image/webp'];
 // upload entero en una imagen que el servidor va a rechazar.
 const TAMANO_MAXIMO = 2 * 1024 * 1024;
 
-// Techo de la hoja de inscripcion. Tiene que coincidir con HOJA_MAX_BYTES en
-// back-end_pagos/src/routes/examenes.js.
-const TAMANO_HOJA_MAXIMO = 5 * 1024 * 1024;
-
 @Injectable({ providedIn: 'root' })
 export class ExamenesService {
   private http = inject(HttpClient);
@@ -121,24 +117,8 @@ export class ExamenesService {
   }
 
   // ── Hoja de inscripcion (PDF) ────────────────────────────────────────────
-  // El admin sube un PDF por examen y todo alumno inscrito baja ese mismo
-  // archivo. Va en su propia ruta y no dentro del PUT, por el mismo motivo que
-  // la imagen: un PDF pesa varios MB y no tiene sentido reenviarlo en cada
-  // guardado de texto.
-
-  subirHoja(id: number, archivo: File): Observable<any> {
-    const form = new FormData();
-    form.append('hoja', archivo);
-    return this.http.post<any>(`${this.apiUrl}/examenes/${id}/hoja`, form).pipe(
-      tap(() => this.refreshService.refresh())
-    );
-  }
-
-  eliminarHoja(id: number): Observable<any> {
-    return this.http.delete<any>(`${this.apiUrl}/examenes/${id}/hoja`).pipe(
-      tap(() => this.refreshService.refresh())
-    );
-  }
+  // No hay nada que subir: la hoja es la misma para todos los examenes y el
+  // backend la guarda sola al crear el examen. Solo se descarga.
 
   // Devuelve el PDF como Blob. La respuesta va completa (`observe: 'response'`)
   // y no solo el cuerpo porque el nombre del archivo viaja en la cabecera
@@ -238,19 +218,6 @@ export class ExamenesService {
     }
     if (archivo.size > TAMANO_MAXIMO) {
       return 'La imagen supera el límite de 2MB';
-    }
-    return null;
-  }
-
-  // El techo de 5MB es el mismo que aplica el backend, no uno inventado acá: si
-  // difieren, el usuario sube un archivo que el navegador acepta y el servidor
-  // rebota, que es la peor forma de descubrir un limite.
-  validarHoja(archivo: File): string | null {
-    if (archivo.type !== 'application/pdf') {
-      return 'Formato no válido. Solo se permiten archivos PDF';
-    }
-    if (archivo.size > TAMANO_HOJA_MAXIMO) {
-      return 'El PDF supera el límite de 5MB';
     }
     return null;
   }

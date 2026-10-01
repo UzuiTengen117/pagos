@@ -147,18 +147,9 @@ export class Examenes implements OnInit, OnDestroy {
   imagenSeleccionada = signal<File | null>(null);
   quitandoImagen = signal(false);
 
-  // Hoja de inscripcion en PDF. A diferencia de la imagen no hay vista previa:
-  // el navegador no puede mostrar un PDF dentro de un <img>, y meter un <embed>
-  // en el formulario abre una segunda vista previa que hay que sincronizar con
-  // la que se sube. Se muestra el nombre del archivo, que es lo que el admin
-  // necesita para confirmar que eligio el correcto.
-  hojaSeleccionada = signal<File | null>(null);
-  // Si el examen YA tiene una hoja guardada en el servidor. Va separado de
-  // `hojaSeleccionada` porque son dos cosas distintas: una es lo que hay en la
-  // base, la otra lo que el admin acaba de elegir y aun no se ha subido. Con un
-  // solo signal no se podria mostrar "ya hay un PDF, sustituir?" sin adivinar.
-  hojaGuardada = signal(false);
-  quitandoHoja = signal(false);
+  // La hoja de inscripcion NO se maneja aqui. Es la misma para todos los examenes
+  // y va embebida en el backend, que la guarda al crear el examen. No hay archivo
+  // que elegir ni que subir.
 
   // --- Modal de borrado ---
   showDeleteModal = signal(false);
@@ -310,8 +301,6 @@ export class Examenes implements OnInit, OnDestroy {
     this.examenEditandoId.set(null);
     this.imagenPreview.set('');
     this.imagenSeleccionada.set(null);
-    this.hojaSeleccionada.set(null);
-    this.hojaGuardada.set(false);
     this.formError.set('');
     this.showModal.set(true);
   }
@@ -332,8 +321,6 @@ export class Examenes implements OnInit, OnDestroy {
     this.examenEditandoId.set(examen.id);
     this.imagenPreview.set(examen.imagen);
     this.imagenSeleccionada.set(null);
-    this.hojaSeleccionada.set(null);
-    this.hojaGuardada.set(examen.tieneHoja);
     this.formError.set('');
     this.showModal.set(true);
   }
@@ -342,7 +329,6 @@ export class Examenes implements OnInit, OnDestroy {
     this.showModal.set(false);
     this.formError.set('');
     this.imagenSeleccionada.set(null);
-    this.hojaSeleccionada.set(null);
   }
 
   actualizar<K extends keyof ExamenFormData>(campo: K, valor: ExamenFormData[K]): void {
@@ -439,11 +425,11 @@ export class Examenes implements OnInit, OnDestroy {
 
     peticion.subscribe({
       next: (guardado: Examen) => {
-        // Los adjuntos van DESPUES de crear, porque sus rutas necesitan el id
-        // que solo existe tras el INSERT. Se delega el cierre del modal y el
+        // El resto de los adjuntos van DESPUES de crear, porque su ruta necesita
+        // el id que solo existe tras el INSERT. Se delega el cierre del modal y el
         // aviso de exito ahi, para que haya un solo lugar que decide cuando
-        // termina todo, sin importar cuantas descargas se hayan hecho.
-        this.subirAdjuntos(guardado.id, eraEdicion);
+        // termina todo.
+        this.subirImagenSiHay(guardado.id, eraEdicion);
       },
       error: (err) => {
         this.guardando.set(false);
@@ -453,22 +439,14 @@ export class Examenes implements OnInit, OnDestroy {
     });
   }
 
-  // La foto y la hoja se suben en serie, no en paralelo. Si las dos fallaran al
-  // mismo tiempo, con dos avisos encimados encima del modal se pierde de vista
-  // cual de los dos fue el error real. Ademas el backend tiene un limite de
-  // conexiones y dos subidas de varios MB a la vez en un despliegue serverless es
-  // la forma rapida de que una se corte.
-  private async subirAdjuntos(id: number, eraEdicion: boolean): Promise<void> {
+  // El unico adjunto que sigue siendo opcional es la foto. Si no hay ninguna
+  // elegida se cierra el modal aqui mismo: antes esta funcion era una cadena de
+  // dos, porque la hoja tambien se subia en su propia llamada.
+  private async subirImagenSiHay(id: number, eraEdicion: boolean): Promise<void> {
     const imagen = this.imagenSeleccionada();
-    const hoja = this.hojaSeleccionada();
 
     if (imagen) {
       const ok = await this.subirImagen(id, imagen);
-      if (!ok) return;
-    }
-
-    if (hoja) {
-      const ok = await this.subirHoja(id, hoja);
       if (!ok) return;
     }
 
@@ -531,58 +509,8 @@ export class Examenes implements OnInit, OnDestroy {
     });
   }
 
-  // --- Hoja de inscripcion ---
-
-  onHojaSelected(input: HTMLInputElement): void {
-    const archivo = input.files?.[0];
-    if (!archivo) return;
-
-    const error = this.examenesService.validarHoja(archivo);
-    if (error) {
-      this.cdr.markForCheck();
-      this.notificationService.error(error);
-      input.value = '';
-      return;
-    }
-
-    this.hojaSeleccionada.set(archivo);
-    // Se limpia el input para que elegir dos veces el MISMO archivo dispare
-    // `change`. Sin esto, el admin corrige el PDF equivocado, lo vuelve a
-    // elegir, y no pasa nada: el navegador no emite `change` cuando el valor
-    // no cambio.
-    input.value = '';
-    this.cdr.markForCheck();
-  }
-
-  // Igual que la imagen: quitar borra de verdad. En alta todavia no hay fila, y
-  // descartar el archivo elegido es todo lo que se puede hacer.
-  quitarHoja(): void {
-    const id = this.examenEditandoId();
-    if (id === null) {
-      this.hojaSeleccionada.set(null);
-      return;
-    }
-
-    this.quitandoHoja.set(true);
-    this.examenesService.eliminarHoja(id).subscribe({
-      next: () => {
-        this.quitandoHoja.set(false);
-        this.hojaSeleccionada.set(null);
-        this.hojaGuardada.set(false);
-        this.cdr.markForCheck();
-        this.notificationService.success('Hoja de inscripción eliminada');
-        this.cdr.markForCheck();
-      },
-      error: (err) => {
-        this.quitandoHoja.set(false);
-        this.cdr.markForCheck();
-        this.notificationService.error(err?.error?.message || 'No se pudo eliminar la hoja de inscripción.');
-      },
-    });
-  }
-
   // Devuelve si la subida funciono, en vez de cerrar el modal: el cierre lo
-  // decide `subirAdjuntos`, que todavia puede tener una hoja pendiente.
+  // decide `subirImagenSiHay`, que puede tener que avisar de un fallo antes.
   private async subirImagen(id: number, archivo: File): Promise<boolean> {
     this.guardando.set(true);
     let thumb: File | undefined;
@@ -612,34 +540,6 @@ export class Examenes implements OnInit, OnDestroy {
           this.cdr.markForCheck();
           this.notificationService.error(
             err?.error?.message || 'El examen se guardó, pero la imagen no se pudo subir.'
-          );
-          resolve(false);
-        },
-      });
-    });
-  }
-
-  // El PDF va crudo: sin recortar, sin thumbnail y sin previsualizar. Un PDF no
-  // se renderiza igual en todos los navegadores, asi que generar una miniatura
-  // seria inventar una imagen que no representa lo que el alumno va a ver al
-  // abrirlo.
-  private subirHoja(id: number, archivo: File): Promise<boolean> {
-    this.guardando.set(true);
-
-    return new Promise<boolean>((resolve) => {
-      this.examenesService.subirHoja(id, archivo).subscribe({
-        next: () => {
-          this.guardando.set(false);
-          this.hojaSeleccionada.set(null);
-          this.hojaGuardada.set(true);
-          resolve(true);
-        },
-        error: (err) => {
-          this.guardando.set(false);
-          this.closeModal();
-          this.cdr.markForCheck();
-          this.notificationService.error(
-            err?.error?.message || 'El examen se guardó, pero la hoja no se pudo subir.'
           );
           resolve(false);
         },

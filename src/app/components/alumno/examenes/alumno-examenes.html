@@ -156,17 +156,20 @@
                   (click)="toggleInscripcion(tarjeta.examen)">
                   {{ procesando() === tarjeta.examen.id ? 'Cancelando...' : 'Cancelar inscripción' }}
                 </button>
-                <!-- Solo si el admin subio una hoja. Sin ella el boton seria un
-                     click que responde 404, que es peor que no ofrecerlo. -->
-                @if (tarjeta.examen.tieneHoja) {
-                  <button
-                    type="button"
-                    class="btn btn-ghost btn-sm"
-                    [disabled]="procesando() !== null || descargandoHoja() !== null"
-                    (click)="descargarHoja(tarjeta.examen)">
-                    {{ descargandoHoja() === tarjeta.examen.id ? 'Descargando...' : 'Descargar solicitud rellenada' }}
-                  </button>
-                }
+                <!-- Sin `@if`. La hoja va embebida en el backend y existe para
+                     todos los examenes, incluso los creados antes de que eso
+                     fuera asi. Se condicionaba por `tieneHoja`, y ese booleano
+                     se quedaba en false en esas filas: el alumno se inscribia,
+                     no le pasaba nada, y no habia ni boton ni aviso de por que.
+                     Un boton que siempre funciona es mas honesto que uno que a
+                     veces no existe. -->
+                <button
+                  type="button"
+                  class="btn btn-ghost btn-sm"
+                  [disabled]="procesando() !== null || descargandoHoja() !== null"
+                  (click)="descargarHoja(tarjeta.examen)">
+                  {{ descargandoHoja() === tarjeta.examen.id ? 'Descargando...' : 'Descargar solicitud rellenada' }}
+                </button>
               } @else if (tarjeta.puedeInscribirse) {
                 <button
                   type="button"
